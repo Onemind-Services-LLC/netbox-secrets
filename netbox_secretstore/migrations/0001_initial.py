@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['device', 'role', 'name'],
+                'db_table': 'secrets_secret'
             },
         ),
         migrations.CreateModel(
@@ -45,6 +46,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['name'],
+                'db_table': 'secrets_secretrole'
             },
         ),
         migrations.CreateModel(
@@ -59,6 +61,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['user__username'],
+                'db_table': 'secrets_userkey',
             },
         ),
         migrations.AddField(

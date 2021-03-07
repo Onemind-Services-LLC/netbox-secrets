@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['userkey__user__username'],
+                'db_table': 'secrets_sessionkey',
             },
         ),
         migrations.AlterField(
