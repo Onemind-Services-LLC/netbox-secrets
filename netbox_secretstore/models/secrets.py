@@ -6,7 +6,7 @@ from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import Group, User
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -22,6 +22,9 @@ from netbox_secretstore.exceptions import InvalidKey
 from netbox_secretstore.utils.hashers import SecretValidationHasher
 from netbox_secretstore.querysets import UserKeyQuerySet
 from netbox_secretstore.utils.crypto import encrypt_master_key, decrypt_master_key, generate_random_key
+
+from dcim.models import Device
+from virtualization.models import VirtualMachine
 
 
 __all__ = (
@@ -265,7 +268,7 @@ class SecretRole(OrganizationalModel):
         return self.name
 
     def get_absolute_url(self):
-        return "{}?role={}".format(reverse('secrets:secret_list'), self.slug)
+        return "{}?role={}".format(reverse('plugins:netbox_secretstore:secret_list'), self.slug)
 
     def to_csv(self):
         return (
@@ -331,7 +334,7 @@ class Secret(PrimaryModel):
         return self.name or 'Secret'
 
     def get_absolute_url(self):
-        return reverse('secrets:secret', args=[self.pk])
+        return reverse('plugins:netbox_secretstore:secret', args=[self.pk])
 
     def to_csv(self):
         return (
@@ -425,3 +428,18 @@ class Secret(PrimaryModel):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
+
+
+GenericRelation(
+    to=Secret,
+    content_type_field='assigned_object_type',
+    object_id_field='assigned_object_id',
+    related_query_name='device'
+).contribute_to_class(Device, 'secrets')
+
+GenericRelation(
+    to=Secret,
+    content_type_field='assigned_object_type',
+    object_id_field='assigned_object_id',
+    related_query_name='virtual_machine'
+).contribute_to_class(VirtualMachine, 'secrets')
