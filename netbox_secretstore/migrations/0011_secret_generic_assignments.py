@@ -5,7 +5,7 @@ import django.db.models.deletion
 def device_to_generic_assignment(apps, schema_editor):
     ContentType = apps.get_model('contenttypes', 'ContentType')
     Device = apps.get_model('dcim', 'Device')
-    Secret = apps.get_model('netbox_secretstore', 'Secret')
+    Secret = apps.get_model('secrets', 'Secret')
 
     device_ct = ContentType.objects.get_for_model(Device)
     Secret.objects.update(assigned_object_type=device_ct, assigned_object_id=models.F('device_id'))
@@ -13,12 +13,9 @@ def device_to_generic_assignment(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('secrets', '0011_secret_generic_assignments')
-    ]
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('netbox_secretstore', '0010_custom_field_data'),
+        ('secrets', '0010_custom_field_data'),
     ]
 
     operations = [

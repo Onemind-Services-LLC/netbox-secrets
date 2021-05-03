@@ -1,12 +1,11 @@
 import django_filters
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models import Q
 
 from dcim.models import Device
 from extras.filters import CustomFieldModelFilterSet, CreatedUpdatedFilterSet
 from utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
 from virtualization.models import VirtualMachine
-from .models import Secret, SecretRole
+from models import Secret, SecretRole
 
 
 __all__ = (
@@ -15,7 +14,7 @@ __all__ = (
 )
 
 
-class SecretRoleFilterSet(BaseFilterSet, NameSlugSearchFilterSet):
+class SecretRoleFilterSet(BaseFilterSet, NameSlugSearchFilterSet, CreatedUpdatedFilterSet):
 
     class Meta:
         model = SecretRole

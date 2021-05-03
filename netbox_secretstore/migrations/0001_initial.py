@@ -9,9 +9,6 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    replaces = [
-        ('secrets', '0001_initial')
-    ]
     dependencies = [
         ('dcim', '0002_auto_20160622_1821'),
         ('auth', '0007_alter_validators_add_error_messages'),
@@ -32,7 +29,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['device', 'role', 'name'],
-                'db_table': 'secrets_secret'
             },
         ),
         migrations.CreateModel(
@@ -46,7 +42,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['name'],
-                'db_table': 'secrets_secretrole'
             },
         ),
         migrations.CreateModel(
@@ -61,13 +56,12 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['user__username'],
-                'db_table': 'secrets_userkey',
             },
         ),
         migrations.AddField(
             model_name='secret',
             name='role',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='secrets', to='netbox_secretstore.SecretRole'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='secrets', to='secrets.SecretRole'),
         ),
         migrations.AlterUniqueTogether(
             name='secret',

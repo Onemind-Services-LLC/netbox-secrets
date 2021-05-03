@@ -5,11 +5,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('secrets', '0003_unicode_literals')
-    ]
     dependencies = [
-        ('netbox_secretstore', '0002_userkey_add_session_key'),
+        ('secrets', '0002_userkey_add_session_key'),
     ]
 
     operations = [

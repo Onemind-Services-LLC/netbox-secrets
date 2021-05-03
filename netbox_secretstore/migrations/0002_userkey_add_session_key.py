@@ -7,11 +7,8 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('secrets', '0002_userkey_add_session_key')
-    ]
     dependencies = [
-        ('netbox_secretstore', '0001_initial'),
+        ('secrets', '0001_initial'),
     ]
 
     operations = [
@@ -25,7 +22,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['userkey__user__username'],
-                'db_table': 'secrets_sessionkey',
             },
         ),
         migrations.AlterField(
@@ -36,6 +32,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sessionkey',
             name='userkey',
-            field=models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='session_key', to='netbox_secretstore.UserKey'),
+            field=models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='session_key', to='secrets.UserKey'),
         ),
     ]

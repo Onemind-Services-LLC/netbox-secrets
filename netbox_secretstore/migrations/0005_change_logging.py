@@ -5,11 +5,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('secrets', '0005_change_logging')
-    ]
     dependencies = [
-        ('netbox_secretstore', '0004_tags'),
+        ('secrets', '0004_tags'),
     ]
 
     operations = [

@@ -4,11 +4,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('secrets', '0013_standardize_models')
-    ]
     dependencies = [
-        ('netbox_secretstore', '0012_standardize_name_length'),
+        ('secrets', '0012_standardize_name_length'),
     ]
 
     operations = [

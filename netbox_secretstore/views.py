@@ -1,15 +1,28 @@
+import base64
 import logging
 
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from netbox.views import generic
+from utilities.tables import paginate_table
 from utilities.utils import count_related
-from . import filters, forms, tables
-from .models import SecretRole, Secret, SessionKey, UserKey
-from .utils.helpers import get_session_key
+import tables
+import forms
+import filters
+from models import SecretRole, Secret, SessionKey, UserKey
+
+
+def get_session_key(request):
+    """
+    Extract and decode the session key sent with a request. Returns None if no session key was provided.
+    """
+    session_key = request.COOKIES.get('session_key', None)
+    if session_key is not None:
+        return base64.b64decode(session_key)
+    return session_key
 
 
 #
@@ -21,6 +34,23 @@ class SecretRoleListView(generic.ObjectListView):
         secret_count=count_related(Secret, 'role')
     )
     table = tables.SecretRoleTable
+
+
+class SecretRoleView(generic.ObjectView):
+    queryset = SecretRole.objects.all()
+
+    def get_extra_context(self, request, instance):
+        secrets = Secret.objects.restrict(request.user, 'view').filter(
+            role=instance
+        )
+
+        secrets_table = tables.SecretTable(secrets)
+        secrets_table.columns.hide('role')
+        paginate_table(secrets_table, request)
+
+        return {
+            'secrets_table': secrets_table,
+        }
 
 
 class SecretRoleEditView(generic.ObjectEditView):
@@ -36,6 +66,15 @@ class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = SecretRole.objects.all()
     model_form = forms.SecretRoleCSVForm
     table = tables.SecretRoleTable
+
+
+class SecretRoleBulkEditView(generic.BulkEditView):
+    queryset = SecretRole.objects.annotate(
+        secret_count=count_related(Secret, 'role')
+    )
+    filterset = filters.SecretRoleFilterSet
+    table = tables.SecretRoleTable
+    form = forms.SecretRoleBulkEditForm
 
 
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
@@ -54,7 +93,7 @@ class SecretListView(generic.ObjectListView):
     filterset = filters.SecretFilterSet
     filterset_form = forms.SecretFilterForm
     table = tables.SecretTable
-    action_buttons = ('import', 'export')
+    action_buttons = ('add', 'import', 'export')
 
 
 class SecretView(generic.ObjectView):

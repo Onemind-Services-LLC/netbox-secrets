@@ -5,26 +5,21 @@ from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth.models import Group, User
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-from taggit.managers import TaggableManager
 
-from extras.models import TaggedItem
 from extras.utils import extras_features
 from netbox.models import BigIDModel, OrganizationalModel, PrimaryModel
 from utilities.querysets import RestrictedQuerySet
 from netbox_secretstore.exceptions import InvalidKey
-from netbox_secretstore.utils.hashers import SecretValidationHasher
+from netbox_secretstore.hashers import SecretValidationHasher
 from netbox_secretstore.querysets import UserKeyQuerySet
-from netbox_secretstore.utils.crypto import encrypt_master_key, decrypt_master_key, generate_random_key
-
-from dcim.models import Device
-from virtualization.models import VirtualMachine
+from netbox_secretstore.utils import encrypt_master_key, decrypt_master_key, generate_random_key
 
 
 __all__ = (
@@ -173,7 +168,7 @@ class SessionKey(BigIDModel):
     A SessionKey stores a User's temporary key to be used for the encryption and decryption of secrets.
     """
     userkey = models.OneToOneField(
-        to='netbox_secretstore.UserKey',
+        to='secrets.UserKey',
         on_delete=models.CASCADE,
         related_name='session_key',
         editable=False
@@ -268,7 +263,7 @@ class SecretRole(OrganizationalModel):
         return self.name
 
     def get_absolute_url(self):
-        return "{}?role={}".format(reverse('plugins:netbox_secretstore:secret_list'), self.slug)
+        return reverse('secrets:secretrole', args=[self.pk])
 
     def to_csv(self):
         return (
@@ -299,7 +294,7 @@ class Secret(PrimaryModel):
         fk_field='assigned_object_id'
     )
     role = models.ForeignKey(
-        to='netbox_secretstore.SecretRole',
+        to='secrets.SecretRole',
         on_delete=models.PROTECT,
         related_name='secrets'
     )
@@ -315,7 +310,6 @@ class Secret(PrimaryModel):
         max_length=128,
         editable=False
     )
-    tags = TaggableManager(through=TaggedItem)
 
     objects = RestrictedQuerySet.as_manager()
 
@@ -334,7 +328,7 @@ class Secret(PrimaryModel):
         return self.name or 'Secret'
 
     def get_absolute_url(self):
-        return reverse('plugins:netbox_secretstore:secret', args=[self.pk])
+        return reverse('secrets:secret', args=[self.pk])
 
     def to_csv(self):
         return (
