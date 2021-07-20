@@ -6,13 +6,15 @@ from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 
+from dcim.models import Device
+from virtualization.models import VirtualMachine
 from extras.utils import extras_features
 from netbox.models import BigIDModel, OrganizationalModel, PrimaryModel
 from utilities.querysets import RestrictedQuerySet
@@ -168,7 +170,7 @@ class SessionKey(BigIDModel):
     A SessionKey stores a User's temporary key to be used for the encryption and decryption of secrets.
     """
     userkey = models.OneToOneField(
-        to='secrets.UserKey',
+        to='UserKey',
         on_delete=models.CASCADE,
         related_name='session_key',
         editable=False
@@ -294,7 +296,7 @@ class Secret(PrimaryModel):
         fk_field='assigned_object_id'
     )
     role = models.ForeignKey(
-        to='secrets.SecretRole',
+        to='SecretRole',
         on_delete=models.PROTECT,
         related_name='secrets'
     )

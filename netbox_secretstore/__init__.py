@@ -16,7 +16,7 @@ class NetBoxSecretStore(PluginConfig):
         }
     }
     default_settings = {
-        'loud': False
+        'SECRETS_MIN_PUBKEY_SIZE': 2048
     }
 
 config = NetBoxSecretStore

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from netbox.api import WritableNestedSerializer
-from models import Secret, SecretRole
+from netbox_secretstore.models import Secret, SecretRole
 
 __all__ = [
     'NestedSecretRoleSerializer',

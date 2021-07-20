@@ -2,17 +2,23 @@ import base64
 import logging
 
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.views.generic.base import View
+
+from netbox_secretstore.forms import UserKeyForm
 
 from netbox.views import generic
+from utilities.forms import ConfirmationForm
 from utilities.tables import paginate_table
 from utilities.utils import count_related
-import tables
-import forms
-import filters
-from models import SecretRole, Secret, SessionKey, UserKey
+from .tables import *
+from .forms import *
+from .filters import *
+from .models import SecretRole, Secret, SessionKey, UserKey
 
 
 def get_session_key(request):
@@ -33,7 +39,7 @@ class SecretRoleListView(generic.ObjectListView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
-    table = tables.SecretRoleTable
+    table = SecretRoleTable
 
 
 class SecretRoleView(generic.ObjectView):
@@ -44,7 +50,7 @@ class SecretRoleView(generic.ObjectView):
             role=instance
         )
 
-        secrets_table = tables.SecretTable(secrets)
+        secrets_table = SecretTable(secrets)
         secrets_table.columns.hide('role')
         paginate_table(secrets_table, request)
 
@@ -55,7 +61,7 @@ class SecretRoleView(generic.ObjectView):
 
 class SecretRoleEditView(generic.ObjectEditView):
     queryset = SecretRole.objects.all()
-    model_form = forms.SecretRoleForm
+    model_form = SecretRoleForm
 
 
 class SecretRoleDeleteView(generic.ObjectDeleteView):
@@ -64,24 +70,24 @@ class SecretRoleDeleteView(generic.ObjectDeleteView):
 
 class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = SecretRole.objects.all()
-    model_form = forms.SecretRoleCSVForm
-    table = tables.SecretRoleTable
+    model_form = SecretRoleCSVForm
+    table = SecretRoleTable
 
 
 class SecretRoleBulkEditView(generic.BulkEditView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
-    filterset = filters.SecretRoleFilterSet
-    table = tables.SecretRoleTable
-    form = forms.SecretRoleBulkEditForm
+    filterset = SecretRoleFilterSet
+    table = SecretRoleTable
+    form = SecretRoleBulkEditForm
 
 
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
-    table = tables.SecretRoleTable
+    table = SecretRoleTable
 
 
 #
@@ -90,9 +96,9 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 
 class SecretListView(generic.ObjectListView):
     queryset = Secret.objects.all()
-    filterset = filters.SecretFilterSet
-    filterset_form = forms.SecretFilterForm
-    table = tables.SecretTable
+    filterset = SecretFilterSet
+    filterset_form = SecretFilterForm
+    table = SecretTable
     action_buttons = ('add', 'import', 'export')
 
 
@@ -102,7 +108,7 @@ class SecretView(generic.ObjectView):
 
 class SecretEditView(generic.ObjectEditView):
     queryset = Secret.objects.all()
-    model_form = forms.SecretForm
+    model_form = SecretForm
     template_name = 'secrets/secret_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -175,8 +181,8 @@ class SecretDeleteView(generic.ObjectDeleteView):
 
 class SecretBulkImportView(generic.BulkImportView):
     queryset = Secret.objects.all()
-    model_form = forms.SecretCSVForm
-    table = tables.SecretTable
+    model_form = SecretCSVForm
+    table = SecretTable
     template_name = 'secrets/secret_import.html'
     widget_attrs = {'class': 'requires-session-key'}
 
@@ -222,12 +228,99 @@ class SecretBulkImportView(generic.BulkImportView):
 
 class SecretBulkEditView(generic.BulkEditView):
     queryset = Secret.objects.prefetch_related('role')
-    filterset = filters.SecretFilterSet
-    table = tables.SecretTable
-    form = forms.SecretBulkEditForm
+    filterset = SecretFilterSet
+    table = SecretTable
+    form = SecretBulkEditForm
 
 
 class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = Secret.objects.prefetch_related('role')
-    filterset = filters.SecretFilterSet
-    table = tables.SecretTable
+    filterset = SecretFilterSet
+    table = SecretTable
+
+
+class UserKeyView(LoginRequiredMixin, View):
+    template_name = 'users/userkey.html'
+
+    def get(self, request):
+        try:
+            userkey = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            userkey = None
+
+        return render(request, self.template_name, {
+            'object': userkey,
+            'active_tab': 'userkey',
+        })
+
+
+class UserKeyEditView(LoginRequiredMixin, View):
+    template_name = 'users/userkey_edit.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.userkey = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            self.userkey = UserKey(user=request.user)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        form = UserKeyForm(instance=self.userkey)
+
+        return render(request, self.template_name, {
+            'object': self.userkey,
+            'form': form,
+            'active_tab': 'userkey',
+        })
+
+    def post(self, request):
+        form = UserKeyForm(data=request.POST, instance=self.userkey)
+        if form.is_valid():
+            uk = form.save(commit=False)
+            uk.user = request.user
+            uk.save()
+            messages.success(request, "Your user key has been saved.")
+            return redirect('user:userkey')
+
+        return render(request, self.template_name, {
+            'userkey': self.userkey,
+            'form': form,
+            'active_tab': 'userkey',
+        })
+
+
+class SessionKeyDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request):
+
+        sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
+        form = ConfirmationForm()
+
+        return render(request, 'users/sessionkey_delete.html', {
+            'obj_type': sessionkey._meta.verbose_name,
+            'form': form,
+            'return_url': reverse('user:userkey'),
+        })
+
+    def post(self, request):
+
+        sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
+        form = ConfirmationForm(request.POST)
+        if form.is_valid():
+
+            # Delete session key
+            sessionkey.delete()
+            messages.success(request, "Session key deleted")
+
+            # Delete cookie
+            response = redirect('user:userkey')
+            response.delete_cookie('session_key')
+
+            return response
+
+        return render(request, 'users/sessionkey_delete.html', {
+            'obj_type': sessionkey._meta.verbose_name,
+            'form': form,
+            'return_url': reverse('user:userkey'),
+        })

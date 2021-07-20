@@ -10,9 +10,9 @@ from rest_framework.viewsets import ViewSet
 
 from extras.api.views import CustomFieldModelViewSet
 from netbox.api.views import ModelViewSet
-import filters
-from exceptions import InvalidKey
-from models import Secret, SecretRole, SessionKey, UserKey
+from netbox_secretstore import filters
+from netbox_secretstore.exceptions import InvalidKey
+from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.utils import count_related
 from . import serializers
 

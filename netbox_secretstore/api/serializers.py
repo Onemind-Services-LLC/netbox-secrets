@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from netbox.api import ContentTypeField
 from netbox.api.serializers import OrganizationalModelSerializer, PrimaryModelSerializer
-from constants import SECRET_ASSIGNMENT_MODELS
-from models import Secret, SecretRole
+from netbox_secretstore.constants import SECRET_ASSIGNMENT_MODELS
+from netbox_secretstore.models import Secret, SecretRole
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
 

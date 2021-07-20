@@ -3,8 +3,11 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    replaces = [
+        ('secrets', '0009_secretrole_drop_users_groups')
+    ]
     dependencies = [
-        ('secrets', '0008_standardize_description'),
+        ('netbox_secretstore', '0008_standardize_description'),
         ('users', '0009_replicate_permissions'),
     ]
 

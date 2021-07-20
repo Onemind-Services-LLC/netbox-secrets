@@ -6,8 +6,11 @@ import taggit.managers
 
 class Migration(migrations.Migration):
 
+    replaces = [
+        ('secrets', '0006_custom_tag_models')
+    ]
     dependencies = [
-        ('secrets', '0005_change_logging'),
+        ('netbox_secretstore', '0005_change_logging'),
         ('extras', '0019_tag_taggeditem'),
     ]
 

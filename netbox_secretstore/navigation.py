@@ -1,26 +1,23 @@
-from extras.plugins import PluginMenuButton, PluginMenuItem
-from utilities.choices import ButtonColorChoices
+from netbox import navigation_menu
 
-menu_items = (
-    PluginMenuItem(
-        link='plugins:netbox_secretstore:userkey',
-        link_text='User Key',
-        buttons=()
-    ),
-    PluginMenuItem(
-        link='plugins:netbox_secretstore:secretrole_list',
-        link_text='Secret Roles',
-        buttons=(
-            PluginMenuButton('plugins:netbox_secretstore:secretrole_add', 'Add', 'mdi mdi-plus-thick', ButtonColorChoices.GREEN),
-            PluginMenuButton('plugins:netbox_secretstore:secretrole_import', 'Import', 'mdi mdi-database-import-outline', ButtonColorChoices.BLUE),
+SECRETS_MENU = navigation_menu.Menu(
+    label='Secrets',
+    icon="domain",
+    groups=(
+        navigation_menu.MenuGroup(
+            label="User",
+            items=(
+                navigation_menu.MenuItem(label="Secrets User Key", url='plugins:netbox_secretstore:userkey', add_url=None, import_url=None),
+            )
+        ),
+        navigation_menu.MenuGroup(
+            label="Secrets",
+            items=(
+                navigation_menu.MenuItem(label="User Key", url='plugins:netbox_secretstore:secretrole_list', add_url='plugins:netbox_secretstore:secretrole_add', import_url='plugins:netbox_secretstore:secretrole_import'),
+                navigation_menu.MenuItem(label="User Key", url='plugins:netbox_secretstore:secret_list', add_url='plugins:netbox_secretstore:secret_add', import_url='plugins:netbox_secretstore:secret_import'),
+            )
         )
-    ),
-    PluginMenuItem(
-        link='plugins:netbox_secretstore:secret_list',
-        link_text='Secrets',
-        buttons=(
-            PluginMenuButton('plugins:netbox_secretstore:secret_add', 'Add', 'mdi mdi-plus-thick', ButtonColorChoices.GREEN),
-            PluginMenuButton('plugins:netbox_secretstore:secret_import', 'Import', 'mdi mdi-database-import-outline', ButtonColorChoices.BLUE),
-        )
-    ),
+    )
 )
+
+navigation_menu.MENUS = navigation_menu.MENUS + (SECRETS_MENU, )

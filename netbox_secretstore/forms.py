@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 
 from dcim.models import Device
 from extras.forms import (
-    AddRemoveTagsForm, CustomFieldBulkEditForm, CustomFieldFilterForm, CustomFieldModelForm, CustomFieldModelCSVForm,
+    AddRemoveTagsForm, CustomFieldModelBulkEditForm, CustomFieldModelFilterForm, CustomFieldModelForm, CustomFieldModelCSVForm,
 )
 from extras.models import Tag
 from utilities.forms import (
@@ -14,7 +14,7 @@ from utilities.forms import (
 )
 from virtualization.models import VirtualMachine
 from .constants import *
-from models import Secret, SecretRole, UserKey
+from .models import Secret, SecretRole, UserKey
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -59,7 +59,7 @@ class SecretRoleCSVForm(CustomFieldModelCSVForm):
         fields = SecretRole.csv_headers
 
 
-class SecretRoleBulkEditForm(BootstrapMixin, CustomFieldBulkEditForm):
+class SecretRoleBulkEditForm(BootstrapMixin, CustomFieldModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         widget=forms.MultipleHiddenInput
@@ -210,7 +210,7 @@ class SecretCSVForm(CustomFieldModelCSVForm):
         return s
 
 
-class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldBulkEditForm):
+class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=Secret.objects.all(),
         widget=forms.MultipleHiddenInput()
@@ -230,7 +230,7 @@ class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldBulkEditF
         ]
 
 
-class SecretFilterForm(BootstrapMixin, CustomFieldFilterForm):
+class SecretFilterForm(BootstrapMixin, CustomFieldModelFilterForm):
     model = Secret
     q = forms.CharField(
         required=False,

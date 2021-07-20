@@ -6,9 +6,12 @@ import taggit.managers
 
 class Migration(migrations.Migration):
 
+    replaces = [
+        ('secrets', '0004_tags')
+    ]
     dependencies = [
         ('taggit', '0002_auto_20150616_2121'),
-        ('secrets', '0003_unicode_literals'),
+        ('netbox_secretstore', '0003_unicode_literals'),
     ]
 
     operations = [

@@ -1,7 +1,7 @@
 import django_tables2 as tables
 
 from utilities.tables import BaseTable, ButtonsColumn, LinkedCountColumn, TagColumn, ToggleColumn
-from models import SecretRole, Secret
+from .models import SecretRole, Secret
 
 
 #

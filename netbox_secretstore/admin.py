@@ -3,7 +3,7 @@ from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.shortcuts import redirect, render
 
 from .forms import ActivateUserKeyForm
-from models import UserKey
+from .models import UserKey
 
 
 @admin.register(UserKey)

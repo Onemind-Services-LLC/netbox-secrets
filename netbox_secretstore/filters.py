@@ -2,10 +2,11 @@ import django_filters
 from django.db.models import Q
 
 from dcim.models import Device
-from extras.filters import CustomFieldModelFilterSet, CreatedUpdatedFilterSet
-from utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
+from extras.filters import TagFilter
+from extras.filtersets import CustomFieldFilterSet
+from netbox.filtersets import ChangeLoggedModelFilterSet, BaseFilterSet
 from virtualization.models import VirtualMachine
-from models import Secret, SecretRole
+from .models import Secret, SecretRole
 
 
 __all__ = (
@@ -14,14 +15,14 @@ __all__ = (
 )
 
 
-class SecretRoleFilterSet(BaseFilterSet, NameSlugSearchFilterSet, CreatedUpdatedFilterSet):
+class SecretRoleFilterSet(ChangeLoggedModelFilterSet):
 
     class Meta:
         model = SecretRole
         fields = ['id', 'name', 'slug']
 
 
-class SecretFilterSet(BaseFilterSet, CustomFieldModelFilterSet, CreatedUpdatedFilterSet):
+class SecretFilterSet(BaseFilterSet):
     q = django_filters.CharFilter(
         method='search',
         label='Search',
