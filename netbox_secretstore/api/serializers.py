@@ -15,7 +15,7 @@ from .nested_serializers import *
 #
 
 class SecretRoleSerializer(OrganizationalModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='secrets-api:secretrole-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secretrole-detail')
     secret_count = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -27,7 +27,7 @@ class SecretRoleSerializer(OrganizationalModelSerializer):
 
 
 class SecretSerializer(PrimaryModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='secrets-api:secret-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secret-detail')
     assigned_object_type = ContentTypeField(
         queryset=ContentType.objects.filter(SECRET_ASSIGNMENT_MODELS)
     )

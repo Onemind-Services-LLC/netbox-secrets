@@ -1,10 +1,11 @@
 {% extends 'users/base.html' %}
-{% load static %}
 {% load form_helpers %}
+{% load plugins %}
+{% load static %}
 
 {% block title %}User Key{% endblock %}
 
-{% block usercontent %}
+{% block content %}
     {% if object.is_active %}
         <div class="alert alert-danger" role="alert">
             <strong>Warning:</strong> Changing your public key will require your user key to be re-activated by another
@@ -21,7 +22,7 @@
                 <button type="button" class="btn btn-info" id="generate_keypair" data-bs-toggle="modal" data-bs-target="#new_keypair_modal">Generate a New Key Pair</button>
             </div>
             <div class="col-8 text-end">
-                <a href="{% url 'user:userkey' %}" class="btn btn-outline-danger">Cancel</a>
+                <a href="{% url 'plugins:netbox_secretstore:userkey' %}" class="btn btn-outline-danger">Cancel</a>
                 <button type="submit" name="_update" class="btn btn-primary">Save</button>    
             </div>
         </div>

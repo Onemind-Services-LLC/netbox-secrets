@@ -265,7 +265,7 @@ class SecretRole(OrganizationalModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('secrets:secretrole', args=[self.pk])
+        return reverse('plugins:netbox_secretstore:secretrole', args=[self.pk])
 
     def to_csv(self):
         return (
@@ -330,7 +330,7 @@ class Secret(PrimaryModel):
         return self.name or 'Secret'
 
     def get_absolute_url(self):
-        return reverse('secrets:secret', args=[self.pk])
+        return reverse('plugins:netbox_secretstore:secret', args=[self.pk])
 
     def to_csv(self):
         return (

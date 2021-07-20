@@ -9,12 +9,14 @@ from extras.forms import (
 )
 from extras.models import Tag
 from utilities.forms import (
-    BootstrapMixin, CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField,
-    SlugField, TagFilterField,
+    BootstrapMixin, CSVModelChoiceField, SlugField, TagFilterField, DynamicModelChoiceField,
+    DynamicModelMultipleChoiceField,
 )
 from virtualization.models import VirtualMachine
-from .constants import *
-from .models import Secret, SecretRole, UserKey
+from netbox_secretstore.constants import *
+from netbox_secretstore.models import Secret, SecretRole, UserKey
+
+from .fields import PluginDynamicModelChoiceField, PluginDynamicModelMultipleChoiceField
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -102,7 +104,7 @@ class SecretForm(BootstrapMixin, CustomFieldModelForm):
         label='Plaintext (verify)',
         widget=forms.PasswordInput()
     )
-    role = DynamicModelChoiceField(
+    role = PluginDynamicModelChoiceField(
         queryset=SecretRole.objects.all()
     )
     tags = DynamicModelMultipleChoiceField(
@@ -215,7 +217,7 @@ class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldModelBulk
         queryset=Secret.objects.all(),
         widget=forms.MultipleHiddenInput()
     )
-    role = DynamicModelChoiceField(
+    role = PluginDynamicModelChoiceField(
         queryset=SecretRole.objects.all(),
         required=False
     )
@@ -236,7 +238,7 @@ class SecretFilterForm(BootstrapMixin, CustomFieldModelFilterForm):
         required=False,
         label=_('Search')
     )
-    role_id = DynamicModelMultipleChoiceField(
+    role_id = PluginDynamicModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         required=False,
         label=_('Role')

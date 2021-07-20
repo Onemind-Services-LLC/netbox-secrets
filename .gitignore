@@ -1,1 +1,3 @@
 netbox_secretstore.egg-info
+node_modules
+/netbox_secretstore/project-static/netbox/

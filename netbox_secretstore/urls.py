@@ -4,7 +4,6 @@ from extras.views import ObjectChangeLogView, ObjectJournalView
 from .views import *
 from .models import Secret, SecretRole
 
-app_name = 'netbox_secrets'
 urlpatterns = [
 
     # Secret roles

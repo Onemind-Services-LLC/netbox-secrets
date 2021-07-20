@@ -27,11 +27,12 @@ def _get_plugin_viewname(instance, action=None):
     # Validate action
     assert action in ('add', 'edit', 'delete', 'list', 'changelog')
     app_label = _resolve_namespace(instance)
+    print(f'{app_label}')
     if action is not None:
         viewname = f'{app_label}:{instance._meta.model_name}_{action}'
     else:
         viewname = f'{app_label}:{instance._meta.model_name}'
-
+    print(f'{app_label}:{viewname}')
     return viewname
 
 

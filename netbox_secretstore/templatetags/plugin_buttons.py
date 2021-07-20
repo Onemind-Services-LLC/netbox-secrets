@@ -44,7 +44,9 @@ def tr_delete_button(instance, extra=None):
 
 @register.inclusion_tag('netbox_secretstore/buttons/tr_changelog.html')
 def tr_changelog_button(instance):
+    print(instance)
     viewname = _get_plugin_viewname(instance, 'changelog')
+    print(viewname)
     url = reverse(viewname, kwargs={'pk': instance.pk})
 
     return {
@@ -64,6 +66,16 @@ def clone_button(instance):
     param_string = prepare_cloned_fields(instance)
     if param_string:
         url = f'{url}?{param_string}'
+
+    return {
+        'url': url,
+    }
+
+
+@register.inclusion_tag('buttons/add.html')
+def add_button(instance):
+    viewname = _get_plugin_viewname(instance, 'edit')
+    url = reverse(viewname, kwargs={'pk': instance.pk})
 
     return {
         'url': url,

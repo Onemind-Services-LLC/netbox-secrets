@@ -40,6 +40,7 @@ class SecretRoleListView(generic.ObjectListView):
         secret_count=count_related(Secret, 'role')
     )
     table = SecretRoleTable
+    template_name = 'netbox_secretstore/generic/object_list.html'
 
 
 class SecretRoleView(generic.ObjectView):
@@ -100,6 +101,7 @@ class SecretListView(generic.ObjectListView):
     filterset_form = SecretFilterForm
     table = SecretTable
     action_buttons = ('add', 'import', 'export')
+    template_name = 'netbox_secretstore/generic/object_list.html'
 
 
 class SecretView(generic.ObjectView):
@@ -109,7 +111,7 @@ class SecretView(generic.ObjectView):
 class SecretEditView(generic.ObjectEditView):
     queryset = Secret.objects.all()
     model_form = SecretForm
-    template_name = 'secrets/secret_edit.html'
+    template_name = 'netbox_secretstore/secret_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -183,7 +185,7 @@ class SecretBulkImportView(generic.BulkImportView):
     queryset = Secret.objects.all()
     model_form = SecretCSVForm
     table = SecretTable
-    template_name = 'secrets/secret_import.html'
+    template_name = 'netbox_secretstore/secret_import.html'
     widget_attrs = {'class': 'requires-session-key'}
 
     master_key = None
@@ -240,7 +242,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 class UserKeyView(LoginRequiredMixin, View):
-    template_name = 'users/userkey.html'
+    template_name = 'netbox_secretstore/userkey.html'
 
     def get(self, request):
         try:
@@ -255,7 +257,7 @@ class UserKeyView(LoginRequiredMixin, View):
 
 
 class UserKeyEditView(LoginRequiredMixin, View):
-    template_name = 'users/userkey_edit.html'
+    template_name = 'netbox_secretstore/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
         try:
