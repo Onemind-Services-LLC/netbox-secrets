@@ -25,3 +25,13 @@
         </div>
     </div>
 </div>
+
+{% block javascript %}
+{% load static %}
+{# Javascript #}
+<script
+  type="text/javascript"
+  src="{% static 'netbox_secretstore/secrets.js' %}"
+  onerror="window.location='{% url 'media_failure' %}?filename=netbox_secretstore/secrets.js'">
+</script>
+{% endblock %}

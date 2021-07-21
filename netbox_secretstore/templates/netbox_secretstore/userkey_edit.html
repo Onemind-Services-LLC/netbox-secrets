@@ -54,3 +54,12 @@
         </div>
     </div>
 {% endblock %}
+
+{% block javascript %}
+{# Javascript #}
+<script
+  type="text/javascript"
+  src="{% static 'netbox_secretstore/secrets.js' %}"
+  onerror="window.location='{% url 'media_failure' %}?filename=netbox_secretstore/secrets.js'">
+</script>
+{% endblock %}
