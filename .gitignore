@@ -1,3 +1,5 @@
 netbox_secretstore.egg-info
 node_modules
+yarn.error
+/netbox_secretstore/project-static/.cache/
 /netbox_secretstore/project-static/netbox/

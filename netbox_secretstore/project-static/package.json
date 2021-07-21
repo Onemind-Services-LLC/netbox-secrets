@@ -10,19 +10,10 @@
   "dependencies": {
     "@mdi/font": "^5.9.55",
     "@popperjs/core": "^2.9.2",
+    "@types/cookie": "^0.4.1",
     "bootstrap": "^5.0.2",
-    "clipboard": "2.0.6",
-    "color2k": "^1.2.4",
     "cookie": "^0.4.1",
-    "dayjs": "^1.10.4",
-    "flatpickr": "4.6.3",
-    "just-debounce-it": "^1.4.0",
-    "masonry-layout": "^4.2.2",
-    "parcel-bundler": "1.12.3",
-    "query-string": "^6.14.1",
-    "sass": "^1.32.8",
-    "simplebar": "^5.3.4",
-    "slim-select": "^1.27.0"
+    "parcel-bundler": "1.12.3"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
@@ -33,9 +24,6 @@
     "@babel/preset-env": "^7.13.9",
     "@babel/preset-typescript": "^7.13.0",
     "@types/bootstrap": "^5.0.12",
-    "@types/clipboard": "^2.0.1",
-    "@types/cookie": "^0.4.0",
-    "@types/masonry-layout": "^4.2.2",
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",
     "babel-polyfill": "^6.26.0",
@@ -47,6 +35,17 @@
     "prettier": "^2.2.1",
     "prettier-eslint": "^12.0.0",
     "typescript": "^4.2.3"
+  },
+  "prettier": {
+    "semi": true,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "singleQuote": true,
+    "bracketSpacing": true,
+    "jsxBracketSameLine": false,
+    "useTabs": false,
+    "arrowParens": "avoid",
+    "trailingComma": "all"
   },
   "babel": {
     "presets": [

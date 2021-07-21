@@ -1,6 +1,8 @@
 import { Modal } from 'bootstrap';
 import { createToast } from './bs';
-import { apiGetBase, apiPostForm, getElements, isApiError, hasError } from './util';
+import { apiGetBase, apiPostForm, isApiError, hasError } from './util';
+
+import type { APISecret, APIKeyPair } from './types';
 
 /**
  * Initialize Generate Private Key Pair Elements.
@@ -149,10 +151,10 @@ function initLockUnlock() {
     }
   }
 
-  for (const element of getElements<HTMLButtonElement>('button.unlock-secret')) {
+  for (const element of document.querySelectorAll<HTMLButtonElement>('button.unlock-secret')) {
     element.addEventListener('click', () => unlock(element.getAttribute('secret-id')));
   }
-  for (const element of getElements<HTMLButtonElement>('button.lock-secret')) {
+  for (const element of document.querySelectorAll<HTMLButtonElement>('button.lock-secret')) {
     element.addEventListener('click', () => lock(element.getAttribute('secret-id')));
   }
 }
@@ -162,7 +164,9 @@ function initLockUnlock() {
  * @param privateKey RSA Private Key (valid JSON string)
  */
 function requestSessionKey(privateKey: string) {
-  apiPostForm('/api/plugins/netbox_secretstore/get-session-key/', { private_key: privateKey }).then(res => {
+  apiPostForm('/api/plugins/netbox_secretstore/get-session-key/', {
+    private_key: privateKey,
+  }).then(res => {
     if (!hasError(res)) {
       // If the response received was not an error, show the user a success message.
       const toast = createToast('success', 'Session Key Received', 'You may now unlock secrets.');
@@ -185,13 +189,13 @@ function requestSessionKey(privateKey: string) {
  * Initialize Request Session Key Elements.
  */
 function initGetSessionKey() {
-  for (const element of getElements<HTMLButtonElement>('#request_session_key')) {
+  for (const element of document.querySelectorAll<HTMLButtonElement>('#request_session_key')) {
     /**
      * Send the user's input private key to the API to get a session key, which will be stored as
      * a cookie for future requests.
      */
     function handleClick() {
-      for (const pk of getElements<HTMLTextAreaElement>('#user_privkey')) {
+      for (const pk of document.querySelectorAll<HTMLTextAreaElement>('#user_privkey')) {
         requestSessionKey(pk.value);
         // Clear the private key form field value.
         pk.value = '';
