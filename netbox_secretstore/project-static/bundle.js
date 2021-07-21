@@ -26,9 +26,7 @@ if (args.includes('--no-cache')) {
 
 // Script (JavaScript) bundle jobs. Generally, everything should be bundled into netbox.js from
 // index.ts unless there is a specific reason to do otherwise.
-const scripts = [
-  ['src/secrets.ts', 'secrets.js'],
-];
+const scripts = [['src/index.ts', 'secrets.js']];
 
 /**
  * Run script bundle jobs.
@@ -40,19 +38,4 @@ async function bundleScripts() {
   }
 }
 
-/**
- * Run all bundle jobs.
- */
-async function bundleAll() {
-  if (args.includes('--styles')) {
-    // Only run style jobs.
-    return await bundleStyles();
-  } else if (args.includes('--scripts')) {
-    // Only run script jobs.
-    return await bundleScripts();
-  }
-  await bundleStyles();
-  await bundleScripts();
-}
-
-bundleAll();
+bundleScripts();
