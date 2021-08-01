@@ -1,40 +1,36 @@
-/**
- * ParcelJS Bundle Configuration.
- *
- * @see https://parceljs.org/api.html
- */
-
-const Bundler = require('parcel-bundler');
+const esbuild = require('esbuild');
 
 // Bundler options common to all bundle jobs.
 const options = {
-  logLevel: 2,
-  cache: true,
-  watch: false,
+  outdir: './dist',
+  bundle: true,
   minify: true,
-  outDir: './dist',
-  publicUrl: '/static',
+  sourcemap: true,
+  logLevel: 'error',
+  publicPath: '/static',
 };
-
-// Get CLI arguments for optional overrides.
-const args = process.argv.slice(2);
-
-// Allow cache disabling.
-if (args.includes('--no-cache')) {
-  options.cache = false;
-}
-
-// Script (JavaScript) bundle jobs. Generally, everything should be bundled into netbox.js from
-// index.ts unless there is a specific reason to do otherwise.
-const scripts = [['src/index.ts', 'secrets.js']];
 
 /**
  * Run script bundle jobs.
  */
 async function bundleScripts() {
-  for (const [input, outFile] of scripts) {
-    const instance = new Bundler(input, { outFile, ...options });
-    await instance.bundle();
+  const entryPoints = {
+    secrets: 'src/index.ts',
+  };
+  try {
+    let result = await esbuild.build({
+      ...options,
+      entryPoints,
+      target: 'es2016',
+    });
+    if (result.errors.length === 0) {
+      for (const [targetName, sourceName] of Object.entries(entryPoints)) {
+        const source = sourceName.split('/')[1];
+        console.log(`✅ Bundled source file '${source}' to '${targetName}.js'`);
+      }
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 
