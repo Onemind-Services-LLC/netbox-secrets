@@ -3,3 +3,4 @@ node_modules
 yarn.error
 /netbox_secretstore/project-static/.cache/
 /netbox_secretstore/project-static/netbox/
+__pycache__
