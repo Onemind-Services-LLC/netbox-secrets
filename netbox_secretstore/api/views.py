@@ -2,6 +2,9 @@ import base64
 
 from Crypto.PublicKey import RSA
 from django.http import HttpResponseBadRequest
+from drf_yasg import openapi
+from drf_yasg.openapi import Parameter
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -141,10 +144,20 @@ class GetSessionKeyViewSet(ViewSet):
     """
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter(
+                name='public_key',
+                in_='query',
+                required=True,
+                type=openapi.TYPE_STRING
+            )
+        ]
+    )
     def create(self, request):
 
         # Read private key
-        private_key = request.POST.get('private_key', None)
+        private_key = request.data.get('private_key', None)
         if private_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_MISSING)
 

@@ -53,8 +53,15 @@ export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
 
   let body;
   if (typeof data !== 'undefined') {
-    body = JSON.stringify(data);
+    let obj;
+    if (typeof data === 'object' ) {
+      obj = Object.fromEntries(data.entries());
+    } else {
+      obj = data;
+    }
+    body = JSON.stringify(obj);
     headers.set('content-type', 'application/json');
+    headers.set('Accept', 'application/json');
   }
 
   const res = await fetch(url, { method, body, headers, credentials: 'same-origin' });
