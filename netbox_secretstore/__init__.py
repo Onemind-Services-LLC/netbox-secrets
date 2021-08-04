@@ -16,7 +16,7 @@ class NetBoxSecretStore(PluginConfig):
         }
     }
     default_settings = {
-        'SECRETS_MIN_PUBKEY_SIZE': 2048
+        'public_key_size': 2048
     }
 
 config = NetBoxSecretStore
