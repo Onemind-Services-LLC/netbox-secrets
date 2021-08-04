@@ -120,10 +120,10 @@ class SecretEditView(generic.ObjectEditView):
             uk = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
-            return redirect('user:userkey')
+            return redirect('plugins:netbox_sectrestore:userkey')
         if not uk.is_active():
             messages.warning(request, "This operation is not available. Your user key has not been activated.")
-            return redirect('user:userkey')
+            return redirect('plugins:netbox_sectrestore:userkey')
 
         return super().dispatch(request, *args, **kwargs)
 
