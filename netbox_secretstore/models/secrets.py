@@ -93,10 +93,10 @@ class UserKey(BigIDModel):
 
             # Validate the public key length
             pubkey_length = pubkey.size_in_bits()
-            if pubkey_length < settings.PLUGIN_CONFIG['netbox_secretstore']['public_key_size']:
+            if pubkey_length < settings.PLUGINS_CONFIG['netbox_secretstore']['public_key_size']:
                 raise ValidationError({
                     'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
-                        settings.PLUGIN_CONFIG['netbox_secretstore']['public_key_size']
+                        settings.PLUGINS_CONFIG['netbox_secretstore']['public_key_size']
                     )
                 })
             # We can't use keys bigger than our master_key_cipher field can hold

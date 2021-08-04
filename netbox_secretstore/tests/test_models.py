@@ -15,7 +15,7 @@ class UserKeyTestCase(TestCase):
 
     def setUp(self):
         self.TEST_KEYS = {}
-        key_size = getattr(settings, 'SECRETS_MIN_PUBKEY_SIZE', 2048)
+        key_size = settings.PLUGINS_CONFIG['netbox_secretstore'].get('public_key_size')
         for username in ['alice', 'bob']:
             User.objects.create_user(username=username, password=username)
             key = RSA.generate(key_size)
@@ -45,7 +45,7 @@ class UserKeyTestCase(TestCase):
         """
         Ensure that RSA keys which are too small or too large are rejected.
         """
-        rsa = RSA.generate(getattr(settings, 'SECRETS_MIN_PUBKEY_SIZE', 2048) - 256)
+        rsa = RSA.generate(settings.PLUGINS_CONFIG['netbox_secretstore'].get('public_key_size', 2048) - 256)
         small_key = rsa.publickey().exportKey('PEM')
         try:
             UserKey(public_key=small_key).clean()

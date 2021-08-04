@@ -55,7 +55,7 @@ class UserKeyAdmin(admin.ModelAdmin):
                 initial={'_selected_action': request.POST.getlist(ACTION_CHECKBOX_NAME)}
             )
 
-        return render(request, 'activate_keys.html', {
+        return render(request, 'netbox_secretstore/activate_keys.html', {
             'form': form,
         })
     activate_selected.short_description = "Activate selected user keys"
