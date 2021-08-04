@@ -120,10 +120,10 @@ class SecretEditView(generic.ObjectEditView):
             uk = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
-            return redirect('plugins:netbox_sectrestore:userkey')
+            return redirect('plugins:netbox_secretstore:userkey')
         if not uk.is_active():
             messages.warning(request, "This operation is not available. Your user key has not been activated.")
-            return redirect('plugins:netbox_sectrestore:userkey')
+            return redirect('plugins:netbox_secretstore:userkey')
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -283,7 +283,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
             uk.user = request.user
             uk.save()
             messages.success(request, "Your user key has been saved.")
-            return redirect('user:userkey')
+            return redirect('plugins:netbox_secretstore:userkey')
 
         return render(request, self.template_name, {
             'userkey': self.userkey,
@@ -299,10 +299,10 @@ class SessionKeyDeleteView(LoginRequiredMixin, View):
         sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
         form = ConfirmationForm()
 
-        return render(request, 'users/sessionkey_delete.html', {
+        return render(request, 'netbox_secretstore/sessionkey_delete.html', {
             'obj_type': sessionkey._meta.verbose_name,
             'form': form,
-            'return_url': reverse('user:userkey'),
+            'return_url': reverse('plugins:netbox_secretstore:userkey'),
         })
 
     def post(self, request):
@@ -316,13 +316,13 @@ class SessionKeyDeleteView(LoginRequiredMixin, View):
             messages.success(request, "Session key deleted")
 
             # Delete cookie
-            response = redirect('user:userkey')
+            response = redirect('plugins:netbox_secretstore:userkey')
             response.delete_cookie('session_key')
 
             return response
 
-        return render(request, 'users/sessionkey_delete.html', {
+        return render(request, 'netbox_secretstore/sessionkey_delete.html', {
             'obj_type': sessionkey._meta.verbose_name,
             'form': form,
-            'return_url': reverse('user:userkey'),
+            'return_url': reverse('plugins:netbox_secretstore:userkey'),
         })

@@ -117,7 +117,7 @@ class SecretTestCase(
         session_key = base64.b64encode(self.session_key.key).decode('utf-8')
         self.client.cookies['session_key'] = session_key
 
-        response = self.client.post(reverse('secrets:secret_import'), {'csv': '\n'.join(csv_data)})
+        response = self.client.post(reverse('plugins:netbox_secretstore:secret_import'), {'csv': '\n'.join(csv_data)})
 
         self.assertHttpStatus(response, 200)
         self.assertEqual(Secret.objects.count(), 6)
