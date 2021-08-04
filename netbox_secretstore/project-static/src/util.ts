@@ -53,13 +53,7 @@ export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
 
   let body;
   if (typeof data !== 'undefined') {
-    let obj;
-    if (typeof data === 'object' ) {
-      obj = Object.fromEntries(data.entries());
-    } else {
-      obj = data;
-    }
-    body = JSON.stringify(obj);
+    body = JSON.stringify(data);
     headers.set('content-type', 'application/json');
     headers.set('Accept', 'application/json');
   }
@@ -91,11 +85,7 @@ export async function apiPostForm<R extends Dict, D extends Dict>(
   url: string,
   data: D,
 ): Promise<APIRes<R>> {
-  const body = new URLSearchParams();
-  for (const [k, v] of Object.entries(data)) {
-    body.append(k, String(v));
-  }
-  return await apiRequest<R, URLSearchParams>(url, 'POST', body);
+  return await apiRequest<R, D>(url, 'POST', data);
 }
 
 /**

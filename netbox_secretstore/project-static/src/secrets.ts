@@ -67,7 +67,6 @@ function toggleSecretButtons(id: string, action: 'lock' | 'unlock') {
   const unlockButton = document.querySelector(`button.unlock-secret[secret-id='${id}']`);
   const lockButton = document.querySelector(`button.lock-secret[secret-id='${id}']`);
   const copyButton = document.querySelector(`button.copy-secret[secret-id='${id}']`);
-
   // If we're unlocking, hide the unlock button. Otherwise, show it.
   if (unlockButton !== null) {
     if (action === 'unlock') unlockButton.classList.add('d-none');
