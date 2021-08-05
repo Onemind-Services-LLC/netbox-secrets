@@ -8,15 +8,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mdi/font": "^5.9.55",
-    "@popperjs/core": "^2.9.2",
-    "@types/cookie": "^0.4.1",
-    "bootstrap": "^5.0.2",
     "cookie": "^0.4.1",
     "esbuild": "^0.12.17"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.0.12",
+    "@types/cookie": "^0.4.1",
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",
     "eslint": "^7.22.0",

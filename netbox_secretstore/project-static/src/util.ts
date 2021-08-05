@@ -25,6 +25,15 @@ export function hasError(data: Record<string, unknown>): data is ErrorBase {
 }
 
 /**
+ * Type guard to determine if an element is an `HTMLInputElement`.
+ *
+ * @param element HTML Element.
+ */
+export function isInputElement(element: HTMLElement): element is HTMLInputElement {
+  return 'value' in element && 'required' in element;
+}
+
+/**
  * Retrieve the CSRF token from cookie storage.
  */
 export function getCsrfToken(): string {
