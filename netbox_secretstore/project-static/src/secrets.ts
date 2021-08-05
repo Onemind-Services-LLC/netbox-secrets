@@ -204,8 +204,35 @@ function initGetSessionKey() {
   }
 }
 
+function initSecretsEdit() {
+  const privateKeyModalElem = document.getElementById('privkey_modal');
+  if (privateKeyModalElem === null) {
+    return;
+  }
+  const privateKeyModal = new Modal(privateKeyModalElem);
+  let lastform = null
+
+  for (const element of document.querySelectorAll<HTMLElement>('.requires-session-key')) {
+    const form = element.closest<HTMLFormElement>('form');
+    if ( form === null ) {
+      return
+    }
+    if ( lastform === null || lastform !== form ) {
+      function handleSubmit(event: Event) {
+        if (document.cookie.indexOf('session_key') == -1) {
+          privateKeyModal.show();
+          event.preventDefault();
+          return false
+        }
+      }
+      form.addEventListener('submit', handleSubmit)
+    }
+    lastform = form;
+  }
+}
+
 export function initSecrets() {
-  for (const func of [initGenerateKeyPair, initLockUnlock, initGetSessionKey]) {
+  for (const func of [initGenerateKeyPair, initLockUnlock, initGetSessionKey, initSecretsEdit]) {
     func();
   }
 }
