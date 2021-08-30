@@ -30,3 +30,8 @@ type APIObjectBase = {
   url: string;
   [k: string]: JSONAble;
 };
+
+interface Window {
+  Modal: typeof import('bootstrap').Modal;
+  Toast: typeof import('bootstrap').Toast;
+}

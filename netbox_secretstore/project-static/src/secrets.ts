@@ -1,6 +1,5 @@
-import { Modal } from 'bootstrap';
 import { createToast } from './bs';
-import { apiGetBase, apiPostForm, isApiError, hasError } from './util';
+import { apiGetBase, apiPostForm, isApiError, isInputElement, hasError } from './util';
 
 import type { APISecret, APIKeyPair } from './types';
 
@@ -44,6 +43,7 @@ function initGenerateKeyPair() {
       }
     });
   }
+
   /**
    * Set the public key form field's value to the generated public key.
    */
@@ -54,8 +54,8 @@ function initGenerateKeyPair() {
       publicKeyField.innerText = publicElem.value;
     }
   }
-  element.addEventListener('shown.bs.modal', handleOpen);
-  accept.addEventListener('click', handleAccept);
+  element.addEventListener('shown.bs.modal', () => handleOpen());
+  accept.addEventListener('click', () => handleAccept());
 }
 
 /**
@@ -88,11 +88,7 @@ function toggleSecretButtons(id: string, action: 'lock' | 'unlock') {
  * Initialize Lock & Unlock button event listeners & callbacks.
  */
 function initLockUnlock() {
-  const privateKeyModalElem = document.getElementById('privkey_modal');
-  if (privateKeyModalElem === null) {
-    return;
-  }
-  const privateKeyModal = new Modal(privateKeyModalElem);
+  const privateKeyModal = new window.Modal('#privkey_modal');
 
   /**
    * Unlock a secret, or prompt the user for their private key, if a session key is not available.
@@ -100,7 +96,7 @@ function initLockUnlock() {
    * @param id Secret ID
    */
   function unlock(id: string | null) {
-    const target = document.getElementById(`secret_${id}`);
+    const target = document.getElementById(`secret_${id}`) as HTMLDivElement | HTMLInputElement;
     if (typeof id === 'string' && id !== '') {
       apiGetBase<APISecret>(`/api/plugins/netbox_secretstore/secrets/${id}`).then(data => {
         if (!hasError(data)) {
@@ -111,7 +107,12 @@ function initLockUnlock() {
           if (target !== null && plaintext !== null) {
             // If `plaintext` is not null, we have the decrypted value. Set the target element's
             // inner text to the decrypted value and toggle copy/lock button visibility.
-            target.innerText = plaintext;
+            if (isInputElement(target)) {
+              target.value = plaintext;
+            } else {
+              target.innerText = plaintext;
+            }
+
             toggleSecretButtons(id, 'unlock');
           } else {
             // Otherwise, we do _not_ have the decrypted value and need to prompt the user for
@@ -134,17 +135,22 @@ function initLockUnlock() {
       });
     }
   }
+
   /**
    * Lock a secret and toggle visibility of the unlock button.
    * @param id Secret ID
    */
   function lock(id: string | null) {
     if (typeof id === 'string' && id !== '') {
-      const target = document.getElementById(`secret_${id}`);
-      if (target !== null) {
-        // Obscure the inner text of the secret element.
+      const target = document.getElementById(`secret_${id}`) as HTMLDivElement | HTMLInputElement;
+
+      // Obscure the inner text of the secret element.
+      if (isInputElement(target)) {
+        target.value = '********';
+      } else {
         target.innerText = '********';
       }
+
       // Toggle visibility of the copy/lock/unlock buttons.
       toggleSecretButtons(id, 'lock');
     }
@@ -204,30 +210,28 @@ function initGetSessionKey() {
   }
 }
 
+/**
+ * Initialize Secret Edit Form Handler.
+ */
 function initSecretsEdit() {
-  const privateKeyModalElem = document.getElementById('privkey_modal');
-  if (privateKeyModalElem === null) {
-    return;
-  }
-  const privateKeyModal = new Modal(privateKeyModalElem);
-  let lastform = null
+  const privateKeyModal = new window.Modal('#privkey_modal');
 
-  for (const element of document.querySelectorAll<HTMLElement>('.requires-session-key')) {
+  /**
+   * Check the cookie store for a `session_key`. If not present, prompt the user to submit their
+   * private key.
+   */
+  function handleSubmit(event: Event): void {
+    if (document.cookie.indexOf('session_key') === -1) {
+      event.preventDefault();
+      privateKeyModal.show();
+    }
+  }
+
+  for (const element of document.querySelectorAll<HTMLInputElement>('.requires-session-key')) {
     const form = element.closest<HTMLFormElement>('form');
-    if ( form === null ) {
-      return
+    if (form !== null) {
+      form.addEventListener('submit', handleSubmit);
     }
-    if ( lastform === null || lastform !== form ) {
-      function handleSubmit(event: Event) {
-        if (document.cookie.indexOf('session_key') == -1) {
-          privateKeyModal.show();
-          event.preventDefault();
-          return false
-        }
-      }
-      form.addEventListener('submit', handleSubmit)
-    }
-    lastform = form;
   }
 }
 

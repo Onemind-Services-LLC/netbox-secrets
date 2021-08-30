@@ -6,8 +6,8 @@
 {% load static %}
 
 {% block controls %}
-<div class="controls mb-2 mx-0">
-  <div class="d-flex flex-wrap justify-content-end">
+<div class="controls">
+  <div class="control-group">
     {% block extra_controls %}{% endblock %}
     {% if permissions.add and 'add' in action_buttons %}
         {% add_button content_type.model_class|validated_plugin_viewname:"add" %}
@@ -23,9 +23,6 @@
 {% endblock controls %}
 
 {% block content %}
-{% if filter_form %}
-  {% include 'inc/advanced_search.html' %}
-{% endif %}
 {% if table.paginator.num_pages > 1 %}
 {% with bulk_edit_url=content_type.model_class|validated_viewname:"bulk_edit" bulk_delete_url=content_type.model_class|validated_viewname:"bulk_delete" %}
   <div id="select-all-box" class="d-none card noprint">
@@ -56,12 +53,11 @@
 {% endwith %}
 {% endif %}
 
-{# Object list filter, table config #}
-{% include 'inc/table_controls.html' with table_modal="ObjectTable_config" %}
-
 {# Object table #}
 <div class="row">
-  <div class="col col-md-12">
+  <div class="col {% if filter_form %}col-md-7 col-lg-8 col-xl-9 col-xxl-10{% else %}col-12{% endif %}">
+    {# Object list filter, table config #}
+    {% include 'inc/table_controls.html' with table_modal="ObjectTable_config" %}
     {% with bulk_edit_url=content_type.model_class|validated_viewname:"bulk_edit" bulk_delete_url=content_type.model_class|validated_viewname:"bulk_delete" %}
       {% if permissions.change or permissions.delete %}
         <form method="post" class="form form-horizontal">
@@ -94,6 +90,9 @@
     {% endwith %}
     {% include 'inc/paginator.html' with paginator=table.paginator page=table.page %}
   </div>
+  {% if filter_form %}
+    {% include 'inc/filter_list.html' %}
+  {% endif %}
 </div>
 {% table_config_form table table_name="ObjectTable" %}
 {% endblock content %}
