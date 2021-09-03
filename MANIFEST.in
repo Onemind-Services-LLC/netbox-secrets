@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+recursive-include netbox_secretstore/templates *
+recursive-include netbox_secretstore/static *
