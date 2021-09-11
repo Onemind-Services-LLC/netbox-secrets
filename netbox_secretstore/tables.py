@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from utilities.tables import BaseTable, ButtonsColumn, LinkedCountColumn, TagColumn, ToggleColumn
+from utilities.tables import BaseTable, LinkedCountColumn, TagColumn, ToggleColumn
 from netbox_secretstore.utils.tables import PluginButtonsColumn
 from .models import SecretRole, Secret
 
