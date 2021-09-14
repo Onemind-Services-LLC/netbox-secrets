@@ -55,13 +55,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Confirm Environment
-      run: |
-        pwd
-        dir netbox-secretstore
-        dir netbox-secretstore/netbox_secretstore/
-        exit(1)
-
     - name: Install dependencies & set up configuration
       run: |
         python -m pip install --upgrade pip
@@ -69,7 +62,7 @@ jobs:
         pip install -r netbox/docs/requirements.txt
         pip install pycodestyle coverage
         ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
-        yarn --cwd nebox-secretstore/netbox_secretstore/project-static
+        yarn --cwd netbox-secretstore/netbox_secretstore/project-static
 
     - name: Build documentation
       run: mkdocs build
