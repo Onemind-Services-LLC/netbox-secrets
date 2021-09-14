@@ -58,7 +58,8 @@ jobs:
     - name: Confirm Environment
       run: |
         pwd
-        dir
+        dir netbox-secretstore
+        dir netbox-secretstore/netbox_secretstore/
         exit(1)
 
     - name: Install dependencies & set up configuration
