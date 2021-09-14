@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7]
         node-version: [14.x]
     services:
       redis:
@@ -28,19 +28,22 @@ jobs:
     steps:
     - name: Check out netbox
       uses: actions/checkout@v2
-      path: 'netbox'
-      repository: 'netbox-community/netbox'
-      ref: 'master'
+      with:
+        path: 'netbox'
+        repository: 'netbox-community/netbox'
+        ref: 'master'
+
+    - name: Checkout demo data
+      uses: actions/checkout@v2
+      with:
+        path: 'netbox-demo-data'
+        repository: 'netbox-community/netbox-demo-data'
+        ref: 'master'
 
     - name: Checkout repo
       uses: actions/checkout@v2
-      path: 'netbox-demo-data'
-      repository: 'netbox-community/netbox-demo-data'
-      ref: 'master'
-
-    - name: Checkout repo
-      uses: actions/checkout@v2
-      path: 'netbox-secretstore'
+      with:
+        path: 'netbox-secretstore'
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -59,10 +62,7 @@ jobs:
         pip install -r netbox/docs/requirements.txt
         pip install pycodestyle coverage
         ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
-        yarn --cwd nebox-secretstore/netbox_secretstore/project-static
-
-    - name: Build documentation
-      run: mkdocs build
+        yarn --cwd netbox-secretstore/netbox_secretstore/project-static
 
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
