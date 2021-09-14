@@ -36,7 +36,7 @@ class UserKeyAdmin(admin.ModelAdmin):
             my_userkey = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
             messages.error(request, "You do not have an active User Key.")
-            return redirect('admin:secrets_userkey_changelist')
+            return redirect('admin:netbox_secretstore_userkey_changelist')
 
         if 'activate' in request.POST:
             form = ActivateUserKeyForm(request.POST)
@@ -45,7 +45,7 @@ class UserKeyAdmin(admin.ModelAdmin):
                 if master_key is not None:
                     for uk in form.cleaned_data['_selected_action']:
                         uk.activate(master_key)
-                    return redirect('admin:secrets_userkey_changelist')
+                    return redirect('admin:netbox_secretstore_userkey_changelist')
                 else:
                     messages.error(
                         request, "Invalid private key provided. Unable to retrieve master key.", extra_tags='error'

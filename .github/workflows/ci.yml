@@ -1,0 +1,83 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        node-version: [14.x]
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: netbox
+          POSTGRES_PASSWORD: netbox
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Check out netbox
+      uses: actions/checkout@v2
+      path: 'netbox'
+      repository: 'netbox-community/netbox'
+      ref: 'master'
+
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      path: 'netbox-demo-data'
+      repository: 'netbox-community/netbox-demo-data'
+      ref: 'master'
+
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      path: 'netbox-secretstore'
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies & set up configuration
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r netbox/requirements.txt
+        pip install -r netbox/docs/requirements.txt
+        pip install pycodestyle coverage
+        ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
+        yarn --cwd nebox-secretstore/netbox_secretstore/project-static
+
+    - name: Build documentation
+      run: mkdocs build
+
+    - name: Collect static files
+      run: python netbox/netbox/manage.py collectstatic --no-input
+
+    - name: Check PEP8 compliance
+      run: pycodestyle --ignore=W504,E501 --exclude=node_modules netbox-secretstore/netbox_secretstore/
+
+    - name: Check UI ESLint, TypeScript, and Prettier Compliance
+      run: yarn --cwd nebox-secretstore/netbox_secretstore/project-static validate
+
+    - name: Validate Static Asset Integrity
+      run: netbox/scripts/verify-bundles.sh
+
+    - name: Run tests
+      run: coverage run --source="netbox-secretstore/netbox_secretstore/" netbox/netbox/manage.py test netbox-secretstore/netbox_secretstore/
+
+    - name: Show coverage report
+      run: coverage report --skip-covered --omit *migrations*
