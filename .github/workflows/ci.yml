@@ -33,7 +33,7 @@ jobs:
         repository: 'netbox-community/netbox'
         ref: 'master'
 
-    - name: Checkout repo
+    - name: Checkout demo data
       uses: actions/checkout@v2
       with:
         path: 'netbox-demo-data'
@@ -56,7 +56,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Confirm Environment
-      run:
+      run: |
         pwd
         dir
         exit(1)
