@@ -28,19 +28,22 @@ jobs:
     steps:
     - name: Check out netbox
       uses: actions/checkout@v2
-      path: 'netbox'
-      repository: 'netbox-community/netbox'
-      ref: 'master'
+      with:
+        path: 'netbox'
+        repository: 'netbox-community/netbox'
+        ref: 'master'
 
     - name: Checkout repo
       uses: actions/checkout@v2
-      path: 'netbox-demo-data'
-      repository: 'netbox-community/netbox-demo-data'
-      ref: 'master'
+      with:
+        path: 'netbox-demo-data'
+        repository: 'netbox-community/netbox-demo-data'
+        ref: 'master'
 
     - name: Checkout repo
       uses: actions/checkout@v2
-      path: 'netbox-secretstore'
+      with:
+        path: 'netbox-secretstore'
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
