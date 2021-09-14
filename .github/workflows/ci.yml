@@ -64,9 +64,6 @@ jobs:
         ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
 
-    - name: Build documentation
-      run: mkdocs build
-
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
 
