@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7]
         node-version: [14.x]
     services:
       redis:
@@ -54,6 +54,12 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+
+    - name: Confirm Environment
+      run:
+        pwd
+        dir
+        exit(1)
 
     - name: Install dependencies & set up configuration
       run: |
