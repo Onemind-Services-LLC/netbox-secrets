@@ -77,9 +77,6 @@ jobs:
         cd ../netbox-secretstore
         python setup.py develop
         cd ../
-        pwd
-        dir nebox-secretstore
-        exit(1)
 
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
@@ -88,7 +85,7 @@ jobs:
       run: pycodestyle --ignore=W504,E501 --exclude=node_modules netbox-secretstore/netbox_secretstore/
 
     - name: Check UI ESLint, TypeScript, and Prettier Compliance
-      run: yarn --cwd nebox-secretstore/netbox_secretstore/project-static validate
+      run: yarn --cwd netbox-secretstore/netbox_secretstore/project-static validate
 
     - name: Validate Static Asset Integrity
       run: netbox/scripts/verify-bundles.sh
