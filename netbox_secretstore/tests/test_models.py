@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from hashers import SecretValidationHasher
-from models import Secret, UserKey
-from utils import encrypt_master_key, decrypt_master_key, generate_random_key
+from netbox_secretstore.utils.hashers import SecretValidationHasher
+from netbox_secretstore.models import Secret, UserKey
+from netbox_secretstore.utils.crypto import encrypt_master_key, decrypt_master_key, generate_random_key
 
 
 class UserKeyTestCase(TestCase):

@@ -4,7 +4,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from models import Secret, SecretRole, SessionKey, UserKey
+from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import ViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 

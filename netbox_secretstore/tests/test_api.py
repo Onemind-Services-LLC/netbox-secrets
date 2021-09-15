@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from models import Secret, SecretRole, SessionKey, UserKey
+from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import APITestCase, APIViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
@@ -13,7 +13,7 @@ class AppTest(APITestCase):
 
     def test_root(self):
 
-        url = reverse('secrets-api:api-root')
+        url = reverse('plugins-api:netbox_secretstore-api:api-root')
         response = self.client.get('{}?format=api'.format(url), **self.header)
 
         self.assertEqual(response.status_code, 200)
@@ -145,7 +145,7 @@ class GetSessionKeyTest(APITestCase):
 
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
-        url = reverse('secrets-api:get-session-key-list')
+        url = reverse('plugins-api:netbox_secretstore-api:get-session-key-list')
         data = {
             'private_key': PRIVATE_KEY,
         }
@@ -159,7 +159,7 @@ class GetSessionKeyTest(APITestCase):
 
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
-        url = reverse('secrets-api:get-session-key-list') + '?preserve_key=True'
+        url = reverse('plugins-api:netbox_secretstore-api:get-session-key-list') + '?preserve_key=True'
         data = {
             'private_key': PRIVATE_KEY,
         }
