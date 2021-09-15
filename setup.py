@@ -8,7 +8,9 @@ setup(
     author='Daniel Sheppard',
     author_email='dans@dansheps.com',
     license='Apache 2.0',
-    install_requires=[],
+    install_requires=[
+        'netbox-plugin-extensions'
+    ],
     packages=find_packages(include=['netbox_secretstore']),
     include_package_data=True,
     classifiers=[
