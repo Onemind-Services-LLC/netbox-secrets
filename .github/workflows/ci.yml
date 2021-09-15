@@ -65,7 +65,8 @@ jobs:
         pip install pycodestyle coverage
         ln -sr ./netbox-secretstore/.github/configuration.testing.py ./netbox/netbox/netbox/configuration.py
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
-        python netbox-secretstore/setup.py develop
+        cd netbox-secretstore
+        python setup.py develop
 
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
