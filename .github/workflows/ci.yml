@@ -1,5 +1,7 @@
 name: CI
+
 on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -62,6 +64,8 @@ jobs:
         pip install -r netbox/docs/requirements.txt
         pip install pycodestyle coverage
         ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
+        ls -la netbox-secretstore/.github/
+        ls -la netbox/netbox/netbox/
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
         python netbox-secretstore/setup.py develop
 
