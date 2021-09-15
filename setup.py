@@ -2,13 +2,15 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox-secretstore',
-    version='1.0.3',
+    version='1.0.4',
     description='A Secret store for NetBox',
     url='https://github.com/dansheps/netbox-secretstore',
     author='Daniel Sheppard',
     author_email='dans@dansheps.com',
     license='Apache 2.0',
-    install_requires=[],
+    install_requires=[
+        'netbox-plugin-extensions'
+    ],
     packages=find_packages(include=['netbox_secretstore']),
     include_package_data=True,
     classifiers=[
