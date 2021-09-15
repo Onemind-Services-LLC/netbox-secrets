@@ -78,7 +78,8 @@ jobs:
         python setup.py develop
         cd ../
         pwd
-        dir nebox-secretstore/netbox_secretstore/project-static
+        dir nebox-secretstore
+        exit(1)
 
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
