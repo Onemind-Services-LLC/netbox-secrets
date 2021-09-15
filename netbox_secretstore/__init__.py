@@ -1,5 +1,6 @@
 from extras.plugins import PluginConfig
 
+
 class NetBoxSecretStore(PluginConfig):
     name = 'netbox_secretstore'
     verbose_name = 'Netbox Secret Store'
@@ -18,5 +19,6 @@ class NetBoxSecretStore(PluginConfig):
     default_settings = {
         'public_key_size': 2048
     }
+
 
 config = NetBoxSecretStore
