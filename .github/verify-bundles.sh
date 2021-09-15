@@ -6,6 +6,8 @@
 # the dist files have been altered, or that dist files were not committed. In either case, tests
 # should fail.
 
+echo "$PWD"
+
 PROJECT_STATIC="$PWD/netbox_secretstore/project-static"
 DIST="$PROJECT_STATIC/dist/"
 
