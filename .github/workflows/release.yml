@@ -1,11 +1,10 @@
+---
 name: Release Drafter
 
 on:
   push:
     branches:
-      - master
-  pull_request:
-    types: [opened, reopened, synchronize]
+      - "master"
 
 jobs:
   update_release_draft:
