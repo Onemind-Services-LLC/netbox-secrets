@@ -12,7 +12,7 @@ DIST="$PROJECT_STATIC/dist/"
 # Bundle static assets.
 bundle() {
     echo "Bundling static assets..."
-    yarn --cwd $PROJECT_STATIC bundle >/dev/null 2>&1
+    yarn --cwd $PROJECT_STATIC bundle
     if [[ $? != 0 ]]; then
         echo "Error bundling static assets"
         exit 1
