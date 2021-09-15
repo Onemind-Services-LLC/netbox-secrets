@@ -65,6 +65,9 @@ jobs:
         pip install pycodestyle coverage
         ln -s netbox-secretstore/.github/configuration.testing.py netbox/netbox/netbox/configuration.py
         echo '==='
+        head netbox-secretstore/.github/configuration.testing.py
+        echo '==='
+        echo '==='
         head netbox/netbox/netbox/configuration.py
         echo '==='
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
