@@ -88,7 +88,7 @@ jobs:
       run: yarn --cwd netbox-secretstore/netbox_secretstore/project-static validate
 
     - name: Validate Static Asset Integrity
-      run: netbox/scripts/verify-bundles.sh
+      run: netbox-secretstore/.github/verify-bundles.sh
 
     - name: Run tests
       run: coverage run --source="netbox-secretstore/netbox_secretstore/" netbox/netbox/manage.py test netbox-secretstore/netbox_secretstore/
