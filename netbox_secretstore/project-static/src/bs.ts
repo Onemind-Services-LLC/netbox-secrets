@@ -10,12 +10,16 @@ export function createToast(
   switch (level) {
     case 'warning':
       iconName = 'mdi-alert';
+      break;
     case 'success':
       iconName = 'mdi-check-circle';
+      break;
     case 'info':
       iconName = 'mdi-information';
+      break;
     case 'danger':
       iconName = 'mdi-alert';
+      break;
   }
 
   const container = document.createElement('div');

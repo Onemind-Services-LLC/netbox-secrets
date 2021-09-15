@@ -1,5 +1,7 @@
 name: CI
+
 on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,6 +42,13 @@ jobs:
         repository: 'netbox-community/netbox-demo-data'
         ref: 'master'
 
+    - name: Checkout netbox plugin extensions
+      uses: actions/checkout@v2
+      with:
+        path: 'netbox-plugin-extensions'
+        repository: 'dansheps/netbox-plugin-extensions'
+        ref: 'develop'
+
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
@@ -61,9 +70,13 @@ jobs:
         pip install -r netbox/requirements.txt
         pip install -r netbox/docs/requirements.txt
         pip install pycodestyle coverage
-        ln -s netbox-secretstore/.github/configuration.py netbox/netbox/netbox/configuration.py
+        ln -sr ./netbox-secretstore/.github/configuration.testing.py ./netbox/netbox/netbox/configuration.py
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
-        python netbox-secretstore/setup.py develop
+        cd netbox-plugin-extensions
+        python setup.py develop
+        cd ../netbox-secretstore
+        python setup.py develop
+        cd ../
 
     - name: Collect static files
       run: python netbox/netbox/manage.py collectstatic --no-input
@@ -72,10 +85,10 @@ jobs:
       run: pycodestyle --ignore=W504,E501 --exclude=node_modules netbox-secretstore/netbox_secretstore/
 
     - name: Check UI ESLint, TypeScript, and Prettier Compliance
-      run: yarn --cwd nebox-secretstore/netbox_secretstore/project-static validate
+      run: yarn --cwd netbox-secretstore/netbox_secretstore/project-static validate
 
     - name: Validate Static Asset Integrity
-      run: netbox/scripts/verify-bundles.sh
+      run: bash netbox-secretstore/.github/verify-bundles.sh
 
     - name: Run tests
       run: coverage run --source="netbox-secretstore/netbox_secretstore/" netbox/netbox/manage.py test netbox-secretstore/netbox_secretstore/

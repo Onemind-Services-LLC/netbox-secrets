@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from filters import *
+from netbox_secretstore.filters import *
 from models import Secret, SecretRole
 from virtualization.models import Cluster, ClusterType, VirtualMachine
 
