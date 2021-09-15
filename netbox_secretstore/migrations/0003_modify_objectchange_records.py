@@ -8,12 +8,12 @@ def secrets_to_nbsecrets(apps, schema_editor):
         ObjectChange = apps.get_model('extras', 'ObjectChange')
         ContentType = apps.get_model('contenttypes', 'ContentType')
 
-        ctsecret = ContentType.objects.get(app_label='secrets',model='secret')
+        ctsecret = ContentType.objects.get(app_label='secrets', model='secret')
         ctsecretrole = ContentType.objects.get(app_label='secrets', model='secretrole')
         ctuserkey = ContentType.objects.get(app_label='secrets', model='userkey')
         ctsessionkey = ContentType.objects.get(app_label='secrets', model='sessionkey')
 
-        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore',model='secret')
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
         ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
         ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
         ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
@@ -37,7 +37,7 @@ def nbsecrets_to_secrets(apps, schema_editor):
         ctuserkey = ContentType.objects.get(app_label='secrets', model='userkey')
         ctsessionkey = ContentType.objects.get(app_label='secrets', model='sessionkey')
 
-        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore',model='secret')
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
         ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
         ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
         ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
