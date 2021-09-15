@@ -42,6 +42,13 @@ jobs:
         repository: 'netbox-community/netbox-demo-data'
         ref: 'master'
 
+    - name: Checkout netbox plugin extensions
+      uses: actions/checkout@v2
+      with:
+        path: 'netbox-plugin-extensions'
+        repository: 'dansheps/netbox-plugin-extensions'
+        ref: 'develop'
+
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
@@ -65,7 +72,9 @@ jobs:
         pip install pycodestyle coverage
         ln -sr ./netbox-secretstore/.github/configuration.testing.py ./netbox/netbox/netbox/configuration.py
         yarn --cwd netbox-secretstore/netbox_secretstore/project-static
-        cd netbox-secretstore
+        cd netbox-plugin-extensions
+        python setup.py develop
+        cd ../netbox-secretstore
         python setup.py develop
 
     - name: Collect static files
