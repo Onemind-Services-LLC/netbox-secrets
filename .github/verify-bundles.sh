@@ -6,7 +6,7 @@
 # the dist files have been altered, or that dist files were not committed. In either case, tests
 # should fail.
 
-PROJECT_STATIC="$PWD/netbox-secretstore/project-static"
+PROJECT_STATIC="$PWD/netbox_secretstore/project-static"
 DIST="$PROJECT_STATIC/dist/"
 
 # Bundle static assets.
