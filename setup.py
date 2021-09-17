@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox-secretstore',
-    version='1.0.4',
+    version='1.0.5',
     description='A Secret store for NetBox',
     url='https://github.com/dansheps/netbox-secretstore',
     author='Daniel Sheppard',
@@ -11,7 +11,7 @@ setup(
     install_requires=[
         'netbox-plugin-extensions'
     ],
-    packages=find_packages(include=['netbox_secretstore']),
+    packages=find_packages(),
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
