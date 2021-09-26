@@ -14,7 +14,7 @@ body:
     attributes:
       label: Plugin version
       description: What version of the plugin are you currently running?
-      placeholder: v1.0.5
+      placeholder: v1.0.6
     validations:
       required: true
   - type: input
