@@ -9,6 +9,7 @@ setup(
     author_email='dans@dansheps.com',
     license='Apache 2.0',
     install_requires=[
+        'pycryptodome',
         'netbox-plugin-extensions'
     ],
     packages=find_packages(),
