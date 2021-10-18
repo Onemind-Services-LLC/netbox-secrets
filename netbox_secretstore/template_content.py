@@ -12,11 +12,11 @@ class Secrets(PluginTemplateExtension):
 
 
 class DeviceSecrets(Secrets):
-    model = 'dcim.Device'
+    model = 'dcim.device'
 
 
 class VMSecrets(Secrets):
-    model = 'virtualization.VirtualMachine'
+    model = 'virtualization.virtualMachine'
 
 
 template_extensions = [DeviceSecrets, VMSecrets]
