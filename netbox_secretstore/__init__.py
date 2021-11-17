@@ -5,7 +5,7 @@ class NetBoxSecretStore(PluginConfig):
     name = 'netbox_secretstore'
     verbose_name = 'Netbox Secret Store'
     description = 'A Secret Storage for NetBox'
-    version = '1.0.7'
+    version = '1.0.8'
     author = 'NetBox Maintainers'
     author_email = ''
     base_url = 'netbox_secretstore'
