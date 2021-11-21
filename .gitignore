@@ -6,3 +6,5 @@ yarn.error
 __pycache__
 build
 dist
+
+.idea

@@ -1,9 +1,10 @@
 from django.contrib.contenttypes.models import ContentType
 from drf_yasg.utils import swagger_serializer_method
+from netbox_plugin_extensions.api.serializers import PluginOrganizationalModelSerializer
 from rest_framework import serializers
 
 from netbox.api import ContentTypeField
-from netbox.api.serializers import OrganizationalModelSerializer, PrimaryModelSerializer
+from netbox.api.serializers import PrimaryModelSerializer
 from netbox_secretstore.constants import SECRET_ASSIGNMENT_MODELS
 from netbox_secretstore.models import Secret, SecretRole
 from utilities.api import get_serializer_for_model
@@ -14,7 +15,7 @@ from .nested_serializers import *
 # Secrets
 #
 
-class SecretRoleSerializer(OrganizationalModelSerializer):
+class SecretRoleSerializer(PluginOrganizationalModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secretrole-detail')
     secret_count = serializers.IntegerField(read_only=True)
 
