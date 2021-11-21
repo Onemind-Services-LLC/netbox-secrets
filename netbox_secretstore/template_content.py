@@ -10,13 +10,15 @@ class Secrets(PluginTemplateExtension):
         obj = self.context['object']
 
         secrets = None
-        if ContentType.objects.get_for_model(obj).name == 'device':
-            secrets = Secret.objects.filter(device=obj)
-        elif ContentType.objects.get_for_model(obj).name == 'virtualmachine':
-            secrets = Secret.objects.filter(virtualmachine=obj)
+        ctype = ContentType.objects.get_for_model(obj)
+        if ctype.model == 'device':
+            secrets = Secret.objects.filter(assigned_object_id=obj.pk, assigned_object_type=ctype)
+        elif ctype.model == 'virtualmachine':
+            secrets = Secret.objects.filter(assigned_object_id=obj.pk, assigned_object_type=ctype)
 
         return self.render('netbox_secretstore/inc/device_secrets.html', extra_context={
             'secrets': secrets,
+            'type': ctype.model if ctype.model == 'device' else ctype.name.replace(' ', '_'),
         })
 
 
