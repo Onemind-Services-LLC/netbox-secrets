@@ -13,12 +13,12 @@ class PluginButtonsColumn(ButtonsColumn):
     template_code = """
     {{% load plugin_buttons %}}
     {{% if "changelog" in buttons %}}
-        {{% tr_changelog_button record %}}
+        {{% plugin_tr_changelog_button record %}}
     {{% endif %}}
     {{% if "edit" in buttons and perms.{app_label}.change_{model_name} %}}
-        {{% tr_edit_button record return_url_extra %}}
+        {{% plugin_tr_edit_button record return_url_extra %}}
     {{% endif %}}
     {{% if "delete" in buttons and perms.{app_label}.delete_{model_name} %}}
-        {{% tr_delete_button record return_url_extra %}}
+        {{% plugin_tr_delete_button record return_url_extra %}}
     {{% endif %}}
     """

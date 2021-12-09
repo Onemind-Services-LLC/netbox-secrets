@@ -9,6 +9,8 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 
+from netbox_plugin_extensions.views.generic import PluginObjectListView, PluginObjectView, PluginObjectEditView, \
+    PluginObjectDeleteView
 from netbox_secretstore.forms import UserKeyForm
 
 from netbox.views import generic
@@ -35,15 +37,14 @@ def get_session_key(request):
 # Secret roles
 #
 
-class SecretRoleListView(generic.ObjectListView):
+class SecretRoleListView(PluginObjectListView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
     table = SecretRoleTable
-    template_name = 'netbox_secretstore/generic/object_list.html'
 
 
-class SecretRoleView(generic.ObjectView):
+class SecretRoleView(PluginObjectView):
     queryset = SecretRole.objects.all()
 
     def get_extra_context(self, request, instance):
@@ -60,12 +61,12 @@ class SecretRoleView(generic.ObjectView):
         }
 
 
-class SecretRoleEditView(generic.ObjectEditView):
+class SecretRoleEditView(PluginObjectEditView):
     queryset = SecretRole.objects.all()
     model_form = SecretRoleForm
 
 
-class SecretRoleDeleteView(generic.ObjectDeleteView):
+class SecretRoleDeleteView(PluginObjectDeleteView):
     queryset = SecretRole.objects.all()
 
 
@@ -95,20 +96,19 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 # Secrets
 #
 
-class SecretListView(generic.ObjectListView):
+class SecretListView(PluginObjectListView):
     queryset = Secret.objects.all()
     filterset = SecretFilterSet
     filterset_form = SecretFilterForm
     table = SecretTable
     action_buttons = ('add', 'import', 'export')
-    template_name = 'netbox_secretstore/generic/object_list.html'
 
 
-class SecretView(generic.ObjectView):
+class SecretView(PluginObjectView):
     queryset = Secret.objects.all()
 
 
-class SecretEditView(generic.ObjectEditView):
+class SecretEditView(PluginObjectEditView):
     queryset = Secret.objects.all()
     model_form = SecretForm
     template_name = 'netbox_secretstore/secret_edit.html'
@@ -177,7 +177,7 @@ class SecretEditView(generic.ObjectEditView):
         })
 
 
-class SecretDeleteView(generic.ObjectDeleteView):
+class SecretDeleteView(PluginObjectDeleteView):
     queryset = Secret.objects.all()
 
 

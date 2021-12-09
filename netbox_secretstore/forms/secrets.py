@@ -45,7 +45,7 @@ def validate_rsa_key(key, is_secret=True):
 # Secret roles
 #
 
-class SecretRoleForm(BootstrapMixin, CustomFieldModelForm):
+class SecretRoleForm(CustomFieldModelForm):
     slug = SlugField()
 
     class Meta:
@@ -61,7 +61,7 @@ class SecretRoleCSVForm(CustomFieldModelCSVForm):
         fields = SecretRole.csv_headers
 
 
-class SecretRoleBulkEditForm(BootstrapMixin, CustomFieldModelBulkEditForm):
+class SecretRoleBulkEditForm(CustomFieldModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         widget=forms.MultipleHiddenInput
@@ -79,7 +79,7 @@ class SecretRoleBulkEditForm(BootstrapMixin, CustomFieldModelBulkEditForm):
 # Secrets
 #
 
-class SecretForm(BootstrapMixin, CustomFieldModelForm):
+class SecretForm(CustomFieldModelForm):
     device = DynamicModelChoiceField(
         queryset=Device.objects.all(),
         required=False
@@ -212,7 +212,7 @@ class SecretCSVForm(CustomFieldModelCSVForm):
         return s
 
 
-class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldModelBulkEditForm):
+class SecretBulkEditForm(AddRemoveTagsForm, CustomFieldModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=Secret.objects.all(),
         widget=forms.MultipleHiddenInput()
@@ -232,7 +232,7 @@ class SecretBulkEditForm(BootstrapMixin, AddRemoveTagsForm, CustomFieldModelBulk
         ]
 
 
-class SecretFilterForm(BootstrapMixin, CustomFieldModelFilterForm):
+class SecretFilterForm(CustomFieldModelFilterForm):
     model = Secret
     q = forms.CharField(
         required=False,
@@ -250,7 +250,7 @@ class SecretFilterForm(BootstrapMixin, CustomFieldModelFilterForm):
 # UserKeys
 #
 
-class UserKeyForm(BootstrapMixin, forms.ModelForm):
+class UserKeyForm(forms.ModelForm):
 
     class Meta:
         model = UserKey
