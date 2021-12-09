@@ -1,9 +1,7 @@
-{% extends 'users/base.html' %}
+{% extends 'netbox_plugin_extensions/generic/object_edit.html' %}
 {% load form_helpers %}
 {% load plugins %}
 {% load static %}
-
-{% block title %}User Key{% endblock %}
 
 {% block content %}
     {% if object.is_active %}
