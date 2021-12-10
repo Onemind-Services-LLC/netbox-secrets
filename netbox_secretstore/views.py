@@ -19,7 +19,7 @@ from utilities.tables import paginate_table
 from utilities.utils import count_related
 from .tables import *
 from .forms import *
-from .filters import *
+from .filtersets import *
 from .models import SecretRole, Secret, SessionKey, UserKey
 
 
