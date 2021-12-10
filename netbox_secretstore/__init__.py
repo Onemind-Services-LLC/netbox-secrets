@@ -8,6 +8,7 @@ except ModuleNotFoundError:
 
 metadata = metadata('netbox_secretstore')
 
+
 class NetBoxSecretStore(PluginConfig):
     name = metadata.get('Name').replace('-', '_')
     verbose_name = metadata.get('Summary')

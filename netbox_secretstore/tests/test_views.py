@@ -55,7 +55,8 @@ class SecretRoleTestCase(SecretsTestMixin, ViewTestCases.OrganizationalObjectVie
 
 
 # TODO: Change base class to PrimaryObjectViewTestCase
-class SecretTestCase(SecretsTestMixin,
+class SecretTestCase(
+    SecretsTestMixin,
     ViewTestCases.GetObjectViewTestCase,
     ViewTestCases.GetObjectChangelogViewTestCase,
     ViewTestCases.DeleteObjectViewTestCase,
