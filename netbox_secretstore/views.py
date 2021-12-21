@@ -11,7 +11,7 @@ from django.views.generic.base import View
 
 from netbox_plugin_extensions.views.generic import PluginObjectListView, PluginObjectView, PluginObjectEditView, \
     PluginObjectDeleteView
-from netbox_secretstore.forms import UserKeyForm
+from netbox_secretstore.forms import UserKeyForm, SecretRoleFilterForm
 
 from netbox.views import generic
 from utilities.forms import ConfirmationForm
@@ -42,6 +42,8 @@ class SecretRoleListView(PluginObjectListView):
         secret_count=count_related(Secret, 'role')
     )
     table = SecretRoleTable
+    filterset = SecretRoleFilterSet
+    filterset_form = SecretRoleFilterForm
 
 
 class SecretRoleView(PluginObjectView):

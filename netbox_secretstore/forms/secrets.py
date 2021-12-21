@@ -75,6 +75,15 @@ class SecretRoleBulkEditForm(CustomFieldModelBulkEditForm):
         nullable_fields = ['description']
 
 
+class SecretRoleFilterForm(CustomFieldModelFilterForm):
+    model = Secret
+    q = forms.CharField(
+        required=False,
+        label=_('Search')
+    )
+    tag = TagFilterField(model)
+
+
 #
 # Secrets
 #
