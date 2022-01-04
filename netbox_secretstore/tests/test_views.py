@@ -4,12 +4,27 @@ from django.test import override_settings
 from django.urls import reverse
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import ViewTestCases
+
+from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
+
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 
-class SecretRoleTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class SecretsTestMixin:
+    def _get_base_url(self):
+        """
+        Return the base format for a URL for the test's model. Override this to test for a model which belongs
+        to a different app (e.g. testing Interfaces within the virtualization app).
+        """
+        return '{}:{}:{}_{{}}'.format(
+            'plugins',
+            self.model._meta.app_label,
+            self.model._meta.model_name
+        )
+
+
+class SecretRoleTestCase(SecretsTestMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     model = SecretRole
 
     @classmethod
@@ -41,6 +56,7 @@ class SecretRoleTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
 
 # TODO: Change base class to PrimaryObjectViewTestCase
 class SecretTestCase(
+    SecretsTestMixin,
     ViewTestCases.GetObjectViewTestCase,
     ViewTestCases.GetObjectChangelogViewTestCase,
     ViewTestCases.DeleteObjectViewTestCase,
@@ -103,7 +119,7 @@ class SecretTestCase(
 
     @override_settings(EXEMPT_VIEW_PERMISSIONS=['*'])
     def test_import_objects(self):
-        self.add_permissions('secrets.add_secret')
+        self.add_permissions('netbox_secretstore.add_secret')
 
         device = Device.objects.get(name='Device 1')
         csv_data = (
