@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from utilities.tables import BaseTable, LinkedCountColumn, TagColumn, ToggleColumn
+from netbox.tables import BaseTable, columns, NetBoxTable
 from netbox_secretstore.utils.tables import PluginButtonsColumn
 from .models import SecretRole, Secret
 
@@ -10,11 +10,11 @@ from .models import SecretRole, Secret
 #
 
 class SecretRoleTable(BaseTable):
-    pk = ToggleColumn()
+    pk = columns.ToggleColumn()
     name = tables.Column(
         linkify=True
     )
-    secret_count = LinkedCountColumn(
+    secret_count = columns.LinkedCountColumn(
         viewname='plugins:netbox_secretstore:secret_list',
         url_params={'role_id': 'pk'},
         verbose_name='Secrets'
@@ -31,8 +31,8 @@ class SecretRoleTable(BaseTable):
 # Secrets
 #
 
-class SecretTable(BaseTable):
-    pk = ToggleColumn()
+class SecretTable(NetBoxTable):
+    pk = columns.ToggleColumn()
     id = tables.Column(  # Provides a link to the secret
         linkify=True
     )
@@ -43,7 +43,7 @@ class SecretTable(BaseTable):
     role = tables.Column(
         linkify=True
     )
-    tags = TagColumn(
+    tags = columns.TagColumn(
         url_name='plugins:netbox_secretstore:secret_list'
     )
 

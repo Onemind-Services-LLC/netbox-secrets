@@ -11,8 +11,8 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ViewSet
 
-from extras.api.views import CustomFieldModelViewSet
-from netbox.api.views import ModelViewSet
+from extras.api.views import CustomFieldViewSet
+from netbox.api.viewsets import ModelViewSet
 from netbox_secretstore import filtersets
 from netbox_secretstore.exceptions import InvalidKey
 from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
@@ -37,7 +37,7 @@ class SecretsRootView(APIRootView):
 # Secret Roles
 #
 
-class SecretRoleViewSet(CustomFieldModelViewSet):
+class SecretRoleViewSet(CustomFieldViewSet):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -131,7 +131,7 @@ class GetSessionKeyViewSet(ViewSet):
     key is POSTed with the name `private_key`. An example:
 
         curl -v -X POST -H "Authorization: Token <token>" -H "Accept: application/json; indent=4" \\
-        --data-urlencode "private_key@<filename>" https://netbox/api/secrets/get-session-key/
+        --data-urlencode "private_key@<filename>" https://netbox/api/plugins/netbox_secretstore/secrets/get-session-key/
 
     This request will yield a base64-encoded session key to be included in an `X-Session-Key` header in future requests:
 

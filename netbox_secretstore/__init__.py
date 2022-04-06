@@ -17,7 +17,8 @@ class NetBoxSecretStore(PluginConfig):
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
     base_url = 'netbox_secretstore'
-    min_version = '3.0.0'
+    min_version = '3.2.0'
+    max_version = '3.3.0beta1'
     required_settings = []
     default_settings = {
         'public_key_size': 2048

@@ -2,7 +2,7 @@ import django_filters
 from django.forms import BoundField
 from django.urls import reverse
 
-from utilities.forms import fields, widgets
+from utilities.forms import widgets, DynamicModelChoiceField
 
 
 class PluginDynamicModelChoiceMixin:
@@ -45,11 +45,11 @@ class PluginDynamicModelChoiceMixin:
         return bound_field
 
 
-class PluginDynamicModelChoiceField(PluginDynamicModelChoiceMixin, fields.DynamicModelChoiceField):
+class PluginDynamicModelChoiceField(PluginDynamicModelChoiceMixin, DynamicModelChoiceField):
     pass
 
 
-class PluginDynamicModelMultipleChoiceField(PluginDynamicModelChoiceMixin, fields.DynamicModelChoiceField):
+class PluginDynamicModelMultipleChoiceField(PluginDynamicModelChoiceMixin, DynamicModelChoiceField):
     """
     A multiple-choice version of DynamicModelChoiceField.
     """

@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox-secretstore',
-    version='1.0.13',
+    version='1.0.16',
     description='Netbox Secret Store',
     long_description='A Secret store for NetBox',
     url='https://github.com/dansheps/netbox-secretstore/',
@@ -13,7 +13,6 @@ setup(
     install_requires=[
         'importlib',
         'pycryptodome',
-        'netbox-plugin-extensions>=1.0.8'
     ],
     packages=find_packages(),
     include_package_data=True,
@@ -22,6 +21,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     zip_safe=False,
 )
