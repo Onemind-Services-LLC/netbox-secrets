@@ -4,10 +4,10 @@ As with most other objects, the REST API can be used to view, create, modify, an
 
 ## Generating a Session Key
 
-In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key, send an authenticated request to the `/api/secrets/get-session-key/` endpoint with the private RSA key which matches your [UserKey](../core-functionality/secrets.md#user-keys). The private key must be POSTed with the name `private_key`.
+In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key, send an authenticated request to the `/api/plugins/netbox_secretstore/secrets/get-session-key/` endpoint with the private RSA key which matches your [UserKey](../core-functionality/secrets.md#user-keys). The private key must be POSTed with the name `private_key`.
 
 ```no-highlight
-$ curl -X POST http://netbox/api/secrets/get-session-key/ \
+$ curl -X POST http://netbox/api/plugins/netbox_secretstore/secrets/get-session-key/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 --data-urlencode "private_key@<filename>"
@@ -29,7 +29,7 @@ The request uses the provided private key to unlock your stored copy of the mast
 A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its `plaintext` field set to null.
 
 ```no-highlight
-$ curl http://netbox/api/secrets/secrets/2587/ \
+$ curl http://netbox/api/plugins/netbox_secretstore/secrets/2587/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4"
 ```
@@ -37,7 +37,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
 ```json
 {
     "id": 2587,
-    "url": "http://netbox/api/secrets/secrets/2587/",
+    "url": "http://netbox/api/plugins/netbox_secretstore/secrets/2587/",
     "device": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
@@ -46,7 +46,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
     },
     "role": {
         "id": 1,
-        "url": "http://netbox/api/secrets/secret-roles/1/",
+        "url": "http://netbox/api/plugins/netbox_secretstore/secrets/secret-roles/1/",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
@@ -63,7 +63,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
 To decrypt a secret, we must include our session key in the `X-Session-Key` header when sending the `GET` request:
 
 ```no-highlight
-$ curl http://netbox/api/secrets/secrets/2587/ \
+$ curl http://netbox/api/plugins/netbox_secretstore/secrets/secrets/2587/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 -H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
@@ -72,7 +72,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
 ```json
 {
     "id": 2587,
-    "url": "http://netbox/api/secrets/secrets/2587/",
+    "url": "http://netbox/api/plugins/netbox_secretstore/secrets/secrets/2587/",
     "device": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
@@ -81,7 +81,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
     },
     "role": {
         "id": 1,
-        "url": "http://netbox/api/secrets/secret-roles/1/",
+        "url": "http://netbox/api/plugins/netbox_secretstore/secrets/secret-roles/1/",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
@@ -98,7 +98,7 @@ $ curl http://netbox/api/secrets/secrets/2587/ \
 Multiple secrets within a list can be decrypted in this manner as well:
 
 ```no-highlight
-$ curl http://netbox/api/secrets/secrets/?limit=3 \
+$ curl http://netbox/api/plugins/netbox_secretstore/secrets/secrets/?limit=3 \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 -H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
@@ -107,7 +107,7 @@ $ curl http://netbox/api/secrets/secrets/?limit=3 \
 ```json
 {
     "count": 3482,
-    "next": "http://netbox/api/secrets/secrets/?limit=3&offset=3",
+    "next": "http://netbox/api/plugins/netbox_secretstore/secrets/secrets/?limit=3&offset=3",
     "previous": null,
     "results": [
         {
@@ -145,7 +145,7 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 ```json
 {
     "id": 6194,
-    "url": "http://netbox/api/secrets/secrets/9194/",
+    "url": "http://netbox/api/plugins/netbox_secretstore/secrets/secrets/9194/",
     "device": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
@@ -154,7 +154,7 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
     },
     "role": {
         "id": 1,
-        "url": "http://netbox/api/secrets/secret-roles/1/",
+        "url": "http://netbox/api/plugins/netbox_secretstore/secrets/secret-roles/1/",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
