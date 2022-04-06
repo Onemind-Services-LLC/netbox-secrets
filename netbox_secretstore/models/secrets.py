@@ -15,8 +15,7 @@ from django.utils.encoding import force_bytes
 
 from dcim.models import Device
 from virtualization.models import VirtualMachine
-from extras.utils import extras_features
-from netbox.models import BigIDModel, OrganizationalModel, PrimaryModel
+from netbox.models import OrganizationalModel, NetBoxModel
 from utilities.querysets import RestrictedQuerySet
 from netbox_secretstore.exceptions import InvalidKey
 from netbox_secretstore.hashers import SecretValidationHasher
@@ -32,12 +31,13 @@ __all__ = (
 )
 
 
-class UserKey(BigIDModel):
+class UserKey(models.Model):
     """
     A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
     matching (private) decryption key.
     """
+    id = models.BigAutoField(primary_key=True)
     created = models.DateField(
         auto_now_add=True
     )
@@ -165,10 +165,11 @@ class UserKey(BigIDModel):
         self.save()
 
 
-class SessionKey(BigIDModel):
+class SessionKey(models.Model):
     """
     A SessionKey stores a User's temporary key to be used for the encryption and decryption of secrets.
     """
+    id = models.BigAutoField(primary_key=True)
     userkey = models.OneToOneField(
         to='UserKey',
         on_delete=models.CASCADE,
@@ -235,7 +236,6 @@ class SessionKey(BigIDModel):
         return session_key
 
 
-@extras_features('custom_fields', 'export_templates', 'webhooks')
 class SecretRole(OrganizationalModel):
     """
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
@@ -275,8 +275,7 @@ class SecretRole(OrganizationalModel):
         )
 
 
-@extras_features('custom_fields', 'custom_links', 'export_templates', 'webhooks')
-class Secret(PrimaryModel):
+class Secret(NetBoxModel):
     """
     A Secret stores an AES256-encrypted copy of sensitive data, such as passwords or secret keys. An irreversible
     SHA-256 hash is stored along with the ciphertext for validation upon decryption. Each Secret is assigned to exactly

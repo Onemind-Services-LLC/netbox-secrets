@@ -4,12 +4,11 @@ from django import forms
 from django.utils.translation import gettext as _
 
 from dcim.models import Device
-from extras.forms import (
-    AddRemoveTagsForm, CustomFieldModelBulkEditForm, CustomFieldModelFilterForm, CustomFieldModelForm, CustomFieldModelCSVForm,
-)
+from netbox.forms import NetBoxModelForm
+from extras.forms import CustomFieldCSVForm, CustomFieldFilterForm, CustomFieldBulkEditForm, CustomFieldForm, TagForm
 from extras.models import Tag
 from utilities.forms import (
-    BootstrapMixin, CSVModelChoiceField, SlugField, TagFilterField, DynamicModelChoiceField,
+    CSVModelChoiceField, SlugField, TagFilterField, DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
 )
 from virtualization.models import VirtualMachine
@@ -45,7 +44,7 @@ def validate_rsa_key(key, is_secret=True):
 # Secret roles
 #
 
-class SecretRoleForm(CustomFieldModelForm):
+class SecretRoleForm(NetBoxModelForm):
     slug = SlugField()
 
     class Meta:
@@ -53,7 +52,7 @@ class SecretRoleForm(CustomFieldModelForm):
         fields = ('name', 'slug', 'description')
 
 
-class SecretRoleCSVForm(CustomFieldModelCSVForm):
+class SecretRoleCSVForm(CustomFieldCSVForm):
     slug = SlugField()
 
     class Meta:
@@ -61,7 +60,7 @@ class SecretRoleCSVForm(CustomFieldModelCSVForm):
         fields = SecretRole.csv_headers
 
 
-class SecretRoleBulkEditForm(CustomFieldModelBulkEditForm):
+class SecretRoleBulkEditForm(CustomFieldBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         widget=forms.MultipleHiddenInput
@@ -75,7 +74,7 @@ class SecretRoleBulkEditForm(CustomFieldModelBulkEditForm):
         nullable_fields = ['description']
 
 
-class SecretRoleFilterForm(CustomFieldModelFilterForm):
+class SecretRoleFilterForm(CustomFieldFilterForm):
     model = Secret
     q = forms.CharField(
         required=False,
@@ -88,7 +87,7 @@ class SecretRoleFilterForm(CustomFieldModelFilterForm):
 # Secrets
 #
 
-class SecretForm(CustomFieldModelForm):
+class SecretForm(NetBoxModelForm):
     device = DynamicModelChoiceField(
         queryset=Device.objects.all(),
         required=False
@@ -167,7 +166,7 @@ class SecretForm(CustomFieldModelForm):
         return super().save(*args, **kwargs)
 
 
-class SecretCSVForm(CustomFieldModelCSVForm):
+class SecretCSVForm(CustomFieldCSVForm):
     role = CSVModelChoiceField(
         queryset=SecretRole.objects.all(),
         to_field_name='name',
@@ -221,7 +220,7 @@ class SecretCSVForm(CustomFieldModelCSVForm):
         return s
 
 
-class SecretBulkEditForm(AddRemoveTagsForm, CustomFieldModelBulkEditForm):
+class SecretBulkEditForm(TagForm, CustomFieldBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=Secret.objects.all(),
         widget=forms.MultipleHiddenInput()
@@ -241,7 +240,7 @@ class SecretBulkEditForm(AddRemoveTagsForm, CustomFieldModelBulkEditForm):
         ]
 
 
-class SecretFilterForm(CustomFieldModelFilterForm):
+class SecretFilterForm(CustomFieldFilterForm):
     model = Secret
     q = forms.CharField(
         required=False,

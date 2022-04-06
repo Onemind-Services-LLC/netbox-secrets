@@ -1,5 +1,5 @@
 from netbox_secretstore import filtersets, models
-from netbox.graphql.types import ObjectType, OrganizationalObjectType, PrimaryObjectType
+from netbox.graphql.types import ObjectType, NetBoxObjectType
 
 __all__ = (
     'SecretRoleType',
@@ -15,7 +15,7 @@ class SecretRoleType(ObjectType):
         filterset_class = filtersets.SecretRoleFilterSet
 
 
-class SecretType(PrimaryObjectType):
+class SecretType(NetBoxObjectType):
 
     class Meta:
         model = models.Secret

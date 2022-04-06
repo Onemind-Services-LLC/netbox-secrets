@@ -9,13 +9,12 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 
-from netbox_plugin_extensions.views.generic import PluginObjectListView, PluginObjectView, PluginObjectEditView, \
-    PluginObjectDeleteView
+from netbox.views.generic import ObjectListView, ObjectView, ObjectEditView, ObjectDeleteView, ObjectImportView, \
+    BulkEditView, BulkDeleteView
 from netbox_secretstore.forms import UserKeyForm, SecretRoleFilterForm
 
 from netbox.views import generic
 from utilities.forms import ConfirmationForm
-from utilities.tables import paginate_table
 from utilities.utils import count_related
 from .tables import *
 from .forms import *
@@ -37,7 +36,7 @@ def get_session_key(request):
 # Secret roles
 #
 
-class SecretRoleListView(PluginObjectListView):
+class SecretRoleListView(ObjectListView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -46,7 +45,7 @@ class SecretRoleListView(PluginObjectListView):
     filterset_form = SecretRoleFilterForm
 
 
-class SecretRoleView(PluginObjectView):
+class SecretRoleView(ObjectView):
     queryset = SecretRole.objects.all()
 
     def get_extra_context(self, request, instance):
@@ -54,31 +53,30 @@ class SecretRoleView(PluginObjectView):
             role=instance
         )
 
-        secrets_table = SecretTable(secrets)
-        secrets_table.columns.hide('role')
-        paginate_table(secrets_table, request)
+        secrets_table = SecretTable(secrets, exclude=('role',))
+        secrets_table.configure(request)
 
         return {
             'secrets_table': secrets_table,
         }
 
 
-class SecretRoleEditView(PluginObjectEditView):
+class SecretRoleEditView(ObjectEditView):
     queryset = SecretRole.objects.all()
-    model_form = SecretRoleForm
+    form = SecretRoleForm
 
 
-class SecretRoleDeleteView(PluginObjectDeleteView):
+class SecretRoleDeleteView(ObjectDeleteView):
     queryset = SecretRole.objects.all()
 
 
-class SecretRoleBulkImportView(generic.BulkImportView):
+class SecretRoleBulkImportView(ObjectImportView):
     queryset = SecretRole.objects.all()
-    model_form = SecretRoleCSVForm
+    form = SecretRoleCSVForm
     table = SecretRoleTable
 
 
-class SecretRoleBulkEditView(generic.BulkEditView):
+class SecretRoleBulkEditView(BulkEditView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -87,7 +85,7 @@ class SecretRoleBulkEditView(generic.BulkEditView):
     form = SecretRoleBulkEditForm
 
 
-class SecretRoleBulkDeleteView(generic.BulkDeleteView):
+class SecretRoleBulkDeleteView(BulkDeleteView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -98,7 +96,7 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 # Secrets
 #
 
-class SecretListView(PluginObjectListView):
+class SecretListView(ObjectListView):
     queryset = Secret.objects.all()
     filterset = SecretFilterSet
     filterset_form = SecretFilterForm
@@ -106,13 +104,13 @@ class SecretListView(PluginObjectListView):
     action_buttons = ('add', 'import', 'export')
 
 
-class SecretView(PluginObjectView):
+class SecretView(ObjectView):
     queryset = Secret.objects.all()
 
 
-class SecretEditView(PluginObjectEditView):
+class SecretEditView(ObjectEditView):
     queryset = Secret.objects.all()
-    model_form = SecretForm
+    form = SecretForm
     template_name = 'netbox_secretstore/secret_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -132,8 +130,8 @@ class SecretEditView(PluginObjectEditView):
     def post(self, request, *args, **kwargs):
         logger = logging.getLogger('netbox.views.ObjectEditView')
         session_key = get_session_key(request)
-        secret = self.get_object(kwargs)
-        form = self.model_form(request.POST, instance=secret)
+        secret = self.get_object(**kwargs)
+        form = self.form(request.POST, instance=secret)
 
         if form.is_valid():
             logger.debug("Form validation was successful")
@@ -179,13 +177,13 @@ class SecretEditView(PluginObjectEditView):
         })
 
 
-class SecretDeleteView(PluginObjectDeleteView):
+class SecretDeleteView(ObjectDeleteView):
     queryset = Secret.objects.all()
 
 
-class SecretBulkImportView(generic.BulkImportView):
+class SecretBulkImportView(ObjectImportView):
     queryset = Secret.objects.all()
-    model_form = SecretCSVForm
+    form = SecretCSVForm
     table = SecretTable
     template_name = 'netbox_secretstore/secret_import.html'
     widget_attrs = {'class': 'requires-session-key'}
@@ -230,14 +228,14 @@ class SecretBulkImportView(generic.BulkImportView):
         })
 
 
-class SecretBulkEditView(generic.BulkEditView):
+class SecretBulkEditView(BulkEditView):
     queryset = Secret.objects.prefetch_related('role')
     filterset = SecretFilterSet
     table = SecretTable
     form = SecretBulkEditForm
 
 
-class SecretBulkDeleteView(generic.BulkDeleteView):
+class SecretBulkDeleteView(BulkDeleteView):
     queryset = Secret.objects.prefetch_related('role')
     filterset = SecretFilterSet
     table = SecretTable

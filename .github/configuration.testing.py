@@ -15,7 +15,6 @@ DATABASE = {
 }
 
 PLUGINS = [
-    'netbox_plugin_extensions',
     'netbox_secretstore',
 ]
 

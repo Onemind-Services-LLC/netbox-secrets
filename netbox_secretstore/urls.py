@@ -1,6 +1,6 @@
 from django.urls import path
 
-from extras.views import ObjectChangeLogView, ObjectJournalView
+from netbox.views.generic import ObjectChangeLogView, ObjectJournalView
 from .views import *
 from .models import Secret, SecretRole
 
