@@ -190,11 +190,13 @@ class SessionKey(models.Model):
 
     key = None
 
+    objects = RestrictedQuerySet.as_manager()
+
     class Meta:
         ordering = ['userkey__user__username']
 
     def __str__(self):
-        return self.userkey.user.username
+        return f'{self.userkey.user.username} (RSA)'
 
     def save(self, master_key=None, *args, **kwargs):
 
