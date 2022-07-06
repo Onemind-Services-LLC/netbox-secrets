@@ -19,13 +19,6 @@ body:
       required: true
   - type: input
     attributes:
-      label: netbox-plugin-extensions version
-      description: What version of the netbox-plugin-extensions are you currently running?
-      placeholder: v1.0.2
-    validations:
-      required: true
-  - type: input
-    attributes:
       label: NetBox version
       description: What version of NetBox are you currently running?
       placeholder: v3.0.3
