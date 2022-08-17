@@ -270,7 +270,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
 
     def get(self, request):
         form = UserKeyForm(instance=self.userkey)
-
+        print(self.template_name)
         return render(request, self.template_name, {
             'object': self.userkey,
             'form': form,
