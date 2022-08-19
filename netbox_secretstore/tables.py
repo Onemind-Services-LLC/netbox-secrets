@@ -38,6 +38,7 @@ class SecretTable(NetBoxTable):
     )
     assigned_object = tables.Column(
         linkify=True,
+        orderable=False,
         verbose_name='Assigned object'
     )
     role = tables.Column(

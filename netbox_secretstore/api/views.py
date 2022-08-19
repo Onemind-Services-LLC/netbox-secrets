@@ -221,7 +221,12 @@ class GenerateRSAKeyPairViewSet(ViewSet):
     def list(self, request):
 
         # Determine what size key to generate
-        key_size = request.GET.get('key_size', 2048)
+        try:
+            key_size = request.GET.get('key_size', 2048)
+            key_size = int(key_size)
+        except ValueError as e:
+            key_size = 2048
+
         if key_size not in range(2048, 4097, 256):
             key_size = 2048
 

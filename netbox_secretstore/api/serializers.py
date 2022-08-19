@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
-from netbox.api import ContentTypeField
+from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer, NestedGroupModelSerializer
 from netbox_secretstore.constants import SECRET_ASSIGNMENT_MODELS
 from netbox_secretstore.models import Secret, SecretRole

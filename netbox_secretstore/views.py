@@ -257,6 +257,7 @@ class UserKeyView(LoginRequiredMixin, View):
 
 
 class UserKeyEditView(LoginRequiredMixin, View):
+    queryset = SessionKey.objects.all()
     template_name = 'netbox_secretstore/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -269,7 +270,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
 
     def get(self, request):
         form = UserKeyForm(instance=self.userkey)
-
+        print(self.template_name)
         return render(request, self.template_name, {
             'object': self.userkey,
             'form': form,
@@ -292,14 +293,15 @@ class UserKeyEditView(LoginRequiredMixin, View):
         })
 
 
-class SessionKeyDeleteView(LoginRequiredMixin, View):
+class SessionKeyDeleteView(ObjectDeleteView):
+    queryset = SessionKey.objects.all()
 
     def get(self, request):
-
         sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
         form = ConfirmationForm()
 
         return render(request, 'netbox_secretstore/sessionkey_delete.html', {
+            'object': sessionkey,
             'obj_type': sessionkey._meta.verbose_name,
             'form': form,
             'return_url': reverse('plugins:netbox_secretstore:userkey'),
