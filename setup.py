@@ -11,7 +11,6 @@ setup(
     author_email='dans@dansheps.com',
     license='Apache 2.0',
     install_requires=[
-        'importlib',
         'pycryptodome',
     ],
     packages=find_packages(),

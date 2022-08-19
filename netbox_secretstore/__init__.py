@@ -1,10 +1,7 @@
 from extras.plugins import PluginConfig
 
 
-try:
-    from importlib.metadata import metadata
-except ModuleNotFoundError:
-    from importlib_metadata import metadata
+from importlib.metadata import metadata
 
 metadata = metadata('netbox_secretstore')
 
