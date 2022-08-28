@@ -131,7 +131,7 @@ class GetSessionKeyViewSet(ViewSet):
     key is POSTed with the name `private_key`. An example:
 
         curl -v -X POST -H "Authorization: Token <token>" -H "Accept: application/json; indent=4" \\
-        --data-urlencode "private_key@<filename>" https://netbox/api/plugins/netbox_secretstore/secrets/get-session-key/
+        --data-urlencode "private_key@<filename>" https://netbox/api/plugins/netbox_secretstore/get-session-key/
 
     This request will yield a base64-encoded session key to be included in an `X-Session-Key` header in future requests:
 
@@ -147,7 +147,7 @@ class GetSessionKeyViewSet(ViewSet):
     @swagger_auto_schema(
         manual_parameters=[
             Parameter(
-                name='public_key',
+                name='private_key',
                 in_='query',
                 required=True,
                 type=openapi.TYPE_STRING
