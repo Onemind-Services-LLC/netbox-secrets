@@ -13,7 +13,7 @@ class NetBoxSecretStore(PluginConfig):
     version = metadata.get('Version')
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
-    base_url = 'netbox_secretstore'
+    base_url = 'secrets'
     min_version = '3.3.0beta1'
     max_version = '3.3.9'
     required_settings = []
