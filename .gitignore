@@ -5,6 +5,5 @@ yarn.error
 /netbox_secretstore/project-static/netbox/
 __pycache__
 build
-dist
 
 .idea

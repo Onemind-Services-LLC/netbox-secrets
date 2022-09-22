@@ -27,7 +27,7 @@ function initGenerateKeyPair() {
       }
     }
     // Fetch the key pair from the API.
-    apiGetBase<APIKeyPair>('/api/plugins/netbox_secretstore/generate-rsa-key-pair').then(data => {
+    apiGetBase<APIKeyPair>('/api/plugins/secrets/generate-rsa-key-pair').then(data => {
       if (!hasError(data)) {
         // If key pair generation was successful, set the textarea elements' value to the generated
         // values.
@@ -98,7 +98,7 @@ function initLockUnlock() {
   function unlock(id: string | null) {
     const target = document.getElementById(`secret_${id}`) as HTMLDivElement | HTMLInputElement;
     if (typeof id === 'string' && id !== '') {
-      apiGetBase<APISecret>(`/api/plugins/netbox_secretstore/secrets/${id}`).then(data => {
+      apiGetBase<APISecret>(`/api/plugins/secrets/secrets/${id}`).then(data => {
         if (!hasError(data)) {
           const { plaintext } = data;
           // `plaintext` is the plain text value of the secret. If it is null, it has not been
@@ -169,7 +169,7 @@ function initLockUnlock() {
  * @param privateKey RSA Private Key (valid JSON string)
  */
 function requestSessionKey(privateKey: string) {
-  apiPostForm('/api/plugins/netbox_secretstore/get-session-key/', {
+  apiPostForm('/api/plugins/secrets/get-session-key/', {
     private_key: privateKey,
   }).then(res => {
     if (!hasError(res)) {
