@@ -3,8 +3,7 @@ from django.db.models import Q
 
 from dcim.models import Device
 from extras.filters import TagFilter
-from extras.filtersets import CustomFieldFilterSet
-from netbox.filtersets import ChangeLoggedModelFilterSet, BaseFilterSet
+from netbox.filtersets import NetBoxModelFilterSet
 from virtualization.models import VirtualMachine
 from .models import Secret, SecretRole
 
@@ -15,7 +14,7 @@ __all__ = (
 )
 
 
-class SecretRoleFilterSet(ChangeLoggedModelFilterSet):
+class SecretRoleFilterSet(NetBoxModelFilterSet):
     q = django_filters.CharFilter(
         method='search',
         label='Search',
@@ -35,7 +34,7 @@ class SecretRoleFilterSet(ChangeLoggedModelFilterSet):
         )
 
 
-class SecretFilterSet(BaseFilterSet):
+class SecretFilterSet(NetBoxModelFilterSet):
     q = django_filters.CharFilter(
         method='search',
         label='Search',
