@@ -1,8 +1,8 @@
-netbox_secretstore.egg-info
+netbox_secrets.egg-info
 node_modules
 yarn.error
-/netbox_secretstore/project-static/.cache/
-/netbox_secretstore/project-static/netbox/
+/netbox_secrets/project-static/.cache/
+/netbox_secrets/project-static/netbox/
 __pycache__
 build
 dist

@@ -13,10 +13,10 @@ def secrets_to_nbsecrets(apps, schema_editor):
         ctuserkey = ContentType.objects.get(app_label='secrets', model='userkey')
         ctsessionkey = ContentType.objects.get(app_label='secrets', model='sessionkey')
 
-        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
-        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
-        ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
-        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secrets', model='secret')
+        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secrets', model='secretrole')
+        ctnbuserkey = ContentType.objects.get(app_label='netbox_secrets', model='userkey')
+        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secrets', model='sessionkey')
 
         ObjectChange.objects.filter(changed_object_type_id=ctsecret.id).update(changed_object_type_id=ctnbsecret.id)
         ObjectChange.objects.filter(changed_object_type_id=ctsecretrole.id).update(changed_object_type_id=ctnbsecretrole.id)
@@ -37,10 +37,10 @@ def nbsecrets_to_secrets(apps, schema_editor):
         ctuserkey = ContentType.objects.get(app_label='secrets', model='userkey')
         ctsessionkey = ContentType.objects.get(app_label='secrets', model='sessionkey')
 
-        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
-        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
-        ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
-        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secrets', model='secret')
+        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secrets', model='secretrole')
+        ctnbuserkey = ContentType.objects.get(app_label='netbox_secrets', model='userkey')
+        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secrets', model='sessionkey')
 
         ObjectChange.objects.filter(changed_object_type_id=ctnbsecret.id).update(changed_object_type_id=ctsecret.id)
         ObjectChange.objects.filter(changed_object_type_id=ctnbsecretrole.id).update(changed_object_type_id=ctsecretrole.id)
@@ -53,7 +53,7 @@ def nbsecrets_to_secrets(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_secretstore', '0002_rename_table'),
+        ('netbox_secrets', '0002_rename_table'),
     ]
 
     operations = [

@@ -3,10 +3,10 @@ from extras.plugins import PluginConfig
 
 from importlib.metadata import metadata
 
-metadata = metadata('netbox_secretstore')
+metadata = metadata('netbox_secrets')
 
 
-class NetBoxSecretStore(PluginConfig):
+class NetBoxSecrets(PluginConfig):
     name = metadata.get('Name').replace('-', '_')
     verbose_name = metadata.get('Summary')
     description = metadata.get('Description')
@@ -22,4 +22,4 @@ class NetBoxSecretStore(PluginConfig):
     }
 
 
-config = NetBoxSecretStore
+config = NetBoxSecrets

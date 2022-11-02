@@ -12,8 +12,8 @@ from utilities.forms import (
     DynamicModelMultipleChoiceField,
 )
 from virtualization.models import VirtualMachine
-from netbox_secretstore.constants import *
-from netbox_secretstore.models import Secret, SecretRole, UserKey
+from netbox_secrets.constants import *
+from netbox_secrets.models import Secret, SecretRole, UserKey
 
 from .fields import PluginDynamicModelChoiceField, PluginDynamicModelMultipleChoiceField
 

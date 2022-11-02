@@ -2,8 +2,8 @@ from django.test import TestCase
 
 from utilities.testing import create_test_user
 
-from netbox_secretstore.forms import UserKeyForm
-from netbox_secretstore.models import UserKey
+from netbox_secrets.forms import UserKeyForm
+from netbox_secrets.models import UserKey
 
 from .constants import PUBLIC_KEY, SSH_PUBLIC_KEY
 
@@ -13,8 +13,8 @@ class UserKeyFormTestCase(TestCase):
     def setUp(self):
         user = create_test_user(
             permissions=[
-                'netbox_secretstore.view_secretrole',
-                'netbox_secretstore.add_secretrole',
+                'netbox_secrets.view_secretrole',
+                'netbox_secrets.add_secretrole',
             ]
         )
         self.userkey = UserKey(user=user)

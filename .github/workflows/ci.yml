@@ -52,7 +52,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
-        path: 'netbox-secretstore'
+        path: 'netbox-secrets'
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -69,11 +69,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r netbox/requirements.txt
         pip install pycodestyle coverage
-        ln -sr ./netbox-secretstore/.github/configuration.testing.py ./netbox/netbox/netbox/configuration.py
-        yarn --cwd netbox-secretstore/netbox_secretstore/project-static
+        ln -sr ./netbox-secrets/.github/configuration.testing.py ./netbox/netbox/netbox/configuration.py
+        yarn --cwd netbox-secrets/netbox_secrets/project-static
         cd netbox-plugin-extensions
         python setup.py develop
-        cd ../netbox-secretstore
+        cd ../netbox-secrets
         python setup.py develop
         cd ../
 
@@ -81,16 +81,16 @@ jobs:
       run: python netbox/netbox/manage.py collectstatic --no-input
 
     - name: Check PEP8 compliance
-      run: pycodestyle --ignore=W504,E501 --exclude=node_modules netbox-secretstore/netbox_secretstore/
+      run: pycodestyle --ignore=W504,E501 --exclude=node_modules netbox-secrets/netbox_secrets/
 
     - name: Check UI ESLint, TypeScript, and Prettier Compliance
-      run: yarn --cwd netbox-secretstore/netbox_secretstore/project-static validate
+      run: yarn --cwd netbox-secrets/netbox_secrets/project-static validate
 
     - name: Validate Static Asset Integrity
-      run: bash netbox-secretstore/.github/verify-bundles.sh
+      run: bash netbox-secrets/.github/verify-bundles.sh
 
     - name: Run tests
-      run: coverage run --source="netbox-secretstore/netbox_secretstore/" netbox/netbox/manage.py test netbox-secretstore/netbox_secretstore/
+      run: coverage run --source="netbox-secrets/netbox_secrets/" netbox/netbox/manage.py test netbox-secrets/netbox_secrets/
 
     - name: Show coverage report
       run: coverage report --skip-covered --omit *migrations*

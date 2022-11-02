@@ -6,7 +6,7 @@ from django.urls import reverse
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from utilities.testing import ViewTestCases
 
-from netbox_secretstore.models import Secret, SecretRole, SessionKey, UserKey
+from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
@@ -119,7 +119,7 @@ class SecretTestCase(
 
     @override_settings(EXEMPT_VIEW_PERMISSIONS=['*'])
     def test_import_objects(self):
-        self.add_permissions('netbox_secretstore.add_secret')
+        self.add_permissions('netbox_secrets.add_secret')
 
         device = Device.objects.get(name='Device 1')
         csv_data = (
@@ -133,7 +133,7 @@ class SecretTestCase(
         session_key = base64.b64encode(self.session_key.key).decode('utf-8')
         self.client.cookies['session_key'] = session_key
 
-        response = self.client.post(reverse('plugins:netbox_secretstore:secret_import'), {'csv': '\n'.join(csv_data)})
+        response = self.client.post(reverse('plugins:netbox_secrets:secret_import'), {'csv': '\n'.join(csv_data)})
 
         self.assertHttpStatus(response, 200)
         self.assertEqual(Secret.objects.count(), 6)

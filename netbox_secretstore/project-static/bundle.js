@@ -7,7 +7,7 @@ const options = {
   minify: true,
   sourcemap: true,
   logLevel: 'error',
-  publicPath: '/static/netbox_secretstore',
+  publicPath: '/static/netbox_secrets',
 };
 
 /**

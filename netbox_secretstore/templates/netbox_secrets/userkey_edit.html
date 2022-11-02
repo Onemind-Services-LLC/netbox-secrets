@@ -20,7 +20,7 @@
                 <button type="button" class="btn btn-info" id="generate_keypair" data-bs-toggle="modal" data-bs-target="#new_keypair_modal">Generate a New Key Pair</button>
             </div>
             <div class="col-8 text-end">
-                <a href="{% url 'plugins:netbox_secretstore:userkey' %}" class="btn btn-outline-danger">Cancel</a>
+                <a href="{% url 'plugins:netbox_secrets:userkey' %}" class="btn btn-outline-danger">Cancel</a>
                 <button type="submit" name="_update" class="btn btn-primary">Save</button>    
             </div>
         </div>
@@ -57,7 +57,7 @@
 {# Javascript #}
 <script
   type="text/javascript"
-  src="{% static 'netbox_secretstore/secrets.js' %}"
-  onerror="window.location='{% url 'media_failure' %}?filename=netbox_secretstore/secrets.js'">
+  src="{% static 'netbox_secrets/secrets.js' %}"
+  onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
 </script>
 {% endblock %}

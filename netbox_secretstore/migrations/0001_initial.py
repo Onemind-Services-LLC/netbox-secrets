@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('cipher', models.BinaryField(max_length=512)),
                 ('hash', models.CharField(editable=False, max_length=128)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('userkey', models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='session_key', to='netbox_secretstore.userkey')),
+                ('userkey', models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='session_key', to='netbox_secrets.userkey')),
             ],
             options={
                 'db_table': 'secrets_sessionkey',
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 ('ciphertext', models.BinaryField(max_length=65568)),
                 ('hash', models.CharField(editable=False, max_length=128)),
                 ('assigned_object_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.contenttype')),
-                ('role', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='secrets', to='netbox_secretstore.secretrole')),
+                ('role', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='secrets', to='netbox_secrets.secretrole')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={

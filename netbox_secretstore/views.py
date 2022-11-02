@@ -11,7 +11,7 @@ from django.views.generic.base import View
 
 from netbox.views.generic import ObjectListView, ObjectView, ObjectEditView, ObjectDeleteView, ObjectImportView, \
     BulkEditView, BulkDeleteView
-from netbox_secretstore.forms import UserKeyForm, SecretRoleFilterForm
+from netbox_secrets.forms import UserKeyForm, SecretRoleFilterForm
 
 from netbox.views import generic
 from utilities.forms import ConfirmationForm
@@ -111,7 +111,7 @@ class SecretView(ObjectView):
 class SecretEditView(ObjectEditView):
     queryset = Secret.objects.all()
     form = SecretForm
-    template_name = 'netbox_secretstore/secret_edit.html'
+    template_name = 'netbox_secrets/secret_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -120,10 +120,10 @@ class SecretEditView(ObjectEditView):
             uk = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
-            return redirect('plugins:netbox_secretstore:userkey')
+            return redirect('plugins:netbox_secrets:userkey')
         if not uk.is_active():
             messages.warning(request, "This operation is not available. Your user key has not been activated.")
-            return redirect('plugins:netbox_secretstore:userkey')
+            return redirect('plugins:netbox_secrets:userkey')
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -185,7 +185,7 @@ class SecretBulkImportView(ObjectImportView):
     queryset = Secret.objects.all()
     form = SecretCSVForm
     table = SecretTable
-    template_name = 'netbox_secretstore/secret_import.html'
+    template_name = 'netbox_secrets/secret_import.html'
     widget_attrs = {'class': 'requires-session-key'}
 
     master_key = None
@@ -242,7 +242,7 @@ class SecretBulkDeleteView(BulkDeleteView):
 
 
 class UserKeyView(LoginRequiredMixin, View):
-    template_name = 'netbox_secretstore/userkey.html'
+    template_name = 'netbox_secrets/userkey.html'
 
     def get(self, request):
         try:
@@ -258,7 +258,7 @@ class UserKeyView(LoginRequiredMixin, View):
 
 class UserKeyEditView(LoginRequiredMixin, View):
     queryset = SessionKey.objects.all()
-    template_name = 'netbox_secretstore/userkey_edit.html'
+    template_name = 'netbox_secrets/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
         try:
@@ -284,7 +284,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
             uk.user = request.user
             uk.save()
             messages.success(request, "Your user key has been saved.")
-            return redirect('plugins:netbox_secretstore:userkey')
+            return redirect('plugins:netbox_secrets:userkey')
 
         return render(request, self.template_name, {
             'userkey': self.userkey,
@@ -300,11 +300,11 @@ class SessionKeyDeleteView(ObjectDeleteView):
         sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
         form = ConfirmationForm()
 
-        return render(request, 'netbox_secretstore/sessionkey_delete.html', {
+        return render(request, 'netbox_secrets/sessionkey_delete.html', {
             'object': sessionkey,
             'obj_type': sessionkey._meta.verbose_name,
             'form': form,
-            'return_url': reverse('plugins:netbox_secretstore:userkey'),
+            'return_url': reverse('plugins:netbox_secrets:userkey'),
         })
 
     def post(self, request):
@@ -318,13 +318,13 @@ class SessionKeyDeleteView(ObjectDeleteView):
             messages.success(request, "Session key deleted")
 
             # Delete cookie
-            response = redirect('plugins:netbox_secretstore:userkey')
+            response = redirect('plugins:netbox_secrets:userkey')
             response.delete_cookie('session_key')
 
             return response
 
-        return render(request, 'netbox_secretstore/sessionkey_delete.html', {
+        return render(request, 'netbox_secrets/sessionkey_delete.html', {
             'obj_type': sessionkey._meta.verbose_name,
             'form': form,
-            'return_url': reverse('plugins:netbox_secretstore:userkey'),
+            'return_url': reverse('plugins:netbox_secrets:userkey'),
         })

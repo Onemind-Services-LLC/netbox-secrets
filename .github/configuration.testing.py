@@ -15,7 +15,7 @@ DATABASE = {
 }
 
 PLUGINS = [
-    'netbox_secretstore',
+    'netbox_secrets',
 ]
 
 REDIS = {

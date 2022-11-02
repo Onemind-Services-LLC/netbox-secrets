@@ -4,7 +4,7 @@ from netbox.graphql.fields import ObjectField, ObjectListField
 from .types import *
 
 
-class SecretStoreQuery(graphene.ObjectType):
+class SecretsQuery(graphene.ObjectType):
     secret = ObjectField(SecretType)
     secret_list = ObjectListField(SecretType)
 

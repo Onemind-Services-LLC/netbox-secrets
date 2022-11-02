@@ -17,10 +17,10 @@ from dcim.models import Device
 from virtualization.models import VirtualMachine
 from netbox.models import OrganizationalModel, NetBoxModel
 from utilities.querysets import RestrictedQuerySet
-from netbox_secretstore.exceptions import InvalidKey
-from netbox_secretstore.hashers import SecretValidationHasher
-from netbox_secretstore.querysets import UserKeyQuerySet
-from netbox_secretstore.utils import encrypt_master_key, decrypt_master_key, generate_random_key
+from netbox_secrets.exceptions import InvalidKey
+from netbox_secrets.hashers import SecretValidationHasher
+from netbox_secrets.querysets import UserKeyQuerySet
+from netbox_secrets.utils import encrypt_master_key, decrypt_master_key, generate_random_key
 
 
 __all__ = (
@@ -93,10 +93,10 @@ class UserKey(models.Model):
 
             # Validate the public key length
             pubkey_length = pubkey.size_in_bits()
-            if pubkey_length < settings.PLUGINS_CONFIG['netbox_secretstore']['public_key_size']:
+            if pubkey_length < settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']:
                 raise ValidationError({
                     'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
-                        settings.PLUGINS_CONFIG['netbox_secretstore']['public_key_size']
+                        settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']
                     )
                 })
             # We can't use keys bigger than our master_key_cipher field can hold
@@ -267,7 +267,7 @@ class SecretRole(OrganizationalModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('plugins:netbox_secretstore:secretrole', args=[self.pk])
+        return reverse('plugins:netbox_secrets:secretrole', args=[self.pk])
 
     def to_csv(self):
         return (
@@ -331,7 +331,7 @@ class Secret(NetBoxModel):
         return self.name or 'Secret'
 
     def get_absolute_url(self):
-        return reverse('plugins:netbox_secretstore:secret', args=[self.pk])
+        return reverse('plugins:netbox_secrets:secret', args=[self.pk])
 
     def to_csv(self):
         return (

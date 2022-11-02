@@ -16,7 +16,7 @@ class Secrets(PluginTemplateExtension):
         elif ctype.model == 'virtualmachine':
             secrets = Secret.objects.filter(assigned_object_id=obj.pk, assigned_object_type=ctype)
 
-        return self.render('netbox_secretstore/inc/device_secrets.html', extra_context={
+        return self.render('netbox_secrets/inc/device_secrets.html', extra_context={
             'secrets': secrets,
             'type': ctype.model if ctype.model == 'device' else ctype.name.replace(' ', '_'),
         })

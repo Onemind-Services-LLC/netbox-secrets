@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from netbox.api.serializers import WritableNestedSerializer
-from netbox_secretstore.models import Secret, SecretRole
+from netbox_secrets.models import Secret, SecretRole
 
 __all__ = [
     'NestedSecretRoleSerializer',
@@ -10,7 +10,7 @@ __all__ = [
 
 
 class NestedSecretSerializer(WritableNestedSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secret-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
 
     class Meta:
         model = Secret
@@ -18,7 +18,7 @@ class NestedSecretSerializer(WritableNestedSerializer):
 
 
 class NestedSecretRoleSerializer(WritableNestedSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secretrole-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secretrole-detail')
     secret_count = serializers.IntegerField(read_only=True)
 
     class Meta:

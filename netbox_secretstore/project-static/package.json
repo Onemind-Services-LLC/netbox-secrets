@@ -1,5 +1,5 @@
 {
-  "name": "netbox_secretstore",
+  "name": "netbox_secrets",
   "version": "0.1.0",
   "main": "dist/secrets.js",
   "license": "Apache-2.0",

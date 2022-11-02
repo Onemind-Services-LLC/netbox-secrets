@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('extras', '0066_customfield_name_validation'),
-        ('netbox_secretstore', '0003_modify_objectchange_records'),
+        ('netbox_secrets', '0003_modify_objectchange_records'),
     ]
 
     operations = [

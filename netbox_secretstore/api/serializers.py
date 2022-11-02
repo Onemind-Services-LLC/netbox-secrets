@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer, NestedGroupModelSerializer
-from netbox_secretstore.constants import SECRET_ASSIGNMENT_MODELS
-from netbox_secretstore.models import Secret, SecretRole
+from netbox_secrets.constants import SECRET_ASSIGNMENT_MODELS
+from netbox_secrets.models import Secret, SecretRole
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
 
@@ -15,7 +15,7 @@ from .nested_serializers import *
 #
 
 class SecretRoleSerializer(NestedGroupModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secretrole-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secretrole-detail')
     secret_count = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -27,7 +27,7 @@ class SecretRoleSerializer(NestedGroupModelSerializer):
 
 
 class SecretSerializer(NetBoxModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secretstore-api:secret-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
     assigned_object_type = ContentTypeField(
         queryset=ContentType.objects.filter(SECRET_ASSIGNMENT_MODELS)
     )

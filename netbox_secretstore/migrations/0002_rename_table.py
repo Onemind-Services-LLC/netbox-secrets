@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_secretstore', '0001_initial'),
+        ('netbox_secrets', '0001_initial'),
     ]
 
     operations = [

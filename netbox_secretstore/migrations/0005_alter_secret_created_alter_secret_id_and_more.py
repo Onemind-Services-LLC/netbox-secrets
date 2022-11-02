@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_secretstore', '0004_secretrole_tags'),
+        ('netbox_secrets', '0004_secretrole_tags'),
     ]
 
     operations = [

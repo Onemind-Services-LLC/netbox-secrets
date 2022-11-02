@@ -7,4 +7,4 @@ ${r.exception}`),d("danger","Failed to Retrieve Session Key",o).show()}})}functi
  * Copyright(c) 2015 Douglas Christopher Wilson
  * MIT Licensed
  */
-//# sourceMappingURL=/static/netbox_secretstore/secrets.js.map
+//# sourceMappingURL=/static/netbox_secrets/secrets.js.map

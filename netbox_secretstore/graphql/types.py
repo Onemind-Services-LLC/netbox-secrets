@@ -1,4 +1,4 @@
-from netbox_secretstore import filtersets, models
+from netbox_secrets import filtersets, models
 from netbox.graphql.types import ObjectType, NetBoxObjectType
 
 __all__ = (
