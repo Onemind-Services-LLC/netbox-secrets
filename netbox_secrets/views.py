@@ -108,7 +108,6 @@ class SecretView(generic.ObjectView):
 class SecretEditView(generic.ObjectEditView):
     queryset = Secret.objects.all()
     form = SecretForm
-    template_name = 'netbox_secrets/secret_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
 

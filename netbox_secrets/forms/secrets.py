@@ -115,9 +115,9 @@ class SecretForm(NetBoxModelForm):
 
     class Meta:
         model = Secret
-        fields = [
+        fields = (
             'device', 'virtual_machine', 'role', 'name', 'plaintext', 'plaintext2', 'tags',
-        ]
+        )
 
     def __init__(self, *args, **kwargs):
 
@@ -183,7 +183,7 @@ class SecretCSVForm(NetBoxModelCSVForm):
 
     class Meta:
         model = Secret
-        fields = ['role', 'name', 'plaintext', 'device', 'virtual_machine']
+        fields = ('role', 'name', 'plaintext', 'device', 'virtual_machine')
         help_texts = {
             'name': 'Name or username',
         }

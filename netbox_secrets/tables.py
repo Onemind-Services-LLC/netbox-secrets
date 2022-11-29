@@ -36,6 +36,9 @@ class SecretTable(NetBoxTable):
     id = tables.Column(  # Provides a link to the secret
         linkify=True
     )
+    name = tables.Column(
+        linkify=True
+    )
     assigned_object = tables.Column(
         linkify=True,
         orderable=False,
@@ -51,4 +54,4 @@ class SecretTable(NetBoxTable):
     class Meta(BaseTable.Meta):
         model = Secret
         fields = ('pk', 'id', 'assigned_object', 'role', 'name', 'last_updated', 'hash', 'tags')
-        default_columns = ('pk', 'id', 'assigned_object', 'role', 'name', 'last_updated')
+        default_columns = ('pk', 'id', 'name', 'assigned_object', 'role', 'last_updated')
