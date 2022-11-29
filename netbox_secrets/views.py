@@ -9,7 +9,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 
-from netbox.views.generic import ObjectListView, ObjectView, ObjectEditView, ObjectDeleteView, ObjectImportView, \
+from netbox.views.generic import ObjectListView, ObjectView, ObjectEditView, ObjectDeleteView, BulkImportView, \
     BulkEditView, BulkDeleteView
 from netbox_secrets.forms import UserKeyForm, SecretRoleFilterForm
 
@@ -70,7 +70,7 @@ class SecretRoleDeleteView(ObjectDeleteView):
     queryset = SecretRole.objects.all()
 
 
-class SecretRoleBulkImportView(ObjectImportView):
+class SecretRoleBulkImportView(BulkImportView):
     queryset = SecretRole.objects.all()
     form = SecretRoleCSVForm
     table = SecretRoleTable
@@ -181,7 +181,7 @@ class SecretDeleteView(ObjectDeleteView):
     queryset = Secret.objects.all()
 
 
-class SecretBulkImportView(ObjectImportView):
+class SecretBulkImportView(BulkImportView):
     queryset = Secret.objects.all()
     form = SecretCSVForm
     table = SecretTable

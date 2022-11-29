@@ -4,18 +4,11 @@ from django import forms
 from django.utils.translation import gettext as _
 
 from dcim.models import Device
-from netbox.forms import NetBoxModelForm
-from extras.forms import CustomFieldCSVForm, CustomFieldFilterForm, CustomFieldBulkEditForm, CustomFieldForm, TagForm
-from extras.models import Tag
-from utilities.forms import (
-    CSVModelChoiceField, SlugField, TagFilterField, DynamicModelChoiceField,
-    DynamicModelMultipleChoiceField,
-)
-from virtualization.models import VirtualMachine
+from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelCSVForm, NetBoxModelFilterSetForm, NetBoxModelForm
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole, UserKey
-
-from .fields import PluginDynamicModelChoiceField, PluginDynamicModelMultipleChoiceField
+from utilities.forms import CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, SlugField
+from virtualization.models import VirtualMachine
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -23,7 +16,8 @@ def validate_rsa_key(key, is_secret=True):
     Validate the format and type of an RSA key.
     """
     if key.startswith('ssh-rsa '):
-        raise forms.ValidationError("OpenSSH line format is not supported. Please ensure that your public is in PEM (base64) format.")
+        raise forms.ValidationError(
+            "OpenSSH line format is not supported. Please ensure that your public is in PEM (base64) format.")
     try:
         key = RSA.importKey(key)
     except ValueError:
@@ -52,7 +46,7 @@ class SecretRoleForm(NetBoxModelForm):
         fields = ('name', 'slug', 'description')
 
 
-class SecretRoleCSVForm(CustomFieldCSVForm):
+class SecretRoleCSVForm(NetBoxModelCSVForm):
     slug = SlugField()
 
     class Meta:
@@ -60,7 +54,7 @@ class SecretRoleCSVForm(CustomFieldCSVForm):
         fields = SecretRole.csv_headers
 
 
-class SecretRoleBulkEditForm(CustomFieldBulkEditForm):
+class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         widget=forms.MultipleHiddenInput
@@ -74,13 +68,16 @@ class SecretRoleBulkEditForm(CustomFieldBulkEditForm):
         nullable_fields = ['description']
 
 
-class SecretRoleFilterForm(CustomFieldFilterForm):
-    model = Secret
+class SecretRoleFilterForm(NetBoxModelFilterSetForm):
+    model = SecretRole
     q = forms.CharField(
         required=False,
         label=_('Search')
     )
-    tag = TagFilterField(model)
+    name = DynamicModelMultipleChoiceField(
+        queryset=SecretRole.objects.all(),
+        required=False
+    )
 
 
 #
@@ -112,12 +109,8 @@ class SecretForm(NetBoxModelForm):
         label='Plaintext (verify)',
         widget=forms.PasswordInput()
     )
-    role = PluginDynamicModelChoiceField(
+    role = DynamicModelChoiceField(
         queryset=SecretRole.objects.all()
-    )
-    tags = DynamicModelMultipleChoiceField(
-        queryset=Tag.objects.all(),
-        required=False
     )
 
     class Meta:
@@ -166,7 +159,7 @@ class SecretForm(NetBoxModelForm):
         return super().save(*args, **kwargs)
 
 
-class SecretCSVForm(CustomFieldCSVForm):
+class SecretCSVForm(NetBoxModelCSVForm):
     role = CSVModelChoiceField(
         queryset=SecretRole.objects.all(),
         to_field_name='name',
@@ -220,12 +213,12 @@ class SecretCSVForm(CustomFieldCSVForm):
         return s
 
 
-class SecretBulkEditForm(TagForm, CustomFieldBulkEditForm):
+class SecretBulkEditForm(NetBoxModelBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=Secret.objects.all(),
         widget=forms.MultipleHiddenInput()
     )
-    role = PluginDynamicModelChoiceField(
+    role = DynamicModelChoiceField(
         queryset=SecretRole.objects.all(),
         required=False
     )
@@ -240,18 +233,30 @@ class SecretBulkEditForm(TagForm, CustomFieldBulkEditForm):
         ]
 
 
-class SecretFilterForm(CustomFieldFilterForm):
+class SecretFilterForm(NetBoxModelFilterSetForm):
     model = Secret
     q = forms.CharField(
         required=False,
         label=_('Search')
     )
-    role_id = PluginDynamicModelMultipleChoiceField(
+    name = DynamicModelMultipleChoiceField(
+        queryset=Secret.objects.all(),
+        required=False
+    )
+    role_id = DynamicModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),
         required=False,
         label=_('Role')
     )
-    tag = TagFilterField(model)
+    device = DynamicModelMultipleChoiceField(
+        queryset=Device.objects.all(),
+        required=False
+    )
+
+    virtual_machine = DynamicModelMultipleChoiceField(
+        queryset=VirtualMachine.objects.all(),
+        required=False
+    )
 
 
 #
@@ -259,7 +264,6 @@ class SecretFilterForm(CustomFieldFilterForm):
 #
 
 class UserKeyForm(forms.ModelForm):
-
     class Meta:
         model = UserKey
         fields = ['public_key']
