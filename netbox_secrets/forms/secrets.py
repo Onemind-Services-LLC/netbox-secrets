@@ -51,7 +51,7 @@ class SecretRoleCSVForm(NetBoxModelCSVForm):
 
     class Meta:
         model = SecretRole
-        fields = SecretRole.csv_headers
+        fields = ('name', 'slug')
 
 
 class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
