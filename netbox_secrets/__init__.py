@@ -14,8 +14,8 @@ class NetBoxSecrets(PluginConfig):
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
     base_url = 'secrets'
-    min_version = '3.3.99'
-    max_version = '3.4.9'
+    min_version = '3.3.0beta1'
+    max_version = '3.3.9'
     required_settings = []
     default_settings = {
         'public_key_size': 2048
