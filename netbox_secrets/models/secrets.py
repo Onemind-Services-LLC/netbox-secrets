@@ -238,7 +238,7 @@ class SessionKey(models.Model):
         return session_key
 
 
-class SecretRole(OrganizationalModel):
+class SecretRole(NetBoxModel):
     """
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
     such as "Login Credentials" or "SNMP Communities."
@@ -255,8 +255,6 @@ class SecretRole(OrganizationalModel):
         max_length=200,
         blank=True,
     )
-
-    objects = RestrictedQuerySet.as_manager()
 
     csv_headers = ['name', 'slug', 'description']
 
