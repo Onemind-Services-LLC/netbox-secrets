@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox-secrets',
-    version='1.3.2',
+    version='1.4.0',
     description='Netbox Secret Store',
     long_description='A Secret store for NetBox',
     url='https://github.com/dansheps/netbox-secrets/',
