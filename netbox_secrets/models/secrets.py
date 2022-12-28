@@ -424,3 +424,17 @@ class Secret(NetBoxModel):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
+
+GenericRelation(
+    to=Secret,
+    content_type_field='assigned_object_type',
+    object_id_field='assigned_object_id',
+    related_query_name='device'
+).contribute_to_class(Device, 'secrets')
+
+GenericRelation(
+    to=Secret,
+    content_type_field='assigned_object_type',
+    object_id_field='assigned_object_id',
+    related_query_name='virtual_machine'
+).contribute_to_class(VirtualMachine, 'secrets')
