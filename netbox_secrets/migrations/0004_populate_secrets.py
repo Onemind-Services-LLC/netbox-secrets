@@ -26,6 +26,7 @@ def populate_secrets(apps, schema_editor):
             ciphertext=secret['ciphertext'],
             assigned_object_type_id=secret['assigned_object_type_id'],
             role_id=secret['role_id'],
+            hash=secret['hash'],
         ))
 
     # Bulk create the secret objects
