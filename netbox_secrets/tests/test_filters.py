@@ -1,10 +1,9 @@
 from django.test import TestCase
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from virtualization.models import Cluster, ClusterType, VirtualMachine
-
 from netbox_secrets.filtersets import *
 from netbox_secrets.models import Secret, SecretRole
+from virtualization.models import Cluster, ClusterType, VirtualMachine
 
 
 class SecretRoleTestCase(TestCase):
@@ -13,7 +12,6 @@ class SecretRoleTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-
         roles = (
             SecretRole(name='Secret Role 1', slug='secret-role-1'),
             SecretRole(name='Secret Role 2', slug='secret-role-2'),
@@ -26,7 +24,8 @@ class SecretRoleTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
     def test_name(self):
-        params = {'name': ['Secret Role 1', 'Secret Role 2']}
+        name = SecretRole.objects.all()
+        params = {'name': [name[0].pk, name[1].pk]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
     def test_slug(self):
@@ -40,7 +39,6 @@ class SecretTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-
         site = Site.objects.create(name='Site 1', slug='site-1')
         manufacturer = Manufacturer.objects.create(name='Manufacturer 1', slug='manufacturer-1')
         device_type = DeviceType.objects.create(manufacturer=manufacturer, model='Device Type 1')
@@ -86,8 +84,9 @@ class SecretTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
     def test_name(self):
-        params = {'name': ['Secret 1', 'Secret 2']}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+        name = Secret.objects.all()
+        params = {'name': [name[0].pk, name[1].pk, name[2].pk, name[3].pk, name[4].pk, name[5].pk]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 6)
 
     def test_role(self):
         roles = SecretRole.objects.all()[:2]

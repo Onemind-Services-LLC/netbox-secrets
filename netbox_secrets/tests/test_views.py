@@ -4,10 +4,8 @@ from django.test import override_settings
 from django.urls import reverse
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from utilities.testing import ViewTestCases
-
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-
+from utilities.testing import ViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 
@@ -29,7 +27,6 @@ class SecretRoleTestCase(SecretsTestMixin, ViewTestCases.OrganizationalObjectVie
 
     @classmethod
     def setUpTestData(cls):
-
         SecretRole.objects.bulk_create([
             SecretRole(name='Secret Role 1', slug='secret-role-1'),
             SecretRole(name='Secret Role 2', slug='secret-role-2'),
@@ -68,7 +65,6 @@ class SecretTestCase(
 
     @classmethod
     def setUpTestData(cls):
-
         site = Site.objects.create(name='Site 1', slug='site-1')
         manufacturer = Manufacturer.objects.create(name='Manufacturer 1', slug='manufacturer-1')
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model='Device Type 1')
@@ -107,7 +103,6 @@ class SecretTestCase(
         }
 
     def setUp(self):
-
         super().setUp()
 
         # Set up a master key for the test user
