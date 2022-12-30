@@ -238,7 +238,7 @@ class SessionKey(models.Model):
         return session_key
 
 
-class SecretRole(OrganizationalModel):
+class SecretRole(NetBoxModel):
     """
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
     such as "Login Credentials" or "SNMP Communities."
@@ -255,8 +255,6 @@ class SecretRole(OrganizationalModel):
         max_length=200,
         blank=True,
     )
-
-    objects = RestrictedQuerySet.as_manager()
 
     csv_headers = ['name', 'slug', 'description']
 
@@ -289,7 +287,8 @@ class Secret(NetBoxModel):
     """
     assigned_object_type = models.ForeignKey(
         to=ContentType,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
     assigned_object = GenericForeignKey(
@@ -425,7 +424,6 @@ class Secret(NetBoxModel):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
-
 
 GenericRelation(
     to=Secret,

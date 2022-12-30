@@ -3,23 +3,20 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 
-from netbox.views.generic import ObjectListView, ObjectView, ObjectEditView, ObjectDeleteView, ObjectImportView, \
-    BulkEditView, BulkDeleteView
-from netbox_secrets.forms import UserKeyForm, SecretRoleFilterForm
-
 from netbox.views import generic
+from netbox_secrets.forms import SecretRoleFilterForm
 from utilities.forms import ConfirmationForm
 from utilities.utils import count_related
-from .tables import *
-from .forms import *
 from .filtersets import *
-from .models import SecretRole, Secret, SessionKey, UserKey
+from .forms import *
+from .models import SessionKey, UserKey
+from .tables import *
 
 
 def get_session_key(request):
@@ -36,7 +33,7 @@ def get_session_key(request):
 # Secret roles
 #
 
-class SecretRoleListView(ObjectListView):
+class SecretRoleListView(generic.ObjectListView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -45,7 +42,7 @@ class SecretRoleListView(ObjectListView):
     filterset_form = SecretRoleFilterForm
 
 
-class SecretRoleView(ObjectView):
+class SecretRoleView(generic.ObjectView):
     queryset = SecretRole.objects.all()
 
     def get_extra_context(self, request, instance):
@@ -61,22 +58,22 @@ class SecretRoleView(ObjectView):
         }
 
 
-class SecretRoleEditView(ObjectEditView):
+class SecretRoleEditView(generic.ObjectEditView):
     queryset = SecretRole.objects.all()
     form = SecretRoleForm
 
 
-class SecretRoleDeleteView(ObjectDeleteView):
+class SecretRoleDeleteView(generic.ObjectDeleteView):
     queryset = SecretRole.objects.all()
 
 
-class SecretRoleBulkImportView(ObjectImportView):
+class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = SecretRole.objects.all()
-    form = SecretRoleCSVForm
+    model_form = SecretRoleCSVForm
     table = SecretRoleTable
 
 
-class SecretRoleBulkEditView(BulkEditView):
+class SecretRoleBulkEditView(generic.BulkEditView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -85,7 +82,7 @@ class SecretRoleBulkEditView(BulkEditView):
     form = SecretRoleBulkEditForm
 
 
-class SecretRoleBulkDeleteView(BulkDeleteView):
+class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
     )
@@ -96,7 +93,7 @@ class SecretRoleBulkDeleteView(BulkDeleteView):
 # Secrets
 #
 
-class SecretListView(ObjectListView):
+class SecretListView(generic.ObjectListView):
     queryset = Secret.objects.all()
     filterset = SecretFilterSet
     filterset_form = SecretFilterForm
@@ -104,11 +101,11 @@ class SecretListView(ObjectListView):
     action_buttons = ('add', 'import', 'export')
 
 
-class SecretView(ObjectView):
+class SecretView(generic.ObjectView):
     queryset = Secret.objects.all()
 
 
-class SecretEditView(ObjectEditView):
+class SecretEditView(generic.ObjectEditView):
     queryset = Secret.objects.all()
     form = SecretForm
     template_name = 'netbox_secrets/secret_edit.html'
@@ -177,15 +174,15 @@ class SecretEditView(ObjectEditView):
         })
 
 
-class SecretDeleteView(ObjectDeleteView):
+class SecretDeleteView(generic.ObjectDeleteView):
     queryset = Secret.objects.all()
 
 
-class SecretBulkImportView(ObjectImportView):
+class SecretBulkImportView(generic.BulkImportView):
     queryset = Secret.objects.all()
-    form = SecretCSVForm
+    model_form = SecretCSVForm
     table = SecretTable
-    template_name = 'netbox_secrets/secret_import.html'
+    template_name = 'netbox_secrets/secret_bulk_import.html'
     widget_attrs = {'class': 'requires-session-key'}
 
     master_key = None
@@ -228,14 +225,14 @@ class SecretBulkImportView(ObjectImportView):
         })
 
 
-class SecretBulkEditView(BulkEditView):
+class SecretBulkEditView(generic.BulkEditView):
     queryset = Secret.objects.prefetch_related('role')
     filterset = SecretFilterSet
     table = SecretTable
     form = SecretBulkEditForm
 
 
-class SecretBulkDeleteView(BulkDeleteView):
+class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = Secret.objects.prefetch_related('role')
     filterset = SecretFilterSet
     table = SecretTable
@@ -293,7 +290,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
         })
 
 
-class SessionKeyDeleteView(ObjectDeleteView):
+class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = SessionKey.objects.all()
 
     def get(self, request):
@@ -308,11 +305,9 @@ class SessionKeyDeleteView(ObjectDeleteView):
         })
 
     def post(self, request):
-
         sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
         form = ConfirmationForm(request.POST)
         if form.is_valid():
-
             # Delete session key
             sessionkey.delete()
             messages.success(request, "Session key deleted")

@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from netbox_secrets.utils.hashers import SecretValidationHasher
 from netbox_secrets.models import Secret, UserKey
-from netbox_secrets.utils.crypto import encrypt_master_key, decrypt_master_key, generate_random_key
+from netbox_secrets.utils.crypto import decrypt_master_key, encrypt_master_key, generate_random_key
+from netbox_secrets.utils.hashers import SecretValidationHasher
 
 
 class UserKeyTestCase(TestCase):
@@ -87,7 +87,6 @@ class SecretTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-
         # Generate a random key for encryption/decryption of secrets
         cls.secret_key = generate_random_key()
 
@@ -108,7 +107,8 @@ class SecretTestCase(TestCase):
         # Ensure proper hashing algorithm is used
         hasher, iterations, salt, sha256 = s.hash.split('$')
         self.assertEqual(hasher, 'pbkdf2_sha256', "Hashing algorithm has been modified to: {}".format(hasher))
-        self.assertGreaterEqual(int(iterations), SecretValidationHasher.iterations, "Insufficient iteration count ({}) for hash".format(iterations))
+        self.assertGreaterEqual(int(iterations), SecretValidationHasher.iterations,
+                                "Insufficient iteration count ({}) for hash".format(iterations))
         self.assertGreaterEqual(len(salt), 12, "Hash salt is too short ({} chars)".format(len(salt)))
 
         # Test hash validation

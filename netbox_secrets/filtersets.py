@@ -7,7 +7,6 @@ from netbox.filtersets import NetBoxModelFilterSet
 from virtualization.models import VirtualMachine
 from .models import Secret, SecretRole
 
-
 __all__ = (
     'SecretFilterSet',
     'SecretRoleFilterSet',
@@ -19,7 +18,10 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
-    tag = TagFilter()
+    name = django_filters.ModelMultipleChoiceFilter(
+        queryset=SecretRole.objects.all(),
+        field_name='name'
+    )
 
     class Meta:
         model = SecretRole
@@ -38,6 +40,10 @@ class SecretFilterSet(NetBoxModelFilterSet):
     q = django_filters.CharFilter(
         method='search',
         label='Search',
+    )
+    name = django_filters.ModelMultipleChoiceFilter(
+        queryset=SecretRole.objects.all(),
+        field_name='name'
     )
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
