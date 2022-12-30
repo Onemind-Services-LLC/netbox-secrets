@@ -1,0 +1,24 @@
+name: Sync Labels
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/**"
+
+# This ensures that previous jobs for the workflow are canceled when the ref is
+# updated.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  labels:
+    runs-on: self-hosted
+    name: Sync labels
+    steps:
+      - name: sync labels
+        uses: abhi1693/labels@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

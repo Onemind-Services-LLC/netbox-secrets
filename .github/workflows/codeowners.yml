@@ -1,0 +1,46 @@
+name: Codeowners
+
+on:
+  pull_request:
+    branches:
+      - "!dependabot/**"
+    paths-ignore:
+      - "**/CODEOWNERS"
+
+# This ensures that previous jobs for the workflow are canceled when the ref is
+# updated.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: misc
+    # only apply on unmerged pull requests
+    if: |
+      github.event.pull_request.merged_by == ''
+    timeout-minutes: 10
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+        with:
+          # the fetch depth 0 (=all) is important
+          fetch-depth: 0
+      - name: update code owners
+        uses: gofunky/update-codeowners@v0.3.2
+        with:
+          distribution: 75
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push
+        uses: EndBug/add-and-commit@v9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        with:
+          add: ".github/CODEOWNERS"
+          message: "Updated CODEOWNERS"
+          new_branch: ${{ github.head_ref }}
+          push: origin ${{ github.head_ref }} --set-upstream --force
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: github_actions

@@ -1,0 +1,43 @@
+name: Changelog Generator
+
+# Controls when the action will run. Triggers the workflow on push or pull request events
+on:
+  release:
+    types:
+      - published
+
+# This ensures that previous jobs for the workflow are canceled when the ref is
+# updated.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: "Changelog Generator"
+    runs-on: misc
+    timeout-minutes: 10
+    if: github.ref_protected != 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: "Generate changelog"
+        id: changelog
+        uses: charmixer/auto-changelog-action@v1.4
+        with:
+          exclude_labels: "type: skip ci,status: abandoned,type: duplicate,type: question,type: wontfix,type: invalid"
+          token: ${{ secrets.GIT_TOKEN }}
+
+      - name: Commit and push to dev
+        uses: EndBug/add-and-commit@v9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        with:
+          add: "CHANGELOG.md"
+          message: "[skip ci] Updated CHANGELOG.md"
+          new_branch: dev
+          push: origin dev --set-upstream --force
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          default_author: github_actions
