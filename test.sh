@@ -16,7 +16,7 @@ doco="docker compose --file docker-compose.yml"
 
 test_netbox_unit_tests() {
   echo "⏱  Running NetBox Unit Tests"
-  $doco run --rm netbox python manage.py test netbox_secrets --keepdb
+  $doco run --rm netbox python manage.py test netbox_secrets
 }
 
 test_cleanup() {
