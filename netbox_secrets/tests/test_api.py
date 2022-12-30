@@ -75,8 +75,7 @@ class SecretTest(
 ):
     model = Secret
     view_namespace = 'plugins-api:netbox_secrets'
-    brief_fields = ['assigned_object', 'assigned_object_id', 'assigned_object_type', 'created', 'custom_fields',
-                    'display', 'hash', 'id', 'last_updated', 'name', 'plaintext', 'role', 'tags', 'url']
+    brief_fields = ['display', 'id', 'name', 'url']
 
     def setUp(self):
         super().setUp()
