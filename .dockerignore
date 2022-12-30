@@ -212,9 +212,3 @@ cython_debug/
 
 **/__pycache__/
 /netbox_secrets.egg-info
-node_modules
-yarn.error
-/netbox_secrets/project-static/.cache/
-/netbox_secrets/project-static/netbox/
-build
-dist

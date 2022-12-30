@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  netbox:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        NETBOX_VARIANT: ${NETBOX_VARIANT}
+    depends_on:
+      - postgres
+      - redis
+    env_file: env/netbox.env
+    volumes:
+      - ./configuration:/etc/netbox/config:z,ro
+
+  # postgres
+  postgres:
+    image: postgres:14-alpine
+    env_file: env/postgres.env
+
+  # redis
+  redis:
+    image: redis:6-alpine
+    command:
+    - sh
+    - -c # this is to evaluate the $REDIS_PASSWORD from the env
+    - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+    env_file: env/redis.env
