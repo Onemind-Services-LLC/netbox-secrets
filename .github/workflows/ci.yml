@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# This ensures that previous jobs for the workflow are canceled when the ref is
+# updated.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: misc
+    name: Checks syntax of our code
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Lint Code Base
+        uses: github/super-linter/slim@v4
+        env:
+          DEFAULT_BRANCH: dev
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPPRESS_POSSUM: true
+          LINTER_RULES_PATH: /
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_DOCKERFILE: false
+          VALIDATE_JSCPD: true
+          FILTER_REGEX_EXCLUDE: (.*/)?(configuration/.*)
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: pyproject.toml
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+  test:
+    strategy:
+      matrix:
+        test_cmd:
+          - ./test.sh feature
+          - ./test.sh snapshot
+          - ./test.sh latest
+          - ./test.sh v3.3.10
+      fail-fast: false
+    runs-on: misc
+    name: Runs plugin tests
+    steps:
+      - id: git-checkout
+        name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: yarn --cwd netbox_secrets/project-static
+
+      - name: Check UI ESLint, TypeScript, and Prettier Compliance
+        run: yarn --cwd netbox_secrets/project-static validate
+
+      - name: Validate Static Asset Integrity
+        run: bash .github/verify-bundles.sh
+
+      - id: docker-test
+        name: Test the image
+        run: ${{ matrix.test_cmd }}

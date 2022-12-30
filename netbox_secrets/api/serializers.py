@@ -14,7 +14,7 @@ from .nested_serializers import *
 # Secrets
 #
 
-class SecretRoleSerializer(NestedGroupModelSerializer):
+class SecretRoleSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secretrole-detail')
     secret_count = serializers.IntegerField(read_only=True)
 

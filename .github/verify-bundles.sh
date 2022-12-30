@@ -8,7 +8,7 @@
 
 echo "$PWD"
 
-PROJECT_STATIC="$PWD/netbox-secrets/netbox_secrets/project-static"
+PROJECT_STATIC="$PWD/netbox_secrets/project-static"
 DIST="$PROJECT_STATIC/dist/"
 
 # Bundle static assets.

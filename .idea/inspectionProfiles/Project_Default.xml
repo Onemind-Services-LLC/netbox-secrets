@@ -1,0 +1,26 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="11">
+            <item index="0" class="java.lang.String" itemvalue="fastapi" />
+            <item index="1" class="java.lang.String" itemvalue="pydantic" />
+            <item index="2" class="java.lang.String" itemvalue="fastapi-redis-cache" />
+            <item index="3" class="java.lang.String" itemvalue="pynetbox" />
+            <item index="4" class="java.lang.String" itemvalue="py-ldap" />
+            <item index="5" class="java.lang.String" itemvalue="requests" />
+            <item index="6" class="java.lang.String" itemvalue="uvicorn" />
+            <item index="7" class="java.lang.String" itemvalue="python-slugify" />
+            <item index="8" class="java.lang.String" itemvalue="py-influxdb" />
+            <item index="9" class="java.lang.String" itemvalue="python-jose" />
+            <item index="10" class="java.lang.String" itemvalue="chargebee" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="Stylelint" enabled="true" level="ERROR" enabled_by_default="true" />
+  </profile>
+</component>

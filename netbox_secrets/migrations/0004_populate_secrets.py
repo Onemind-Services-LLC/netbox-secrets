@@ -3,7 +3,11 @@ from django.db import migrations
 
 def populate_secrets(apps, schema_editor):
     """Populate the Secret model with data from the SecretStore model."""
-    SecretOld = apps.get_model('netbox_secretstore', 'Secret')
+    try:
+        SecretOld = apps.get_model('netbox_secretstore', 'Secret')
+    except LookupError:
+        # Skip if the old model doesn't exist
+        return
     Secret = apps.get_model('netbox_secrets', 'Secret')
 
     # Retrieve the necessary data from SecretStore objects
