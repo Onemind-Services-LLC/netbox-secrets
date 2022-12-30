@@ -1,31 +1,45 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+template: |
+  # What's Changed
+  $CHANGES
 categories:
-  - title: '🚀 Features'
-    labels:
-      - 'type: feature'
-      - 'type: enhancement'
-  - title: '🐛 Bug Fixes'
-    labels:
-      - 'type: bug'
-  - title: '🧰 Maintenance'
-    labels:
-      - 'type: housekeeping'
-      - 'type: documentation'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
-change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+  - title: "Breaking"
+    label: "type: breaking"
+  - title: "UI"
+    label: "type: ui/ux"
+  - title: "New"
+    label: "type: feature"
+  - title: "Security"
+    label: "type: security"
+  - title: "Bug Fixes"
+    label: "type: bug"
+  - title: "Testing"
+    label: "type: tests"
+  - title: "Maintenance"
+    label: "type: maintenance"
+  - title: "Performance Improvement"
+    label: "type: performance"
+  - title: "Documentation"
+    label: "type: docs"
+  - title: "Dependency Updates"
+    label: "type: dependencies"
+
 version-resolver:
+  major:
+    labels:
+      - "type: breaking"
   minor:
     labels:
-      - 'type: feature'
+      - "type: feature"
   patch:
     labels:
-      - 'type: enhancement'
-      - 'type: bug'
-      - 'type: housekeeping'
-      - 'type: documentation'
-  default: patch
-template: |
-  ## Changes
-
-  $CHANGES
+      - "type: bug"
+      - "type: maintenance"
+      - "type: docs"
+      - "type: dependencies"
+      - "type: security"
+      - "type: tests"
+      - "type: performance"
+exclude-labels:
+  - "type: skip ci"
