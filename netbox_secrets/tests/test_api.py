@@ -4,10 +4,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
+from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import APITestCase, APIViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
-
-from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 
 
 class SecretsTestMixin:
@@ -25,37 +24,25 @@ class SecretsTestMixin:
 class AppTest(APITestCase):
 
     def test_root(self):
-
         url = reverse('plugins-api:netbox_secrets-api:api-root')
         response = self.client.get('{}?format=api'.format(url), **self.header)
 
         self.assertEqual(response.status_code, 200)
 
 
-class SecretRoleTest(SecretsTestMixin, APIViewTestCases.APIViewTestCase):
+class SecretRoleTest(
+    APIViewTestCases.GetObjectViewTestCase,
+    APIViewTestCases.ListObjectsViewTestCase,
+    APIViewTestCases.CreateObjectViewTestCase,
+    APIViewTestCases.UpdateObjectViewTestCase,
+    APIViewTestCases.DeleteObjectViewTestCase,
+):
     model = SecretRole
+    view_namespace = 'plugins-api:netbox_secrets'
     brief_fields = ['display', 'id', 'name', 'secret_count', 'slug', 'url']
-    create_data = [
-        {
-            'name': 'Secret Role 4',
-            'slug': 'secret-role-4',
-        },
-        {
-            'name': 'Secret Role 5',
-            'slug': 'secret-role-5',
-        },
-        {
-            'name': 'Secret Role 6',
-            'slug': 'secret-role-6',
-        },
-    ]
-    bulk_update_data = {
-        'description': 'New description',
-    }
 
     @classmethod
     def setUpTestData(cls):
-
         secret_roles = (
             SecretRole(name='Secret Role 1', slug='secret-role-1'),
             SecretRole(name='Secret Role 2', slug='secret-role-2'),
@@ -63,10 +50,33 @@ class SecretRoleTest(SecretsTestMixin, APIViewTestCases.APIViewTestCase):
         )
         SecretRole.objects.bulk_create(secret_roles)
 
+        cls.create_data = [
+            {
+                'name': 'Secret Role 4',
+                'slug': 'secret-role-4',
+            },
+            {
+                'name': 'Secret Role 5',
+                'slug': 'secret-role-5',
+            },
+            {
+                'name': 'Secret Role 6',
+                'slug': 'secret-role-6',
+            },
+        ]
 
-class SecretTest(SecretsTestMixin, APIViewTestCases.APIViewTestCase):
+
+class SecretTest(
+    APIViewTestCases.GetObjectViewTestCase,
+    APIViewTestCases.ListObjectsViewTestCase,
+    APIViewTestCases.CreateObjectViewTestCase,
+    APIViewTestCases.UpdateObjectViewTestCase,
+    APIViewTestCases.DeleteObjectViewTestCase,
+):
     model = Secret
-    brief_fields = ['display', 'id', 'name', 'url']
+    view_namespace = 'plugins-api:netbox_secrets'
+    brief_fields = ['assigned_object', 'assigned_object_id', 'assigned_object_type', 'created', 'custom_fields',
+                    'display', 'hash', 'id', 'last_updated', 'name', 'plaintext', 'role', 'tags', 'url']
 
     def setUp(self):
         super().setUp()
@@ -141,7 +151,6 @@ class SecretTest(SecretsTestMixin, APIViewTestCases.APIViewTestCase):
 class GetSessionKeyTest(APITestCase):
 
     def setUp(self):
-
         super().setUp()
 
         userkey = UserKey(user=self.user, public_key=PUBLIC_KEY)
@@ -155,7 +164,6 @@ class GetSessionKeyTest(APITestCase):
         }
 
     def test_get_session_key(self):
-
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
         url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
@@ -169,7 +177,6 @@ class GetSessionKeyTest(APITestCase):
         self.assertNotEqual(response.data.get('session_key'), encoded_session_key)
 
     def test_get_session_key_preserved(self):
-
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
         url = reverse('plugins-api:netbox_secrets-api:get-session-key-list') + '?preserve_key=True'

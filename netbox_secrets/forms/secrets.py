@@ -64,6 +64,7 @@ class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
         required=False
     )
 
+    model = SecretRole
     class Meta:
         nullable_fields = ['description']
 
@@ -227,6 +228,7 @@ class SecretBulkEditForm(NetBoxModelBulkEditForm):
         required=False
     )
 
+    model = Secret
     class Meta:
         nullable_fields = [
             'name',
