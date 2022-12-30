@@ -3,7 +3,11 @@ from django.db import migrations
 
 def populate_userkeys(apps, schema_editor):
     """Populate the UserKey model with data from the SecretStore model."""
-    UserKeyOld = apps.get_model('netbox_secretstore', 'UserKey')
+    try:
+        UserKeyOld = apps.get_model('netbox_secretstore', 'UserKey')
+    except LookupError:
+        # Skip if the old model doesn't exist
+        return
     UserKey = apps.get_model('netbox_secrets', 'UserKey')
 
     # Retrieve the necessary data from SecretStore objects
