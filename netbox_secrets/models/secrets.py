@@ -4,6 +4,7 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -51,7 +52,8 @@ class UserKey(models.Model):
         editable=False
     )
     public_key = models.TextField(
-        verbose_name='RSA public key'
+        verbose_name='RSA public key',
+        help_text=_('Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.')
     )
     master_key_cipher = models.BinaryField(
         max_length=512,
@@ -331,6 +333,10 @@ class Secret(NetBoxModel):
 
     def get_absolute_url(self):
         return reverse('plugins:netbox_secrets:secret', args=[self.pk])
+
+    @classmethod
+    def get_prerequisite_models(cls):
+        return [SecretRole]
 
     def to_csv(self):
         return (

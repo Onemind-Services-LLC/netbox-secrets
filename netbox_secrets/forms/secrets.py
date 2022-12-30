@@ -267,10 +267,6 @@ class UserKeyForm(forms.ModelForm):
     class Meta:
         model = UserKey
         fields = ['public_key']
-        help_texts = {
-            'public_key': "Enter your public RSA key. Keep the private one with you; you'll need it for decryption. "
-                          "Please note that passphrase-protected keys are not supported.",
-        }
         labels = {
             'public_key': ''
         }
