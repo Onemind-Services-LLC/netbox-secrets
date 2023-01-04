@@ -1,6 +1,7 @@
 import base64
 
 from Crypto.PublicKey import RSA
+from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_yasg import openapi
 from drf_yasg.openapi import Parameter
@@ -18,6 +19,9 @@ from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.utils import count_related
 from . import serializers
 
+plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
+public_key_size = plugin_settings.get('public_key_size')
+
 ERR_USERKEY_MISSING = "No UserKey found for the current user."
 ERR_USERKEY_INACTIVE = "UserKey has not been activated for decryption."
 ERR_PRIVKEY_MISSING = "Private key was not provided."
@@ -28,6 +32,7 @@ class SecretsRootView(APIRootView):
     """
     Secrets API root view
     """
+
     def get_view_name(self):
         return 'Secrets'
 
@@ -39,7 +44,7 @@ class SecretsRootView(APIRootView):
 class SecretRoleViewSet(NetBoxModelViewSet):
     queryset = SecretRole.objects.annotate(
         secret_count=count_related(Secret, 'role')
-    )
+    ).prefetch_related('tags')
     serializer_class = serializers.SecretRoleSerializer
     filterset_class = filtersets.SecretRoleFilterSet
 
@@ -178,7 +183,7 @@ class GetSessionKeyViewSet(ViewSet):
         except SessionKey.DoesNotExist:
             current_session_key = None
 
-        if current_session_key and request.GET.get('preserve_key', False):
+        if current_session_key and request.data.get('preserve_key', False):
 
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
@@ -221,13 +226,13 @@ class GenerateRSAKeyPairViewSet(ViewSet):
 
         # Determine what size key to generate
         try:
-            key_size = request.GET.get('key_size', 2048)
+            key_size = request.GET.get('key_size', public_key_size)
             key_size = int(key_size)
-        except ValueError as e:
-            key_size = 2048
+        except ValueError:
+            key_size = public_key_size
 
         if key_size not in range(2048, 4097, 256):
-            key_size = 2048
+            key_size = public_key_size
 
         # Export RSA private and public keys in PEM format
         key = RSA.generate(key_size)

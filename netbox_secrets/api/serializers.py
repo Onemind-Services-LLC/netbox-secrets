@@ -3,8 +3,8 @@ from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from netbox.api.fields import ContentTypeField
-from netbox.api.serializers import NetBoxModelSerializer, NestedGroupModelSerializer
-from netbox_secrets.constants import SECRET_ASSIGNMENT_MODELS
+from netbox.api.serializers import NetBoxModelSerializer
+from netbox.constants import NESTED_SERIALIZER_PREFIX
 from netbox_secrets.models import Secret, SecretRole
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
@@ -29,7 +29,7 @@ class SecretRoleSerializer(NetBoxModelSerializer):
 class SecretSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
     assigned_object_type = ContentTypeField(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNMENT_MODELS)
+        queryset=ContentType.objects.all()
     )
     assigned_object = serializers.SerializerMethodField(read_only=True)
     role = NestedSecretRoleSerializer()
@@ -45,12 +45,11 @@ class SecretSerializer(NetBoxModelSerializer):
 
     @swagger_serializer_method(serializer_or_field=serializers.DictField)
     def get_assigned_object(self, obj):
-        serializer = get_serializer_for_model(obj.assigned_object, prefix='Nested')
+        serializer = get_serializer_for_model(obj.assigned_object, prefix=NESTED_SERIALIZER_PREFIX)
         context = {'request': self.context['request']}
         return serializer(obj.assigned_object, context=context).data
 
     def validate(self, data):
-
         # Encrypt plaintext data using the master key provided from the view context
         if data.get('plaintext'):
             s = Secret(plaintext=data['plaintext'])
