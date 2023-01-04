@@ -4,7 +4,7 @@ from django import forms
 from django.utils.translation import gettext as _
 
 from dcim.models import Device
-from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelCSVForm, NetBoxModelFilterSetForm, NetBoxModelForm
+from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelFilterSetForm, NetBoxModelForm, NetBoxModelImportForm
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole, UserKey
 from utilities.forms import CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, SlugField
@@ -46,7 +46,7 @@ class SecretRoleForm(NetBoxModelForm):
         fields = ('name', 'slug', 'description')
 
 
-class SecretRoleCSVForm(NetBoxModelCSVForm):
+class SecretRoleImportForm(NetBoxModelImportForm):
     slug = SlugField()
 
     class Meta:
@@ -65,6 +65,7 @@ class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
     )
 
     model = SecretRole
+
     class Meta:
         nullable_fields = ['description']
 
@@ -160,7 +161,7 @@ class SecretForm(NetBoxModelForm):
         return super().save(*args, **kwargs)
 
 
-class SecretCSVForm(NetBoxModelCSVForm):
+class SecretImportForm(NetBoxModelImportForm):
     role = CSVModelChoiceField(
         queryset=SecretRole.objects.all(),
         to_field_name='name',
@@ -229,6 +230,7 @@ class SecretBulkEditForm(NetBoxModelBulkEditForm):
     )
 
     model = Secret
+
     class Meta:
         nullable_fields = [
             'name',

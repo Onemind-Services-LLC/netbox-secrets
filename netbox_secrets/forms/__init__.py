@@ -3,10 +3,10 @@ from .secrets import *
 __all__ = (
     'validate_rsa_key',
     'SecretRoleForm',
-    'SecretRoleCSVForm',
+    'SecretRoleImportForm',
     'SecretRoleBulkEditForm',
     'SecretForm',
-    'SecretCSVForm',
+    'SecretImportForm',
     'SecretBulkEditForm',
     'SecretFilterForm',
     'UserKeyForm',

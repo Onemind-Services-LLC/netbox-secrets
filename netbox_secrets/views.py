@@ -7,12 +7,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 from django.views.generic.base import View
 
 from netbox.views import generic
 from netbox_secrets.forms import SecretRoleFilterForm
 from utilities.forms import ConfirmationForm
 from utilities.utils import count_related
+from utilities.views import ViewTab, register_model_view
 from .filtersets import *
 from .forms import *
 from .models import SessionKey, UserKey
@@ -42,34 +44,48 @@ class SecretRoleListView(generic.ObjectListView):
     filterset_form = SecretRoleFilterForm
 
 
+@register_model_view(SecretRole)
 class SecretRoleView(generic.ObjectView):
     queryset = SecretRole.objects.all()
 
+
+@register_model_view(SecretRole, 'secret')
+class SecretRoleSecretView(generic.ObjectChildrenView):
+    queryset = SecretRole.objects.all()
+    child_model = Secret
+    table = SecretTable
+    filterset = SecretFilterSet
+    template_name = 'netbox_secrets/inc/view_tab.html'
+    tab = ViewTab(
+        label=_('Secrets'),
+        badge=lambda obj: Secret.objects.filter(role=obj).count(),
+        weight=500,
+        hide_if_empty=True
+    )
+
+    def get_children(self, request, parent):
+        return Secret.objects.filter(role=parent)
+
     def get_extra_context(self, request, instance):
-        secrets = Secret.objects.restrict(request.user, 'view').filter(
-            role=instance
-        )
-
-        secrets_table = SecretTable(secrets, exclude=('role',))
-        secrets_table.configure(request)
-
         return {
-            'secrets_table': secrets_table,
+            'table_config': 'SecretTable_config',
         }
 
 
+@register_model_view(SecretRole, 'edit')
 class SecretRoleEditView(generic.ObjectEditView):
     queryset = SecretRole.objects.all()
     form = SecretRoleForm
 
 
+@register_model_view(SecretRole, 'delete')
 class SecretRoleDeleteView(generic.ObjectDeleteView):
     queryset = SecretRole.objects.all()
 
 
 class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = SecretRole.objects.all()
-    model_form = SecretRoleCSVForm
+    model_form = SecretRoleImportForm
     table = SecretRoleTable
 
 
@@ -101,10 +117,12 @@ class SecretListView(generic.ObjectListView):
     action_buttons = ('add', 'import', 'export')
 
 
+@register_model_view(Secret)
 class SecretView(generic.ObjectView):
     queryset = Secret.objects.all()
 
 
+@register_model_view(Secret, 'edit')
 class SecretEditView(generic.ObjectEditView):
     queryset = Secret.objects.all()
     form = SecretForm
@@ -174,13 +192,14 @@ class SecretEditView(generic.ObjectEditView):
         })
 
 
+@register_model_view(Secret, 'delete')
 class SecretDeleteView(generic.ObjectDeleteView):
     queryset = Secret.objects.all()
 
 
 class SecretBulkImportView(generic.BulkImportView):
     queryset = Secret.objects.all()
-    model_form = SecretCSVForm
+    model_form = SecretImportForm
     table = SecretTable
     template_name = 'netbox_secrets/secret_bulk_import.html'
     widget_attrs = {'class': 'requires-session-key'}
@@ -238,6 +257,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
     table = SecretTable
 
 
+# @register_model_view(UserKey)
 class UserKeyView(LoginRequiredMixin, View):
     template_name = 'netbox_secrets/userkey.html'
 
@@ -253,6 +273,7 @@ class UserKeyView(LoginRequiredMixin, View):
         })
 
 
+# @register_model_view(UserKey, 'edit')
 class UserKeyEditView(LoginRequiredMixin, View):
     queryset = SessionKey.objects.all()
     template_name = 'netbox_secrets/userkey_edit.html'
@@ -290,6 +311,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
         })
 
 
+# @register_model_view(SessionKey, 'delete')
 class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = SessionKey.objects.all()
 
