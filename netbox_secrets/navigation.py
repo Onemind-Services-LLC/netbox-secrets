@@ -32,14 +32,5 @@ menu_items = (
         link_text="Secrets",
         link="plugins:netbox_secrets:secret_list",
         permissions=["netbox_secrets.view_secret"],
-        buttons=(
-            PluginMenuButton(
-                link="plugins:netbox_secrets:secret_add",
-                title="Add Secret",
-                icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
-                permissions=["netbox_secrets.add_secret"],
-            ),
-        ),
     ),
 )

@@ -2,11 +2,14 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
 from django.utils.translation import gettext as _
-
+from django.contrib.contenttypes.models import ContentType
 from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelCSVForm, NetBoxModelFilterSetForm, NetBoxModelForm
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole, UserKey
-from utilities.forms import CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, SlugField
+from utilities.forms import CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, SlugField, ContentTypeMultipleChoiceField
+from dcim.models import Device
+from virtualization.models import VirtualMachine
+from extras.utils import FeatureQuery
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -128,38 +131,17 @@ class SecretForm(NetBoxModelForm):
             })
 
 
-class SecretCSVForm(NetBoxModelCSVForm):
-    role = CSVModelChoiceField(
-        queryset=SecretRole.objects.all(),
-        to_field_name='name',
-        help_text='Assigned role'
-    )
-
-    plaintext = forms.CharField(
-        help_text='Plaintext secret data'
-    )
-
-    class Meta:
-        model = Secret
-        fields = ('role', 'name', 'plaintext',)
-        help_texts = {
-            'name': 'Name or username',
-        }
-
-    def save(self, *args, **kwargs):
-        s = super().save(*args, **kwargs)
-
-        # Set plaintext on instance
-        s.plaintext = str(self.cleaned_data['plaintext'])
-
-        return s
-
-
 class SecretFilterForm(NetBoxModelFilterSetForm):
     model = Secret
     q = forms.CharField(
         required=False,
         label=_('Search')
+    )
+    assigned_object_type_id = ContentTypeMultipleChoiceField(
+        queryset=ContentType.objects.all(),
+        limit_choices_to=FeatureQuery('custom_fields'),
+        required=False,
+        label='Object type'
     )
     name = DynamicModelMultipleChoiceField(
         queryset=Secret.objects.all(),

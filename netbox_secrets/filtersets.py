@@ -1,7 +1,11 @@
 import django_filters
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
+from dcim.models import Device
 from netbox.filtersets import NetBoxModelFilterSet
+from utilities.filters import MultiValueCharFilter, MultiValueNumberFilter, ContentTypeFilter
+from virtualization.models import VirtualMachine
 from .models import Secret, SecretRole
 
 __all__ = (
@@ -55,7 +59,7 @@ class SecretFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = Secret
-        fields = ['id', 'name', 'role_id', 'role', ]
+        fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'name', 'role_id', 'role', ]
 
     def search(self, queryset, name, value):
         if not value.strip():
