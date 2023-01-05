@@ -35,7 +35,7 @@ class SecretRoleView(generic.ObjectView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
 
     def get_extra_context(self, request, instance):
-        secrets = self.queryset.restrict(request.user, 'view').filter(
+        secrets = models.Secret.objects.restrict(request.user, 'view').filter(
             role=instance
         )
 

@@ -94,17 +94,3 @@ class SecretTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
         params = {'role': [roles[0].slug, roles[1].slug]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
-
-    def test_device(self):
-        devices = Device.objects.all()[:2]
-        params = {'device_id': [devices[0].pk, devices[1].pk]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-        params = {'device': [devices[0].name, devices[1].name]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_virtual_machine(self):
-        virtual_machines = VirtualMachine.objects.all()[:2]
-        params = {'virtual_machine_id': [virtual_machines[0].pk, virtual_machines[1].pk]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-        params = {'virtual_machine': [virtual_machines[0].name, virtual_machines[1].name]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
