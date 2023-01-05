@@ -183,7 +183,7 @@ class GetSessionKeyViewSet(ViewSet):
         except SessionKey.DoesNotExist:
             current_session_key = None
 
-        if current_session_key and request.GET.get('preserve_key', False):
+        if current_session_key and request.data.get('preserve_key', False):
 
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)

@@ -1,15 +1,14 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
-from django.utils.translation import gettext as _
 from django.contrib.contenttypes.models import ContentType
+from django.utils.translation import gettext as _
+
 from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelCSVForm, NetBoxModelFilterSetForm, NetBoxModelForm
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole, UserKey
-from utilities.forms import CSVModelChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, SlugField, ContentTypeMultipleChoiceField
-from dcim.models import Device
-from virtualization.models import VirtualMachine
-from extras.utils import FeatureQuery
+from utilities.forms import ContentTypeMultipleChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, \
+    SlugField
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -139,7 +138,6 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
     )
     assigned_object_type_id = ContentTypeMultipleChoiceField(
         queryset=ContentType.objects.all(),
-        limit_choices_to=FeatureQuery('custom_fields'),
         required=False,
         label='Object type'
     )
