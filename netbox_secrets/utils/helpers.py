@@ -1,5 +1,7 @@
 import base64
 
+__all__ = ['get_session_key']
+
 
 def get_session_key(request):
     """

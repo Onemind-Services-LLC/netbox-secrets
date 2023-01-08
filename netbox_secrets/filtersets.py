@@ -1,10 +1,9 @@
 import django_filters
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-
-from dcim.models import Device
-from extras.filters import TagFilter
 from netbox.filtersets import NetBoxModelFilterSet
-from virtualization.models import VirtualMachine
+
+from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
 __all__ = (
@@ -41,10 +40,13 @@ class SecretFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
+
     name = django_filters.ModelMultipleChoiceFilter(
-        queryset=SecretRole.objects.all(),
-        field_name='name'
+        queryset=Secret.objects.all(),
+        field_name='name',
+        label='Name',
     )
+
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
         label='Role (ID)',
@@ -55,38 +57,20 @@ class SecretFilterSet(NetBoxModelFilterSet):
         to_field_name='slug',
         label='Role (slug)',
     )
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name='device__name',
-        queryset=Device.objects.all(),
-        to_field_name='name',
-        label='Device (name)',
+
+    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
+        field_name='assigned_object_type',
+        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
+        label='Object type (ID)',
     )
-    device_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='device',
-        queryset=Device.objects.all(),
-        label='Device (ID)',
-    )
-    virtual_machine = django_filters.ModelMultipleChoiceFilter(
-        field_name='virtual_machine__name',
-        queryset=VirtualMachine.objects.all(),
-        to_field_name='name',
-        label='Virtual machine (name)',
-    )
-    virtual_machine_id = django_filters.ModelMultipleChoiceFilter(
-        field_name='virtual_machine',
-        queryset=VirtualMachine.objects.all(),
-        label='Virtual machine (ID)',
-    )
-    tag = TagFilter()
 
     class Meta:
         model = Secret
-        fields = ['id', 'name']
+        fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name']
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
         return queryset.filter(
-            Q(name__icontains=value) |
-            Q(device__name__icontains=value)
+            Q(name__icontains=value)
         )
