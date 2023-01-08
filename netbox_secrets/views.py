@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 from django.views.generic.base import View
 
 from extras.signals import clear_webhooks
@@ -15,7 +16,19 @@ from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import ConfirmationForm, restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
+from utilities.views import ViewTab, register_model_view
 from . import filtersets, forms, models, tables, utils
+
+
+#
+# Mixins
+#
+
+class ObjectChildrenViewMixin(generic.ObjectChildrenView):
+    def get_extra_context(self, request, instance):
+        return {
+            'table_config': f'{self.table.__name__}_config',
+        }
 
 
 #
@@ -31,34 +44,41 @@ class SecretRoleListView(generic.ObjectListView):
     filterset_form = forms.SecretRoleFilterForm
 
 
+@register_model_view(models.SecretRole)
 class SecretRoleView(generic.ObjectView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
 
-    def get_extra_context(self, request, instance):
-        secrets = models.Secret.objects.restrict(request.user, 'view').filter(
-            role=instance
-        )
 
-        secrets_table = tables.SecretTable(secrets, exclude=('role',))
-        secrets_table.configure(request)
+@register_model_view(models.SecretRole, 'secret')
+class SecretRoleSecretView(ObjectChildrenViewMixin):
+    queryset = models.SecretRole.objects.all()
+    child_model = models.Secret
+    table = tables.SecretTable
+    filterset = filtersets.SecretFilterSet
+    template_name = 'netbox_secrets/inc/view_tab.html'
+    tab = ViewTab(
+        label=_('Secrets'),
+        badge=lambda obj: models.Secret.objects.filter(role=obj).count(),
+        weight=500,
+        hide_if_empty=True
+    )
 
-        return {
-            'secrets_table': secrets_table,
-        }
+    def get_children(self, request, parent):
+        return models.Secret.objects.filter(role=parent)
 
-
+@register_model_view(models.SecretRole, 'edit')
 class SecretRoleEditView(generic.ObjectEditView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
     form = forms.SecretRoleForm
 
-
+@register_model_view(models.SecretRole, 'delete')
 class SecretRoleDeleteView(generic.ObjectDeleteView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
 
 
 class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
-    model_form = forms.SecretRoleCSVForm
+    model_form = forms.SecretRoleImportForm
     table = tables.SecretRoleTable
 
 
@@ -83,19 +103,19 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 #
 
 class SecretListView(generic.ObjectListView):
-    queryset = models.Secret.objects.prefetch_related('role','tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
     filterset_form = forms.SecretFilterForm
     table = tables.SecretTable
     actions = ('bulk_delete', 'bulk_edit')
 
-
+@register_model_view(models.Secret)
 class SecretView(generic.ObjectView):
-    queryset = models.Secret.objects.prefetch_related('role','tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
-
+@register_model_view(models.Secret, 'edit')
 class SecretEditView(generic.ObjectEditView):
-    queryset = models.Secret.objects.prefetch_related('role','tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
     form = forms.SecretForm
     template_name = 'netbox_secrets/secret_edit.html'
 
@@ -215,13 +235,13 @@ class SecretEditView(generic.ObjectEditView):
             **self.get_extra_context(request, obj),
         })
 
-
+@register_model_view(models.Secret, 'delete')
 class SecretDeleteView(generic.ObjectDeleteView):
-    queryset = models.Secret.objects.prefetch_related('role','tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
 class SecretBulkDeleteView(generic.BulkDeleteView):
-    queryset = models.Secret.objects.prefetch_related('role','tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
     table = tables.SecretTable
 
