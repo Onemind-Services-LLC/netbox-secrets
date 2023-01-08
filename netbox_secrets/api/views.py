@@ -4,7 +4,6 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_yasg import openapi
-from drf_yasg.openapi import Parameter
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -132,16 +131,7 @@ class SecretViewSet(NetBoxModelViewSet):
 class GetSessionKeyViewSet(ViewSet):
     """
     Retrieve a temporary session key to use for encrypting and decrypting secrets via the API. The user's private RSA
-    key is POSTed with the name `private_key`. An example:
-
-        curl -v -X POST -H "Authorization: Token <token>" -H "Accept: application/json; indent=4" \\
-        --data-urlencode "private_key@<filename>" https://netbox/api/plugins/netbox_secrets/get-session-key/
-
-    This request will yield a base64-encoded session key to be included in an `X-Session-Key` header in future requests:
-
-        {
-            "session_key": "+8t4SI6XikgVmB5+/urhozx9O5qCQANyOk1MNe6taRf="
-        }
+    key is POSTed with the name `private_key`.
 
     This endpoint accepts one optional parameter: `preserve_key`. If True and a session key exists, the existing session
     key will be returned instead of a new one.
@@ -149,14 +139,21 @@ class GetSessionKeyViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        manual_parameters=[
-            Parameter(
-                name='private_key',
-                in_='query',
-                required=True,
-                type=openapi.TYPE_STRING
-            )
-        ]
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['private_key'],
+            properties={
+                'private_key': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Private RSA key used to decrypt the session key',
+                ),
+                'preserve_key': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Preserve existing session key',
+                    default=False
+                )
+            },
+        ),
     )
     def create(self, request):
 

@@ -5,13 +5,13 @@ from rest_framework import serializers
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
-from netbox_secrets.models import Secret, SecretRole
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
+from ..models import Secret, SecretRole
 
 
 #
-# Secrets
+# Secret Roles
 #
 
 class SecretRoleSerializer(NetBoxModelSerializer):
@@ -25,6 +25,10 @@ class SecretRoleSerializer(NetBoxModelSerializer):
             'secret_count',
         ]
 
+
+#
+# Secrets
+#
 
 class SecretSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
