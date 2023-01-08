@@ -13,7 +13,7 @@ class NetBoxSecrets(PluginConfig):
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
     base_url = 'secrets'
-    min_version = '3.3.99'
+    min_version = '3.4.0'
     max_version = '3.4.99'
     required_settings = []
     default_settings = {
