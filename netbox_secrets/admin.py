@@ -58,4 +58,5 @@ class UserKeyAdmin(admin.ModelAdmin):
         return render(request, 'netbox_secrets/activate_keys.html', {
             'form': form,
         })
+
     activate_selected.short_description = "Activate selected user keys"

@@ -1,8 +1,8 @@
 import django_filters
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-from netbox.filtersets import NetBoxModelFilterSet
 
+from netbox.filtersets import NetBoxModelFilterSet
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
