@@ -1,28 +1,3 @@
-["priority: critical"]
-color = "b60205"
-name = "priority: critical"
-description = "This should be dealt with ASAP. Not fixing this issue would be a serious error."
-
-["priority: high"]
-color = "d93f0b"
-name = "priority: high"
-description = "After critical issues are fixed, these should be dealt with before any further issues."
-
-["priority: low"]
-color = "0e8a16"
-name = "priority: low"
-description = "This issue can probably be picked up by anyone looking to contribute to the project, as an entry fix"
-
-["priority: medium"]
-color = "fbca04"
-name = "priority: medium"
-description = "This issue may be useful, and needs some attention."
-
-["type: skip ci"]
-color = "FCBA1F"
-name = "type: skip ci"
-description = "Skips CI checks"
-
 ["type: performance"]
 color = "6572A4"
 name = "type: performance"

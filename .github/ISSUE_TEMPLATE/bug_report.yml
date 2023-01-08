@@ -1,0 +1,55 @@
+---
+name: Bug Report
+description: Report a reproducible bug in the current release of this NetBox Plugin
+title: "[Bug]: "
+labels: ["type: bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        **NOTE:** This form is only for reporting _reproducible bugs_ in a current NetBox plugin
+        installation.
+
+        - Check the release notes:
+          https://github.com/Onemind-Services-LLC/netbox-secrets/releases
+        - Look through the issues already resolved:
+          https://github.com/Onemind-Services-LLC/netbox-secrets/issues?q=is%3Aclosed
+        - Post to Github Discussions if you need setup or usage help that is not a bug:
+          https://github.com/Onemind-Services-LLC/netbox-secrets/discussions
+
+  - type: input
+    attributes:
+      label: NetBox Secrets plugin version
+      description: What version of the NetBox Secrets plugin are you currently running?
+      placeholder: v1.5.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: NetBox version
+      description: What version of NetBox are you currently running?
+      placeholder: v3.3.10
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: >
+        Describe in detail the exact steps that someone else can take to
+        reproduce this bug using the current stable release of the NetBox Secrets plugin.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: A new widget should have been created with the specified attributes
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Observed Behavior
+      description: What happened instead?
+      placeholder: A TypeError exception was raised
+    validations:
+      required: true

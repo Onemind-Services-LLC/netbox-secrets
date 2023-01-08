@@ -2,6 +2,12 @@
 
 This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps/netbox-secretstore) app.
 
+# Compatibility
+
+| NetBox Version | Plugin Version |
+|----------------|----------------|
+| 3.3.x          | 1.4.x, 1.5.x   |
+
 # Installation
 
 * Install NetBox as per NetBox documentation

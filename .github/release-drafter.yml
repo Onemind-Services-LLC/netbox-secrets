@@ -41,5 +41,3 @@ version-resolver:
       - "type: security"
       - "type: tests"
       - "type: performance"
-exclude-labels:
-  - "type: skip ci"
