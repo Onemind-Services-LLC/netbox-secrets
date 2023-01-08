@@ -137,13 +137,9 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
         label=_('Search')
     )
     assigned_object_type_id = ContentTypeMultipleChoiceField(
-        queryset=ContentType.objects.all(),
+        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
         required=False,
-        label='Object type'
-    )
-    name = DynamicModelMultipleChoiceField(
-        queryset=Secret.objects.all(),
-        required=False
+        label='Object type(s)'
     )
     role_id = DynamicModelMultipleChoiceField(
         queryset=SecretRole.objects.all(),

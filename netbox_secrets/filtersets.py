@@ -2,10 +2,8 @@ import django_filters
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
-from dcim.models import Device
 from netbox.filtersets import NetBoxModelFilterSet
-from utilities.filters import MultiValueCharFilter, MultiValueNumberFilter, ContentTypeFilter
-from virtualization.models import VirtualMachine
+from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
 __all__ = (
@@ -42,10 +40,6 @@ class SecretFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
-    name = django_filters.ModelMultipleChoiceFilter(
-        queryset=SecretRole.objects.all(),
-        field_name='name'
-    )
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
         label='Role (ID)',
@@ -57,9 +51,15 @@ class SecretFilterSet(NetBoxModelFilterSet):
         label='Role (slug)',
     )
 
+    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
+        field_name='assigned_object_type',
+        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
+        label='Object type (ID)',
+    )
+
     class Meta:
         model = Secret
-        fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'name', 'role_id', 'role', ]
+        fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name']
 
     def search(self, queryset, name, value):
         if not value.strip():
