@@ -1,7 +1,7 @@
-from django.urls import path
+from django.urls import include, path
 
-from netbox.views.generic import ObjectChangeLogView, ObjectJournalView
-from . import views, models
+from utilities.urls import get_model_urls
+from . import views
 
 urlpatterns = [
 
@@ -11,20 +11,13 @@ urlpatterns = [
     path('secret-roles/import/', views.SecretRoleBulkImportView.as_view(), name='secretrole_import'),
     path('secret-roles/edit/', views.SecretRoleBulkEditView.as_view(), name='secretrole_bulk_edit'),
     path('secret-roles/delete/', views.SecretRoleBulkDeleteView.as_view(), name='secretrole_bulk_delete'),
-    path('secret-roles/<int:pk>/', views.SecretRoleView.as_view(), name='secretrole'),
-    path('secret-roles/<int:pk>/edit/', views.SecretRoleEditView.as_view(), name='secretrole_edit'),
-    path('secret-roles/<int:pk>/delete/', views.SecretRoleDeleteView.as_view(), name='secretrole_delete'),
-    path('secret-roles/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='secretrole_changelog', kwargs={'model': models.SecretRole}),
+    path('secret-roles/<int:pk>/', include(get_model_urls('netbox_secrets', 'secretrole'))),
 
     # Secrets
     path('secrets/', views.SecretListView.as_view(), name='secret_list'),
     path('secrets/add/', views.SecretEditView.as_view(), name='secret_add'),
     path('secrets/delete/', views.SecretBulkDeleteView.as_view(), name='secret_bulk_delete'),
-    path('secrets/<int:pk>/', views.SecretView.as_view(), name='secret'),
-    path('secrets/<int:pk>/edit/', views.SecretEditView.as_view(), name='secret_edit'),
-    path('secrets/<int:pk>/delete/', views.SecretDeleteView.as_view(), name='secret_delete'),
-    path('secrets/<int:pk>/changelog/', ObjectChangeLogView.as_view(), name='secret_changelog', kwargs={'model': models.Secret}),
-    path('secrets/<int:pk>/journal/', ObjectJournalView.as_view(), name='secret_journal', kwargs={'model': models.Secret}),
+    path('secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'secret'))),
 
     # User
     path('user-key/', views.UserKeyView.as_view(), name='userkey'),
