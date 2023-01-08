@@ -7,6 +7,7 @@ This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps
 | NetBox Version | Plugin Version |
 |----------------|----------------|
 | 3.3.x          | 1.4.x, 1.5.x   |
+| 3.4.x          | 1.6.x          |
 
 # Installation
 
