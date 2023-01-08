@@ -8,7 +8,7 @@ from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelFilterSetForm, NetB
 from utilities.forms import ContentTypeMultipleChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, \
     SlugField
 from ..constants import *
-from ..models import Secret, SecretRole, UserKey
+from ..models import *
 
 
 def validate_rsa_key(key, is_secret=True):
