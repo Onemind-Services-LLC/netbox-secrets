@@ -7,6 +7,7 @@ from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
+from ..constants import SECRET_ASSIGNABLE_MODELS
 from ..models import Secret, SecretRole
 
 
@@ -33,7 +34,7 @@ class SecretRoleSerializer(NetBoxModelSerializer):
 class SecretSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
     assigned_object_type = ContentTypeField(
-        queryset=ContentType.objects.all()
+        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS)
     )
     assigned_object = serializers.SerializerMethodField(read_only=True)
     role = NestedSecretRoleSerializer()
