@@ -2,7 +2,7 @@
 name: Documentation Change
 description: Suggest an addition or modification to the NetBox Secrets plugin documentation
 title: "[Docs]: "
-labels: ["documentation"]
+labels: ["type: docs"]
 body:
   - type: dropdown
     attributes:

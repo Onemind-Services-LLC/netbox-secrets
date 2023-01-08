@@ -2,7 +2,7 @@
 name: Housekeeping
 description: A change pertaining to the codebase itself (developers only)
 title: "[Housekeeping]: "
-labels: ["housekeeping"]
+labels: ["type: maintenance"]
 body:
   - type: markdown
     attributes:
