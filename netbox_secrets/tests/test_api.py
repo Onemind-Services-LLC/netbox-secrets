@@ -178,9 +178,10 @@ class GetSessionKeyTest(APITestCase):
     def test_get_session_key_preserved(self):
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list') + '?preserve_key=True'
+        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
         data = {
             'private_key': PRIVATE_KEY,
+            'preserve_key': True,
         }
         response = self.client.post(url, data, **self.header)
 

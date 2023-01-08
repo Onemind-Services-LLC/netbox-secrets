@@ -28,7 +28,7 @@ class UserKeyAdmin(admin.ModelAdmin):
             del actions['activate_selected']
         return actions
 
-    def activate_selected(modeladmin, request, queryset):
+    def activate_selected(self, request, queryset):
         """
         Enable bulk activation of UserKeys
         """

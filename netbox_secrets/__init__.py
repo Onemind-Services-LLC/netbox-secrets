@@ -1,7 +1,6 @@
-from extras.plugins import PluginConfig
-
-
 from importlib.metadata import metadata
+
+from extras.plugins import PluginConfig
 
 metadata = metadata('netbox_secrets')
 
@@ -18,7 +17,10 @@ class NetBoxSecrets(PluginConfig):
     max_version = '3.4.99'
     required_settings = []
     default_settings = {
-        'public_key_size': 2048
+        'apps': ['dcim.device', 'virtualization.virtualmachine'],
+        'display_default': 'left_page',
+        'display_setting': {},
+        'public_key_size': 2048,
     }
 
 
