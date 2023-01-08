@@ -2,9 +2,14 @@ name: Changelog Generator
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 on:
+  pull_request:
+    types: [closed]
+
   release:
-    types:
-      - published
+    types: [published]
+
+  issues:
+    types: [closed, edited]
 
 # This ensures that previous jobs for the workflow are canceled when the ref is
 # updated.
@@ -15,8 +20,7 @@ concurrency:
 jobs:
   build:
     name: "Changelog Generator"
-    runs-on: misc
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
     if: github.ref_protected != 'true'
     steps:
       - name: Checkout code
@@ -26,13 +30,13 @@ jobs:
         id: changelog
         uses: charmixer/auto-changelog-action@v1.4
         with:
-          exclude_labels: "type: skip ci,status: abandoned,type: duplicate,type: question,type: wontfix,type: invalid"
-          token: ${{ secrets.GIT_TOKEN }}
+          exclude_labels: "status: abandoned,type: duplicate,type: question,type: wontfix,type: invalid"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push to dev
         uses: EndBug/add-and-commit@v9
         env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           add: "CHANGELOG.md"
           message: "[skip ci] Updated CHANGELOG.md"

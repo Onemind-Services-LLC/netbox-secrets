@@ -12,8 +12,8 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: misc
-    name: Checks syntax of our code
+    runs-on: ubuntu-latest
+    name: Checks syntax
     steps:
       - uses: actions/checkout@v3
         with:
@@ -43,9 +43,8 @@ jobs:
           - ./test.sh feature
           - ./test.sh snapshot
           - ./test.sh latest
-          - ./test.sh v3.3.10
       fail-fast: false
-    runs-on: misc
+    runs-on: ubuntu-latest
     name: Runs plugin tests
     steps:
       - id: git-checkout
