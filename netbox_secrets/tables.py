@@ -1,16 +1,14 @@
 import django_tables2 as tables
 
-from netbox.tables import BaseTable, columns, NetBoxTable
-from netbox_secrets.utils.tables import PluginButtonsColumn
-from .models import SecretRole, Secret
+from netbox.tables import NetBoxTable, columns
+from .models import Secret, SecretRole
 
 
 #
 # Secret roles
 #
 
-class SecretRoleTable(BaseTable):
-    pk = columns.ToggleColumn()
+class SecretRoleTable(NetBoxTable):
     name = tables.Column(
         linkify=True
     )
@@ -19,12 +17,11 @@ class SecretRoleTable(BaseTable):
         url_params={'role_id': 'pk'},
         verbose_name='Secrets'
     )
-    actions = PluginButtonsColumn(SecretRole)
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = SecretRole
-        fields = ('pk', 'name', 'secret_count', 'description', 'slug', 'actions')
-        default_columns = ('pk', 'name', 'secret_count', 'description', 'actions')
+        fields = ('pk', 'id', 'name', 'secret_count', 'description', 'slug', 'actions')
+        default_columns = ('id', 'name', 'secret_count', 'description', 'actions')
 
 
 #
@@ -32,18 +29,11 @@ class SecretRoleTable(BaseTable):
 #
 
 class SecretTable(NetBoxTable):
-    pk = columns.ToggleColumn()
-    id = tables.Column(  # Provides a link to the secret
-        linkify=True
-    )
     name = tables.Column(
         linkify=True
     )
-    assigned_object = tables.Column(
-        linkify=True,
-        orderable=False,
-        verbose_name='Assigned object'
-    )
+    assigned_object_type = columns.ContentTypeColumn(verbose_name='Object type')
+    assigned_object = tables.Column(linkify=True, orderable=False, verbose_name='Object')
     role = tables.Column(
         linkify=True
     )
@@ -51,7 +41,9 @@ class SecretTable(NetBoxTable):
         url_name='plugins:netbox_secrets:secret_list'
     )
 
-    class Meta(BaseTable.Meta):
+    class Meta(NetBoxTable.Meta):
         model = Secret
-        fields = ('pk', 'id', 'assigned_object', 'role', 'name', 'last_updated', 'hash', 'tags')
-        default_columns = ('pk', 'id', 'name', 'assigned_object', 'role', 'last_updated')
+        fields = (
+            'pk', 'id', 'name', 'assigned_object_type', 'assigned_object', 'role', 'created', 'last_updated', 'tags',
+        )
+        default_columns = ('pk', 'id', 'name', 'assigned_object_type', 'assigned_object', 'role', 'actions')

@@ -1,4 +1,5 @@
-from extras.plugins import PluginMenuItem, PluginMenuButton
+from extras.plugins import PluginMenuButton, PluginMenuItem
+from utilities.choices import ButtonColorChoices
 
 menu_items = (
     PluginMenuItem(
@@ -15,14 +16,14 @@ menu_items = (
                 link="plugins:netbox_secrets:secretrole_add",
                 title="Add Secret Role",
                 icon_class="mdi mdi-plus-thick",
-                color="green",
+                color=ButtonColorChoices.GREEN,
                 permissions=["netbox_secrets.add_secretrole"],
             ),
             PluginMenuButton(
                 link="plugins:netbox_secrets:secretrole_import",
                 title="Import Secret Role",
                 icon_class="mdi mdi-upload",
-                color="teal",
+                color=ButtonColorChoices.CYAN,
                 permissions=["netbox_secrets.add_secretrole"],
             ),
         ),
@@ -31,21 +32,5 @@ menu_items = (
         link_text="Secrets",
         link="plugins:netbox_secrets:secret_list",
         permissions=["netbox_secrets.view_secret"],
-        buttons=(
-            PluginMenuButton(
-                link="plugins:netbox_secrets:secret_add",
-                title="Add Secret",
-                icon_class="mdi mdi-plus-thick",
-                color="green",
-                permissions=["netbox_secrets.add_secret"],
-            ),
-            PluginMenuButton(
-                link="plugins:netbox_secrets:secret_import",
-                title="Import Secret",
-                icon_class="mdi mdi-upload",
-                color="teal",
-                permissions=["netbox_secrets.add_secret"],
-            ),
-        ),
     ),
 )

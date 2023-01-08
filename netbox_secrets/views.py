@@ -1,32 +1,21 @@
-import base64
 import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.views.generic.base import View
 
+from extras.signals import clear_webhooks
 from netbox.views import generic
-from netbox_secrets.forms import SecretRoleFilterForm
-from utilities.forms import ConfirmationForm
-from utilities.utils import count_related
-from .filtersets import *
-from .forms import *
-from .models import SessionKey, UserKey
-from .tables import *
-
-
-def get_session_key(request):
-    """
-    Extract and decode the session key sent with a request. Returns None if no session key was provided.
-    """
-    session_key = request.COOKIES.get('session_key', None)
-    if session_key is not None:
-        return base64.b64decode(session_key)
-    return session_key
+from utilities.exceptions import AbortRequest, PermissionsViolation
+from utilities.forms import ConfirmationForm, restrict_form_fields
+from utilities.utils import count_related, prepare_cloned_fields
+from . import filtersets, forms, models, tables, utils
 
 
 #
@@ -34,23 +23,23 @@ def get_session_key(request):
 #
 
 class SecretRoleListView(generic.ObjectListView):
-    queryset = SecretRole.objects.annotate(
-        secret_count=count_related(Secret, 'role')
-    )
-    table = SecretRoleTable
-    filterset = SecretRoleFilterSet
-    filterset_form = SecretRoleFilterForm
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
+    table = tables.SecretRoleTable
+    filterset = filtersets.SecretRoleFilterSet
+    filterset_form = forms.SecretRoleFilterForm
 
 
 class SecretRoleView(generic.ObjectView):
-    queryset = SecretRole.objects.all()
+    queryset = models.SecretRole.objects.prefetch_related('tags')
 
     def get_extra_context(self, request, instance):
-        secrets = Secret.objects.restrict(request.user, 'view').filter(
+        secrets = models.Secret.objects.restrict(request.user, 'view').filter(
             role=instance
         )
 
-        secrets_table = SecretTable(secrets, exclude=('role',))
+        secrets_table = tables.SecretTable(secrets, exclude=('role',))
         secrets_table.configure(request)
 
         return {
@@ -59,34 +48,34 @@ class SecretRoleView(generic.ObjectView):
 
 
 class SecretRoleEditView(generic.ObjectEditView):
-    queryset = SecretRole.objects.all()
-    form = SecretRoleForm
+    queryset = models.SecretRole.objects.prefetch_related('tags')
+    form = forms.SecretRoleForm
 
 
 class SecretRoleDeleteView(generic.ObjectDeleteView):
-    queryset = SecretRole.objects.all()
+    queryset = models.SecretRole.objects.prefetch_related('tags')
 
 
 class SecretRoleBulkImportView(generic.BulkImportView):
-    queryset = SecretRole.objects.all()
-    model_form = SecretRoleCSVForm
-    table = SecretRoleTable
+    queryset = models.SecretRole.objects.prefetch_related('tags')
+    model_form = forms.SecretRoleCSVForm
+    table = tables.SecretRoleTable
 
 
 class SecretRoleBulkEditView(generic.BulkEditView):
-    queryset = SecretRole.objects.annotate(
-        secret_count=count_related(Secret, 'role')
-    )
-    filterset = SecretRoleFilterSet
-    table = SecretRoleTable
-    form = SecretRoleBulkEditForm
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
+    filterset = filtersets.SecretRoleFilterSet
+    table = tables.SecretRoleTable
+    form = forms.SecretRoleBulkEditForm
 
 
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
-    queryset = SecretRole.objects.annotate(
-        secret_count=count_related(Secret, 'role')
-    )
-    table = SecretRoleTable
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
+    table = tables.SecretRoleTable
 
 
 #
@@ -94,28 +83,44 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 #
 
 class SecretListView(generic.ObjectListView):
-    queryset = Secret.objects.all()
-    filterset = SecretFilterSet
-    filterset_form = SecretFilterForm
-    table = SecretTable
-    action_buttons = ('add', 'import', 'export')
+    queryset = models.Secret.objects.prefetch_related('role','tags')
+    filterset = filtersets.SecretFilterSet
+    filterset_form = forms.SecretFilterForm
+    table = tables.SecretTable
+    actions = ('bulk_delete', 'bulk_edit')
 
 
 class SecretView(generic.ObjectView):
-    queryset = Secret.objects.all()
+    queryset = models.Secret.objects.prefetch_related('role','tags')
 
 
 class SecretEditView(generic.ObjectEditView):
-    queryset = Secret.objects.all()
-    form = SecretForm
+    queryset = models.Secret.objects.prefetch_related('role','tags')
+    form = forms.SecretForm
     template_name = 'netbox_secrets/secret_edit.html'
+
+    def alter_object(self, instance, request, url_args, url_kwargs):
+        if not instance.pk:
+            # Assign the assigned_object based on the URL parameters
+            content_type = get_object_or_404(ContentType, pk=request.GET.get('assigned_object_type'))
+            instance.assigned_object = get_object_or_404(
+                content_type.model_class(), pk=request.GET.get('assigned_object_id')
+            )
+
+        return instance
+
+    def get_extra_addanother_params(self, request):
+        return {
+            'assigned_object_type': request.GET.get('assigned_object_type'),
+            'assigned_object_id': request.GET.get('assigned_object_id'),
+        }
 
     def dispatch(self, request, *args, **kwargs):
 
         # Check that the user has a valid UserKey
         try:
-            uk = UserKey.objects.get(user=request.user)
-        except UserKey.DoesNotExist:
+            uk = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
             return redirect('plugins:netbox_secrets:userkey')
         if not uk.is_active():
@@ -126,116 +131,99 @@ class SecretEditView(generic.ObjectEditView):
 
     def post(self, request, *args, **kwargs):
         logger = logging.getLogger('netbox.views.ObjectEditView')
-        session_key = get_session_key(request)
-        secret = self.get_object(**kwargs)
-        form = self.form(request.POST, instance=secret)
+        obj = self.get_object(**kwargs)
+        session_key = utils.get_session_key(request)
+
+        # Take a snapshot for change logging (if editing an existing object)
+        if obj.pk and hasattr(obj, 'snapshot'):
+            obj.snapshot()
+
+        obj = self.alter_object(obj, request, args, kwargs)
+
+        form = self.form(data=request.POST, instance=obj)
+        restrict_form_fields(form, request.user)
 
         if form.is_valid():
             logger.debug("Form validation was successful")
-            secret = form.save(commit=False)
+            try:
+                with transaction.atomic():
+                    object_created = form.instance.pk is None
+                    obj = form.save(commit=False)
 
-            # We must have a session key in order to set the plaintext of a Secret
-            if form.cleaned_data['plaintext'] and session_key is None:
-                logger.debug("Unable to proceed: No session key was provided with the request")
-                form.add_error(None, "No session key was provided with the request. Unable to encrypt secret data.")
+                    # We must have a session key in order to set the plaintext of a Secret
+                    if form.cleaned_data['plaintext'] and session_key is None:
+                        logger.debug("Unable to proceed: No session key was provided with the request")
+                        form.add_error(None,
+                                       "No session key was provided with the request. Unable to encrypt secret data.")
 
-            elif form.cleaned_data['plaintext']:
-                master_key = None
-                try:
-                    sk = SessionKey.objects.get(userkey__user=request.user)
-                    master_key = sk.get_master_key(session_key)
-                except SessionKey.DoesNotExist:
-                    logger.debug("Unable to proceed: User has no session key assigned")
-                    form.add_error(None, "No session key found for this user.")
+                    elif form.cleaned_data['plaintext']:
+                        master_key = None
+                        try:
+                            sk = models.SessionKey.objects.get(userkey__user=request.user)
+                            master_key = sk.get_master_key(session_key)
+                        except models.SessionKey.DoesNotExist:
+                            logger.debug("Unable to proceed: User has no session key assigned")
+                            form.add_error(None, "No session key found for this user.")
 
-                if master_key is not None:
-                    logger.debug("Successfully resolved master key for encryption")
-                    secret.plaintext = str(form.cleaned_data['plaintext'])
-                    secret.encrypt(master_key)
+                        if master_key is not None:
+                            logger.debug("Successfully resolved master key for encryption")
+                            obj.plaintext = str(form.cleaned_data['plaintext'])
+                            obj.encrypt(master_key)
 
-            secret.save()
-            form.save_m2m()
+                    obj.save()
+                    form.save_m2m()
 
-            msg = '{} secret'.format('Created' if not form.instance.pk else 'Modified')
-            logger.info(f"{msg} {secret} (PK: {secret.pk})")
-            msg = f'{msg} <a href="{secret.get_absolute_url()}">{escape(secret)}</a>'
-            messages.success(request, mark_safe(msg))
+                    msg = '{} {}'.format(
+                        'Created' if object_created else 'Modified',
+                        self.queryset.model._meta.verbose_name
+                    )
+                    logger.info(f"{msg} {obj} (PK: {obj.pk})")
+                    if hasattr(obj, 'get_absolute_url'):
+                        msg = mark_safe(f'{msg} <a href="{obj.get_absolute_url()}">{escape(obj)}</a>')
+                    else:
+                        msg = f'{msg} {obj}'
+                    messages.success(request, msg)
 
-            return redirect(self.get_return_url(request, secret))
+                    if '_addanother' in request.POST:
+                        redirect_url = request.path
+
+                        # If cloning is supported, pre-populate a new instance of the form
+                        params = prepare_cloned_fields(obj)
+                        params.update(self.get_extra_addanother_params(request))
+                        if params:
+                            if 'return_url' in request.GET:
+                                params['return_url'] = request.GET.get('return_url')
+                            redirect_url += f"?{params.urlencode()}"
+
+                        return redirect(redirect_url)
+
+                    return_url = self.get_return_url(request, obj)
+
+                    return redirect(return_url)
+            except (AbortRequest, PermissionsViolation) as e:
+                logger.debug(e.message)
+                form.add_error(None, e.message)
+                clear_webhooks.send(sender=self)
 
         else:
             logger.debug("Form validation failed")
 
         return render(request, self.template_name, {
-            'obj': secret,
-            'obj_type': self.queryset.model._meta.verbose_name,
+            'object': obj,
             'form': form,
-            'return_url': self.get_return_url(request, secret),
+            'return_url': self.get_return_url(request, obj),
+            **self.get_extra_context(request, obj),
         })
 
 
 class SecretDeleteView(generic.ObjectDeleteView):
-    queryset = Secret.objects.all()
-
-
-class SecretBulkImportView(generic.BulkImportView):
-    queryset = Secret.objects.all()
-    model_form = SecretCSVForm
-    table = SecretTable
-    template_name = 'netbox_secrets/secret_bulk_import.html'
-    widget_attrs = {'class': 'requires-session-key'}
-
-    master_key = None
-
-    def _save_obj(self, obj_form, request):
-        """
-        Encrypt each object before saving it to the database.
-        """
-        obj = obj_form.save(commit=False)
-        obj.encrypt(self.master_key)
-        obj.save()
-        return obj
-
-    def post(self, request):
-
-        # Grab the session key from cookies.
-        session_key = request.COOKIES.get('session_key')
-        if session_key:
-
-            # Attempt to derive the master key using the provided session key.
-            try:
-                sk = SessionKey.objects.get(userkey__user=request.user)
-                self.master_key = sk.get_master_key(base64.b64decode(session_key))
-            except SessionKey.DoesNotExist:
-                messages.error(request, "No session key found for this user.")
-
-            if self.master_key is not None:
-                return super().post(request)
-            else:
-                messages.error(request, "Invalid private key! Unable to encrypt secret data.")
-
-        else:
-            messages.error(request, "No session key was provided with the request. Unable to encrypt secret data.")
-
-        return render(request, self.template_name, {
-            'form': self._import_form(request.POST),
-            'fields': self.model_form().fields,
-            'obj_type': self.model_form._meta.model._meta.verbose_name,
-            'return_url': self.get_return_url(request),
-        })
-
-
-class SecretBulkEditView(generic.BulkEditView):
-    queryset = Secret.objects.prefetch_related('role')
-    filterset = SecretFilterSet
-    table = SecretTable
-    form = SecretBulkEditForm
+    queryset = models.Secret.objects.prefetch_related('role','tags')
 
 
 class SecretBulkDeleteView(generic.BulkDeleteView):
-    queryset = Secret.objects.prefetch_related('role')
-    filterset = SecretFilterSet
-    table = SecretTable
+    queryset = models.Secret.objects.prefetch_related('role','tags')
+    filterset = filtersets.SecretFilterSet
+    table = tables.SecretTable
 
 
 class UserKeyView(LoginRequiredMixin, View):
@@ -243,8 +231,8 @@ class UserKeyView(LoginRequiredMixin, View):
 
     def get(self, request):
         try:
-            userkey = UserKey.objects.get(user=request.user)
-        except UserKey.DoesNotExist:
+            userkey = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
             userkey = None
 
         return render(request, self.template_name, {
@@ -254,19 +242,19 @@ class UserKeyView(LoginRequiredMixin, View):
 
 
 class UserKeyEditView(LoginRequiredMixin, View):
-    queryset = SessionKey.objects.all()
+    queryset = models.SessionKey.objects.all()
     template_name = 'netbox_secrets/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.userkey = UserKey.objects.get(user=request.user)
-        except UserKey.DoesNotExist:
-            self.userkey = UserKey(user=request.user)
+            self.userkey = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
+            self.userkey = models.UserKey(user=request.user)
 
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        form = UserKeyForm(instance=self.userkey)
+        form = forms.UserKeyForm(instance=self.userkey)
         print(self.template_name)
         return render(request, self.template_name, {
             'object': self.userkey,
@@ -275,7 +263,7 @@ class UserKeyEditView(LoginRequiredMixin, View):
         })
 
     def post(self, request):
-        form = UserKeyForm(data=request.POST, instance=self.userkey)
+        form = forms.UserKeyForm(data=request.POST, instance=self.userkey)
         if form.is_valid():
             uk = form.save(commit=False)
             uk.user = request.user
@@ -291,10 +279,10 @@ class UserKeyEditView(LoginRequiredMixin, View):
 
 
 class SessionKeyDeleteView(generic.ObjectDeleteView):
-    queryset = SessionKey.objects.all()
+    queryset = models.SessionKey.objects.all()
 
     def get(self, request):
-        sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
+        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
         form = ConfirmationForm()
 
         return render(request, 'netbox_secrets/sessionkey_delete.html', {
@@ -305,7 +293,7 @@ class SessionKeyDeleteView(generic.ObjectDeleteView):
         })
 
     def post(self, request):
-        sessionkey = get_object_or_404(SessionKey, userkey__user=request.user)
+        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
         form = ConfirmationForm(request.POST)
         if form.is_valid():
             # Delete session key

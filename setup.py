@@ -2,11 +2,10 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox-secrets',
-    version='1.4.0',
-    description='Netbox Secret Store',
+    version='1.5.0',
+    description='Netbox Secrets',
     long_description='A Secret store for NetBox',
-    url='https://github.com/dansheps/netbox-secrets/',
-    download_url='https://www.pypi.org/project/netbox-secrets/',
+    url='https://github.com/Onemind-Services-LLC/netbox-secrets/',
     author='Daniel Sheppard',
     author_email='dans@dansheps.com',
     license='Apache 2.0',

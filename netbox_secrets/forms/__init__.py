@@ -7,7 +7,6 @@ __all__ = (
     'SecretRoleBulkEditForm',
     'SecretForm',
     'SecretCSVForm',
-    'SecretBulkEditForm',
     'SecretFilterForm',
     'UserKeyForm',
     'ActivateUserKeyForm'

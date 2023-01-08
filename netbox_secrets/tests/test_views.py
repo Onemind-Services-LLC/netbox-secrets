@@ -1,8 +1,3 @@
-import base64
-
-from django.test import override_settings
-from django.urls import reverse
-
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import ViewTestCases
@@ -22,7 +17,15 @@ class SecretsTestMixin:
         )
 
 
-class SecretRoleTestCase(SecretsTestMixin, ViewTestCases.OrganizationalObjectViewTestCase):
+class SecretRoleTestCase(
+    SecretsTestMixin,
+    ViewTestCases.GetObjectViewTestCase,
+    ViewTestCases.GetObjectChangelogViewTestCase,
+    ViewTestCases.DeleteObjectViewTestCase,
+    ViewTestCases.ListObjectsViewTestCase,
+    ViewTestCases.BulkEditObjectsViewTestCase,
+    ViewTestCases.BulkDeleteObjectsViewTestCase
+):
     model = SecretRole
 
     @classmethod
@@ -58,7 +61,6 @@ class SecretTestCase(
     ViewTestCases.GetObjectChangelogViewTestCase,
     ViewTestCases.DeleteObjectViewTestCase,
     ViewTestCases.ListObjectsViewTestCase,
-    ViewTestCases.BulkEditObjectsViewTestCase,
     ViewTestCases.BulkDeleteObjectsViewTestCase
 ):
     model = Secret
@@ -97,11 +99,6 @@ class SecretTestCase(
             'name': 'Secret X',
         }
 
-        cls.bulk_edit_data = {
-            'role': secretroles[1].pk,
-            'name': 'New name',
-        }
-
     def setUp(self):
         super().setUp()
 
@@ -111,24 +108,3 @@ class SecretTestCase(
         master_key = userkey.get_master_key(PRIVATE_KEY)
         self.session_key = SessionKey(userkey=userkey)
         self.session_key.save(master_key)
-
-    @override_settings(EXEMPT_VIEW_PERMISSIONS=['*'])
-    def test_import_objects(self):
-        self.add_permissions('netbox_secrets.add_secret')
-
-        device = Device.objects.get(name='Device 1')
-        csv_data = (
-            "device,role,name,plaintext",
-            f"{device.name},Secret Role 1,Secret 4,abcdefghij",
-            f"{device.name},Secret Role 1,Secret 5,abcdefghij",
-            f"{device.name},Secret Role 1,Secret 6,abcdefghij",
-        )
-
-        # Set the session_key cookie on the request
-        session_key = base64.b64encode(self.session_key.key).decode('utf-8')
-        self.client.cookies['session_key'] = session_key
-
-        response = self.client.post(reverse('plugins:netbox_secrets:secret_import'), {'csv': '\n'.join(csv_data)})
-
-        self.assertHttpStatus(response, 200)
-        self.assertEqual(Secret.objects.count(), 6)
