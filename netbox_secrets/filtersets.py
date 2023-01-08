@@ -1,8 +1,8 @@
 import django_filters
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-
 from netbox.filtersets import NetBoxModelFilterSet
+
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
@@ -40,6 +40,13 @@ class SecretFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
+
+    name = django_filters.ModelMultipleChoiceFilter(
+        queryset=Secret.objects.all(),
+        field_name='name',
+        label='Name',
+    )
+
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
         label='Role (ID)',
