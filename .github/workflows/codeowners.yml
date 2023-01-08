@@ -15,11 +15,9 @@ concurrency:
 
 jobs:
   update:
-    runs-on: misc
+    runs-on: ubuntu-latest
     # only apply on unmerged pull requests
-    if: |
-      github.event.pull_request.merged_by == ''
-    timeout-minutes: 10
+    if: github.event.pull_request.merged_by == ''
     steps:
       - name: checkout code
         uses: actions/checkout@v3
@@ -35,7 +33,7 @@ jobs:
       - name: Commit and push
         uses: EndBug/add-and-commit@v9
         env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           add: ".github/CODEOWNERS"
           message: "Updated CODEOWNERS"

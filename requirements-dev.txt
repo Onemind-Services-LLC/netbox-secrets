@@ -1,0 +1,14 @@
+autoflake
+autopep8
+bandit
+black
+flake8
+isort
+mypy
+pre-commit
+pycodestyle
+pydocstyle
+pylint
+pylint-django
+wily
+yapf

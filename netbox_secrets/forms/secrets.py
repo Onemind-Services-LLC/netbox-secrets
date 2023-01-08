@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
 
-from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelCSVForm, NetBoxModelFilterSetForm, NetBoxModelForm
+from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelFilterSetForm, NetBoxModelForm, NetBoxModelImportForm
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole, UserKey
 from utilities.forms import ContentTypeMultipleChoiceField, DynamicModelChoiceField, DynamicModelMultipleChoiceField, \
@@ -46,7 +46,7 @@ class SecretRoleForm(NetBoxModelForm):
         fields = ('name', 'slug', 'description')
 
 
-class SecretRoleCSVForm(NetBoxModelCSVForm):
+class SecretRoleImportForm(NetBoxModelImportForm):
     slug = SlugField()
 
     class Meta:
