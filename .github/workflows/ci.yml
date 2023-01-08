@@ -43,7 +43,6 @@ jobs:
           - ./test.sh feature
           - ./test.sh snapshot
           - ./test.sh latest
-          - ./test.sh v3.3.10
       fail-fast: false
     runs-on: misc
     name: Runs plugin tests
