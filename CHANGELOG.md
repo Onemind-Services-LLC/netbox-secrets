@@ -1,5 +1,18 @@
 # Changelog
 
+## [v1.5.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.5.0) (2023-01-08)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.4.0...v1.5.0)
+
+**Closed issues:**
+
+- Housekeeping tasks [\#3](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/3)
+
+**Merged pull requests:**
+
+- PRVB [\#12](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/12) ([abhi1693](https://github.com/abhi1693))
+- Added model extension to other apps [\#11](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/11) ([abhi1693](https://github.com/abhi1693))
+
 ## [v1.4.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.4.0) (2022-12-30)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/69f98839760e72ea8372f6eb688f584840eedcc4...v1.4.0)
