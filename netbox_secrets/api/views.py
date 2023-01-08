@@ -219,6 +219,33 @@ class GenerateRSAKeyPairViewSet(ViewSet):
     """
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                name='key_size',
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description='Number of bits in the key',
+                default=public_key_size
+            ),
+        ],
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                required=['public_key', 'private_key'],
+                properties={
+                    'public_key': openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description='Public RSA key',
+                    ),
+                    'private_key': openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description='Private RSA key',
+                    )
+                },
+            )
+        }
+    )
     def list(self, request):
 
         # Determine what size key to generate
