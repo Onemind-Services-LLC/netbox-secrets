@@ -23,13 +23,14 @@ from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.querysets import UserKeyQuerySet
 from netbox_secrets.utils import encrypt_master_key, decrypt_master_key, generate_random_key
 
-
 __all__ = (
     'Secret',
     'SecretRole',
     'SessionKey',
     'UserKey',
 )
+
+plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
 class UserKey(models.Model):
@@ -53,7 +54,8 @@ class UserKey(models.Model):
     )
     public_key = models.TextField(
         verbose_name='RSA public key',
-        help_text=_('Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.')
+        help_text=_(
+            'Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.')
     )
     master_key_cipher = models.BinaryField(
         max_length=512,
@@ -137,6 +139,7 @@ class UserKey(models.Model):
         Returns True if the UserKey has been filled with a public RSA key.
         """
         return bool(self.public_key)
+
     is_filled.boolean = True
 
     def is_active(self):
@@ -144,6 +147,7 @@ class UserKey(models.Model):
         Returns True if the UserKey has been populated with an encrypted copy of the master key.
         """
         return self.master_key_cipher is not None
+
     is_active.boolean = True
 
     def get_master_key(self, private_key):
@@ -430,3 +434,12 @@ class Secret(NetBoxModel):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
+
+    @property
+    def enable_contacts(self):
+        return plugin_settings.get('enable_contacts', False)
+
+if plugin_settings.get('enable_contacts', False):
+    GenericRelation(
+        to='tenancy.ContactAssignment'
+    ).contribute_to_class(Secret, 'contacts')

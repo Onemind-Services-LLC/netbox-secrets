@@ -20,6 +20,7 @@ class NetBoxSecrets(PluginConfig):
         'apps': ['dcim.device', 'virtualization.virtualmachine'],
         'display_default': 'left_page',
         'display_setting': {},
+        'enable_contacts': True,
         'public_key_size': 2048,
     }
 
