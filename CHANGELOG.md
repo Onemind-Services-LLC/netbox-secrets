@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.6.0...HEAD)
+
+**Merged pull requests:**
+
+- Updated documentation and fixed invalid session key [\#18](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/18) ([abhi1693](https://github.com/abhi1693))
+- Added generic relation for contacts [\#17](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/17) ([abhi1693](https://github.com/abhi1693))
+
 ## [v1.6.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.6.0) (2023-01-08)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.5.0...v1.6.0)
