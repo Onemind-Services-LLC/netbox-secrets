@@ -193,6 +193,15 @@ class SecretEditView(generic.ObjectEditView):
                             obj.plaintext = str(form.cleaned_data['plaintext'])
                             obj.encrypt(master_key)
 
+                    if form.errors:
+                        logger.debug("Form validation failed")
+                        return render(request, self.template_name, {
+                            'object': obj,
+                            'form': form,
+                            'return_url': self.get_return_url(request, obj),
+                            **self.get_extra_context(request, obj),
+                        })
+
                     obj.save()
                     form.save_m2m()
 
