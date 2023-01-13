@@ -20,6 +20,12 @@ This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps
 * Run migration: `./venv/bin/python netbox/manage.py migrate`
 * Run collectstatic: `./venv/bin/python netbox/manage.py collectstatic --no-input`
 
+_Note: To install a specific version of the plugin, use the following format:_
+
+`git+https://github.com/Onemind-Services-LLC/netbox-secrets@<version>`
+
+You can view releases at: https://github.com/Onemind-Services-LLC/netbox-secrets/releases
+
 # Configuration
 
 The following options are available in the configuration file:
