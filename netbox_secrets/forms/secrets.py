@@ -94,6 +94,7 @@ class SecretForm(NetBoxModelForm):
         widget=forms.PasswordInput(
             attrs={
                 'class': 'requires-session-key',
+                'autocomplete': 'new-password',
             }
         )
     )
@@ -101,7 +102,11 @@ class SecretForm(NetBoxModelForm):
         max_length=SECRET_PLAINTEXT_MAX_LENGTH,
         required=False,
         label='Plaintext (verify)',
-        widget=forms.PasswordInput()
+        widget=forms.PasswordInput(
+            attrs={
+                'autocomplete': 'new-password',
+            }
+        )
     )
     role = DynamicModelChoiceField(
         queryset=SecretRole.objects.all()
