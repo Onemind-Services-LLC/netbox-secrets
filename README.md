@@ -44,3 +44,34 @@ The following options are available in the configuration file:
   - __Description__: Size of the public key
   - __Default__: `2048`
   - __Options__: `2048`, `4096`, `8192`
+
+## FAQ
+
+1. How can I migrate the data from `netbox-secretstore`?
+
+_Note: This is a one-way migration. You can't migrate back to `netbox-secretstore`. Ensure you do not have any data for netbox-secrets already in the database_
+
+These instructions assume that you are running Netbox v3.4.x and the plugin version 1.6.x. Install a new version
+of `netbox_secretstore` as:
+
+```shell
+pip install git+https://github.com/Onemind-Services-LLC/netbox-secretstore@migration/nb34
+```
+
+Make sure to add both plugins to the `configuration.py` before the migration.
+
+Run the migration:
+
+```shell
+python manage.py migrate
+```
+
+Finally, readjust the indices for the `netbox-secrets` plugin
+
+```shell
+python manage.py sqlsequencereset netbox_secrets 
+```
+
+Run the output of the previous command in the database.
+
+You can now remove `netbox-secretstore` from the application.
