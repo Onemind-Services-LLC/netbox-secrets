@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v1.7.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.0) (2023-01-13)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.6.0...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.6.0...v1.7.0)
 
 **Merged pull requests:**
 
+- Fixed autocomplete and uncaught form errors [\#19](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/19) ([abhi1693](https://github.com/abhi1693))
 - Updated documentation and fixed invalid session key [\#18](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/18) ([abhi1693](https://github.com/abhi1693))
 - Added generic relation for contacts [\#17](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/17) ([abhi1693](https://github.com/abhi1693))
 
