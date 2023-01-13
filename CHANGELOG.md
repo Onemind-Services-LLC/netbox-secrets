@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.6.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.6.0) (2023-01-08)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.5.0...v1.6.0)
+
+**Merged pull requests:**
+
+- PRVB [\#15](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/15) ([abhi1693](https://github.com/abhi1693))
+- Changes to the workflow [\#14](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/14) ([abhi1693](https://github.com/abhi1693))
+- Added support for NetBox v3.4 [\#13](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/13) ([abhi1693](https://github.com/abhi1693))
+
 ## [v1.5.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.5.0) (2023-01-08)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.4.0...v1.5.0)

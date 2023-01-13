@@ -1,13 +1,16 @@
 # Working with Secrets
 
-As with most other objects, the REST API can be used to view, create, modify, and delete secrets. However, additional steps are needed to encrypt or decrypt secret data.
+As with most other objects, the REST API can be used to view, create, modify, and delete secrets. However, additional 
+steps are needed to encrypt or decrypt secret data.
 
 ## Generating a Session Key
 
-In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key, send an authenticated request to the `/api/plugins/secrets/secrets/get-session-key/` endpoint with the private RSA key which matches your [UserKey](../core-functionality/secrets.md#user-keys). The private key must be POSTed with the name `private_key`.
+In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key, 
+send an authenticated request to the `/api/plugins/secrets/get-session-key/` endpoint with the private RSA key which 
+matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
 
 ```no-highlight
-$ curl -X POST http://netbox/api/plugins/secrets/secrets/get-session-key/ \
+$ curl -X POST http://netbox/api/plugins/secrets/get-session-key/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 --data-urlencode "private_key@<filename>"
@@ -20,13 +23,16 @@ $ curl -X POST http://netbox/api/plugins/secrets/secrets/get-session-key/ \
 ```
 
 !!! note
-    To read the private key from a file, use the convention above. Alternatively, the private key can be read from an environment variable using `--data-urlencode "private_key=$PRIVATE_KEY"`.
+    To read the private key from a file, use the convention above. Alternatively, the private key can be read from an 
+environment variable using `--data-urlencode "private_key=$PRIVATE_KEY"`.
 
-The request uses the provided private key to unlock your stored copy of the master key and generate a temporary session key, which can be attached in the `X-Session-Key` header of future API requests.
+The request uses the provided private key to unlock your stored copy of the master key and generate a temporary 
+session key, which can be attached in the `X-Session-Key` header of future API requests.
 
 ## Retrieving Secrets
 
-A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its `plaintext` field set to null.
+A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its 
+`plaintext` field set to null.
 
 ```no-highlight
 $ curl http://netbox/api/plugins/secrets/secrets/2587/ \
@@ -38,15 +44,19 @@ $ curl http://netbox/api/plugins/secrets/secrets/2587/ \
 {
     "id": 2587,
     "url": "http://netbox/api/plugins/secrets/secrets/2587/",
-    "device": {
+    "display": "admin",
+    "assigned_object_type": "dcim.device",
+    "assigned_object_id": 1827,
+    "assigned_object": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
-        "name": "MyTestDevice",
-        "display_name": "MyTestDevice"
+        "display": "MyTestDevice",
+        "name": "MyTestDevice"
     },
     "role": {
-        "id": 1,
-        "url": "http://netbox/api/plugins/secrets/secrets/secret-roles/1/",
+        "id": 4,
+        "url": "http://netbox/api/plugins/secrets/secret-roles/4/",
+        "display": "Login Credentials",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
@@ -55,8 +65,8 @@ $ curl http://netbox/api/plugins/secrets/secrets/2587/ \
     "hash": "pbkdf2_sha256$1000$G6mMFe4FetZQ$f+0itZbAoUqW5pd8+NH8W5rdp/2QNLIBb+LGdt4OSKA=",
     "tags": [],
     "custom_fields": {},
-    "created": "2017-03-21",
-    "last_updated": "2017-03-21T19:28:44.265582Z"
+    "created": "2022-12-30T21:25:17.335575Z",
+    "last_updated": "2022-12-30T21:25:17.335619Z"
 }
 ```
 
@@ -72,26 +82,30 @@ $ curl http://netbox/api/plugins/secrets/secrets/secrets/2587/ \
 ```json
 {
     "id": 2587,
-    "url": "http://netbox/api/plugins/secrets/secrets/secrets/2587/",
-    "device": {
+    "url": "http://netbox/api/plugins/secrets/secrets/2587/",
+    "display": "admin",
+    "assigned_object_type": "dcim.device",
+    "assigned_object_id": 1827,
+    "assigned_object": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
-        "name": "MyTestDevice",
-        "display_name": "MyTestDevice"
+        "display": "MyTestDevice",
+        "name": "MyTestDevice"
     },
     "role": {
-        "id": 1,
-        "url": "http://netbox/api/plugins/secrets/secrets/secret-roles/1/",
+        "id": 4,
+        "url": "http://netbox/api/plugins/secrets/secret-roles/4/",
+        "display": "Login Credentials",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
     "name": "admin",
-    "plaintext": "foobar",
+    "plaintext": null,
     "hash": "pbkdf2_sha256$1000$G6mMFe4FetZQ$f+0itZbAoUqW5pd8+NH8W5rdp/2QNLIBb+LGdt4OSKA=",
     "tags": [],
     "custom_fields": {},
-    "created": "2017-03-21",
-    "last_updated": "2017-03-21T19:28:44.265582Z"
+    "created": "2022-12-30T21:25:17.335575Z",
+    "last_updated": "2022-12-30T21:25:17.335619Z"
 }
 ```
 
@@ -131,7 +145,8 @@ $ curl http://netbox/api/plugins/secrets/secrets/secrets/?limit=3 \
 
 ## Creating and Updating Secrets
 
-Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its non-encrypted value, and NetBox uses the session key to compute and store the encrypted value.
+Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its 
+non-encrypted value, and NetBox uses the session key to compute and store the encrypted value.
 
 ```no-highlight
 $ curl -X POST http://netbox/api/secrets/secrets/ \
@@ -145,26 +160,30 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 ```json
 {
     "id": 6194,
-    "url": "http://netbox/api/plugins/secrets/secrets/secrets/9194/",
-    "device": {
+    "url": "http://netbox/api/plugins/secrets/secrets/9194/",
+    "display": "admin",
+    "assigned_object_type": "dcim.device",
+    "assigned_object_id": 1827,
+    "assigned_object": {
         "id": 1827,
         "url": "http://netbox/api/dcim/devices/1827/",
-        "name": "device43",
-        "display_name": "device43"
+        "display": "device43",
+        "name": "device43"
     },
     "role": {
-        "id": 1,
-        "url": "http://netbox/api/plugins/secrets/secrets/secret-roles/1/",
+        "id": 4,
+        "url": "http://netbox/api/plugins/secrets/secret-roles/4/",
+        "display": "Login Credentials",
         "name": "Login Credentials",
         "slug": "login-creds"
     },
-    "name": "backup",
-    "plaintext": "Drowssap1",
+    "name": "admin",
+    "plaintext": null,
     "hash": "pbkdf2_sha256$1000$J9db8sI5vBrd$IK6nFXnFl+K+nR5/KY8RSDxU1skYL8G69T5N3jZxM7c=",
     "tags": [],
     "custom_fields": {},
-    "created": "2020-08-05",
-    "last_updated": "2020-08-05T16:51:14.990506Z"
+    "created": "2022-12-30T21:25:17.335575Z",
+    "last_updated": "2022-12-30T21:25:17.335619Z"
 }
 ```
 
