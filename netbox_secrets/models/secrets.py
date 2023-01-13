@@ -14,8 +14,6 @@ from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 
-from dcim.models import Device
-from virtualization.models import VirtualMachine
 from netbox.models import OrganizationalModel, NetBoxModel
 from utilities.querysets import RestrictedQuerySet
 from netbox_secrets.exceptions import InvalidKey

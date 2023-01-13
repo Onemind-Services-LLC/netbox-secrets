@@ -17,7 +17,7 @@ from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import ConfirmationForm, restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
 from utilities.views import ViewTab, register_model_view
-from . import filtersets, forms, models, tables, utils
+from . import exceptions, filtersets, forms, models, tables, utils
 
 
 #
@@ -184,6 +184,9 @@ class SecretEditView(generic.ObjectEditView):
                         except models.SessionKey.DoesNotExist:
                             logger.debug("Unable to proceed: User has no session key assigned")
                             form.add_error(None, "No session key found for this user.")
+                        except exceptions.InvalidKey:
+                            logger.debug("Unable to proceed: Session key is invalid")
+                            form.add_error(None, "Invalid session key provided.")
 
                         if master_key is not None:
                             logger.debug("Successfully resolved master key for encryption")
