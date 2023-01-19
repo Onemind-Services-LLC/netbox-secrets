@@ -11,12 +11,6 @@ on:
   issues:
     types: [closed, edited]
 
-# This ensures that previous jobs for the workflow are canceled when the ref is
-# updated.
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
-
 jobs:
   build:
     name: "Changelog Generator"
