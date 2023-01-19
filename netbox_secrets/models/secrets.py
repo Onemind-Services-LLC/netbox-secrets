@@ -439,5 +439,6 @@ class Secret(NetBoxModel):
 
 if plugin_settings.get('enable_contacts', False):
     GenericRelation(
-        to='tenancy.ContactAssignment'
+        to='tenancy.ContactAssignment',
+        related_query_name='secret',
     ).contribute_to_class(Secret, 'contacts')
