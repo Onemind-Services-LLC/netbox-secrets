@@ -41,7 +41,7 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
 
 
 if plugin_settings.get('enable_contacts', False):
-    class SecretFilterSet(SecretFilterSetMixin, NetBoxModelFilterSet):
+    class SecretFilterSet(NetBoxModelFilterSet):
         q = django_filters.CharFilter(
             method='search',
             label='Search',
