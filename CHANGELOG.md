@@ -1,12 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v1.7.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.2) (2023-01-19)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.1...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.1...v1.7.2)
 
 **Closed issues:**
 
 - \[Feature\]: Add contact filterset [\#20](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/20)
+
+**Merged pull requests:**
+
+- Removed SecretFilterSetMixin [\#22](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/22) ([abhi1693](https://github.com/abhi1693))
 
 ## [v1.7.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.1) (2023-01-19)
 

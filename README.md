@@ -13,16 +13,12 @@ This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps
 
 * Install NetBox as per NetBox documentation
 * Add to local_requirements.txt:
-  * `git+https://github.com/Onemind-Services-LLC/netbox-secrets`
+  * `netbox-secrets`
 * Install requirements: `./venv/bin/pip install -r local_requirements.txt`
 * Add to PLUGINS in NetBox configuration:
   * `'netbox_secrets',`
 * Run migration: `./venv/bin/python netbox/manage.py migrate`
 * Run collectstatic: `./venv/bin/python netbox/manage.py collectstatic --no-input`
-
-_Note: To install a specific version of the plugin, use the following format:_
-
-`git+https://github.com/Onemind-Services-LLC/netbox-secrets@<version>`
 
 You can view releases at: https://github.com/Onemind-Services-LLC/netbox-secrets/releases
 
