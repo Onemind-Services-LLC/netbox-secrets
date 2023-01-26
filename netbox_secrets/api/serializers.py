@@ -26,7 +26,7 @@ class UserKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserKey
         fields = [
-            'pk', 'id', 'display', 'public_key', 'private_key', 'created', 'last_updated',
+            'pk', 'id', 'display', 'public_key', 'private_key', 'created', 'last_updated', 'is_active', 'is_filled'
         ]
 
     def get_display(self, obj):
