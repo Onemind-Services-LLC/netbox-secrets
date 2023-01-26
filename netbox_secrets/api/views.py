@@ -37,6 +37,14 @@ class SecretsRootView(APIRootView):
 
 
 #
+# User Key
+#
+class UserKeyViewSet(ViewSet):
+    queryset = UserKey.objects.all()
+    serializer_class = serializers.UserKeySerializer
+
+
+#
 # Secret Roles
 #
 
