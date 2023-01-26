@@ -16,7 +16,7 @@ from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import ConfirmationForm, restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
-from utilities.views import ViewTab, register_model_view
+from utilities.views import ViewTab, register_model_view, GetReturnURLMixin
 from . import exceptions, filtersets, forms, models, tables, utils
 
 
@@ -269,11 +269,10 @@ class UserKeyView(LoginRequiredMixin, View):
 
         return render(request, self.template_name, {
             'object': userkey,
-            'active_tab': 'userkey',
         })
 
 
-class UserKeyEditView(LoginRequiredMixin, View):
+class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
     queryset = models.SessionKey.objects.all()
     template_name = 'netbox_secrets/userkey_edit.html'
 
@@ -287,14 +286,14 @@ class UserKeyEditView(LoginRequiredMixin, View):
 
     def get(self, request):
         form = forms.UserKeyForm(instance=self.userkey)
-        print(self.template_name)
         return render(request, self.template_name, {
             'object': self.userkey,
             'form': form,
-            'active_tab': 'userkey',
+            'return_url': self.get_return_url(request, self.userkey),
         })
 
     def post(self, request):
+        logger = logging.getLogger('netbox.views.ObjectEditView')
         form = forms.UserKeyForm(data=request.POST, instance=self.userkey)
         if form.is_valid():
             uk = form.save(commit=False)
@@ -302,44 +301,16 @@ class UserKeyEditView(LoginRequiredMixin, View):
             uk.save()
             messages.success(request, "Your user key has been saved.")
             return redirect('plugins:netbox_secrets:userkey')
+        else:
+            logger.debug("Form validation failed")
+            messages.error(request, "Unable to save your user key.")
 
         return render(request, self.template_name, {
             'userkey': self.userkey,
             'form': form,
-            'active_tab': 'userkey',
         })
 
 
+@register_model_view(models.SessionKey, 'delete')
 class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = models.SessionKey.objects.all()
-
-    def get(self, request):
-        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
-        form = ConfirmationForm()
-
-        return render(request, 'netbox_secrets/sessionkey_delete.html', {
-            'object': sessionkey,
-            'obj_type': sessionkey._meta.verbose_name,
-            'form': form,
-            'return_url': reverse('plugins:netbox_secrets:userkey'),
-        })
-
-    def post(self, request):
-        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
-        form = ConfirmationForm(request.POST)
-        if form.is_valid():
-            # Delete session key
-            sessionkey.delete()
-            messages.success(request, "Session key deleted")
-
-            # Delete cookie
-            response = redirect('plugins:netbox_secrets:userkey')
-            response.delete_cookie('session_key')
-
-            return response
-
-        return render(request, 'netbox_secrets/sessionkey_delete.html', {
-            'obj_type': sessionkey._meta.verbose_name,
-            'form': form,
-            'return_url': reverse('plugins:netbox_secrets:userkey'),
-        })

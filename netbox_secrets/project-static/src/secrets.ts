@@ -171,11 +171,17 @@ function initLockUnlock() {
 function requestSessionKey(privateKey: string) {
   apiPostForm('/api/plugins/secrets/get-session-key/', {
     private_key: privateKey,
+    preserve: true
   }).then(res => {
     if (!hasError(res)) {
-      // If the response received was not an error, show the user a success message.
-      const toast = createToast('success', 'Session Key Received', 'You may now unlock secrets.');
-      toast.show();
+      // If the session key has been added from the user key page, reload the page.
+      if (window.location.pathname === '/plugins/secrets/user-key/') {
+        window.location.reload();
+      }else {
+        // If the response received was not an error, show the user a success message.
+        const toast = createToast('success', 'Session Key Received', 'You may now unlock secrets.');
+        toast.show();
+      }
     } else {
       // Otherwise, show the user an error message.
       let message = res.error;
