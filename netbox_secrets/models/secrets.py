@@ -4,7 +4,7 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -12,14 +12,18 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-
 from netbox.models import NetBoxModel
 from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
 from utilities.querysets import RestrictedQuerySet
+
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.querysets import UserKeyQuerySet
-from netbox_secrets.utils import encrypt_master_key, decrypt_master_key, generate_random_key
+from netbox_secrets.utils import (
+    decrypt_master_key,
+    encrypt_master_key,
+    generate_random_key,
+)
 
 __all__ = (
     'Secret',
@@ -37,22 +41,13 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
     matching (private) decryption key.
     """
+
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(
-        to=User,
-        on_delete=models.CASCADE,
-        related_name='user_key',
-        editable=False
-    )
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name='user_key', editable=False)
     public_key = models.TextField(
         verbose_name='RSA public key',
     )
-    master_key_cipher = models.BinaryField(
-        max_length=512,
-        blank=True,
-        null=True,
-        editable=False
-    )
+    master_key_cipher = models.BinaryField(max_length=512, blank=True, null=True, editable=False)
 
     objects = UserKeyQuerySet.as_manager()
 
@@ -78,28 +73,32 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
             try:
                 pubkey = RSA.import_key(self.public_key)
             except ValueError:
-                raise ValidationError({
-                    'public_key': "Invalid RSA key format."
-                })
+                raise ValidationError({'public_key': "Invalid RSA key format."})
             except Exception:
-                raise ValidationError("Something went wrong while trying to save your key. Please ensure that you're "
-                                      "uploading a valid RSA public key in PEM format (no SSH/PGP).")
+                raise ValidationError(
+                    "Something went wrong while trying to save your key. Please ensure that you're "
+                    "uploading a valid RSA public key in PEM format (no SSH/PGP).",
+                )
 
             # Validate the public key length
             pubkey_length = pubkey.size_in_bits()
             if pubkey_length < settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']:
-                raise ValidationError({
-                    'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
-                        settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']
-                    )
-                })
+                raise ValidationError(
+                    {
+                        'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
+                            settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size'],
+                        ),
+                    },
+                )
             # We can't use keys bigger than our master_key_cipher field can hold
             if pubkey_length > 4096:
-                raise ValidationError({
-                    'public_key': "Public key size ({}) is too large. Maximum key size is 4096 bits.".format(
-                        pubkey_length
-                    )
-                })
+                raise ValidationError(
+                    {
+                        'public_key': "Public key size ({}) is too large. Maximum key size is 4096 bits.".format(
+                            pubkey_length,
+                        ),
+                    },
+                )
 
     def save(self, *args, **kwargs):
 
@@ -119,8 +118,10 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
         # If Secrets exist and this is the last active UserKey, prevent its deletion. Deleting the last UserKey will
         # result in the master key being destroyed and rendering all Secrets inaccessible.
         if Secret.objects.count() and [uk.pk for uk in UserKey.objects.active()] == [self.pk]:
-            raise Exception("Cannot delete the last active UserKey when Secrets exist! This would render all secrets "
-                            "inaccessible.")
+            raise Exception(
+                "Cannot delete the last active UserKey when Secrets exist! This would render all secrets "
+                "inaccessible.",
+            )
 
         super().delete(*args, **kwargs)
 
@@ -165,24 +166,12 @@ class SessionKey(models.Model):
     """
     A SessionKey stores a User's temporary key to be used for the encryption and decryption of secrets.
     """
+
     id = models.BigAutoField(primary_key=True)
-    userkey = models.OneToOneField(
-        to='UserKey',
-        on_delete=models.CASCADE,
-        related_name='session_key',
-        editable=False
-    )
-    cipher = models.BinaryField(
-        max_length=512,
-        editable=False
-    )
-    hash = models.CharField(
-        max_length=128,
-        editable=False
-    )
-    created = models.DateTimeField(
-        auto_now_add=True
-    )
+    userkey = models.OneToOneField(to='UserKey', on_delete=models.CASCADE, related_name='session_key', editable=False)
+    cipher = models.BinaryField(max_length=512, editable=False)
+    hash = models.CharField(max_length=128, editable=False)
+    created = models.DateTimeField(auto_now_add=True)
 
     key = None
 
@@ -239,14 +228,9 @@ class SecretRole(NetBoxModel):
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
     such as "Login Credentials" or "SNMP Communities."
     """
-    name = models.CharField(
-        max_length=100,
-        unique=True
-    )
-    slug = models.SlugField(
-        max_length=100,
-        unique=True
-    )
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
     description = models.CharField(
         max_length=200,
         blank=True,
@@ -281,33 +265,21 @@ class Secret(NetBoxModel):
     A Secret can be up to 65,535 bytes (64KB - 1B) in length. Each secret string will be padded with random data to
     a minimum of 64 bytes during encryption in order to protect short strings from ciphertext analysis.
     """
+
     assigned_object_type = models.ForeignKey(
         to=ContentType,
         on_delete=models.PROTECT,
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
-    assigned_object = GenericForeignKey(
-        ct_field='assigned_object_type',
-        fk_field='assigned_object_id'
-    )
-    role = models.ForeignKey(
-        to='SecretRole',
-        on_delete=models.PROTECT,
-        related_name='secrets'
-    )
-    name = models.CharField(
-        max_length=100,
-        blank=True
-    )
+    assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
+    role = models.ForeignKey(to='SecretRole', on_delete=models.PROTECT, related_name='secrets')
+    name = models.CharField(max_length=100, blank=True)
     ciphertext = models.BinaryField(
-        max_length=65568,  # 128-bit IV + 16-bit pad length + 65535B secret + 15B padding
-        editable=False
+        max_length=65568,
+        editable=False,  # 128-bit IV + 16-bit pad length + 65535B secret + 15B padding
     )
-    hash = models.CharField(
-        max_length=128,
-        editable=False
-    )
+    hash = models.CharField(max_length=128, editable=False)
 
     objects = RestrictedQuerySet.as_manager()
 
@@ -373,7 +345,7 @@ class Secret(NetBoxModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2:plaintext_length + 2].decode('utf8')
+        return s[2 : plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """
@@ -428,6 +400,7 @@ class Secret(NetBoxModel):
     @property
     def enable_contacts(self):
         return plugin_settings.get('enable_contacts', False)
+
 
 if plugin_settings.get('enable_contacts', False):
     GenericRelation(
