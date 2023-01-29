@@ -2,10 +2,10 @@ from netbox.graphql.types import NetBoxObjectType, ObjectType
 
 from netbox_secrets import filtersets, models
 
-__all__ = (
+__all__ = [
     'SecretRoleType',
     'SecretType',
-)
+]
 
 
 class SecretRoleType(ObjectType):

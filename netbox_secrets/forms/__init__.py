@@ -1,6 +1,6 @@
 from .secrets import *
 
-__all__ = (
+__all__ = [
     'validate_rsa_key',
     'SecretRoleForm',
     'SecretRoleBulkEditForm',
@@ -9,4 +9,4 @@ __all__ = (
     'SecretFilterForm',
     'UserKeyForm',
     'ActivateUserKeyForm',
-)
+]

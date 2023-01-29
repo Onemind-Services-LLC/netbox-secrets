@@ -25,12 +25,12 @@ from netbox_secrets.utils import (
     generate_random_key,
 )
 
-__all__ = (
+__all__ = [
     'Secret',
     'SecretRole',
     'SessionKey',
     'UserKey',
-)
+]
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 

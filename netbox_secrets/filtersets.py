@@ -9,10 +9,10 @@ from tenancy.models import Contact
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
-__all__ = (
+__all__ = [
     'SecretFilterSet',
     'SecretRoleFilterSet',
-)
+]
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_secrets']
 
