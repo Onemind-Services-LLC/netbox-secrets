@@ -4,7 +4,6 @@ from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -14,7 +13,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 
-from netbox.models import OrganizationalModel, NetBoxModel
+from netbox.models import NetBoxModel
+from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
 from utilities.querysets import RestrictedQuerySet
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.hashers import SecretValidationHasher
@@ -31,19 +31,13 @@ __all__ = (
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
-class UserKey(models.Model):
+class UserKey(ChangeLoggingMixin, WebhooksMixin):
     """
     A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
     matching (private) decryption key.
     """
     id = models.BigAutoField(primary_key=True)
-    created = models.DateField(
-        auto_now_add=True
-    )
-    last_updated = models.DateTimeField(
-        auto_now=True
-    )
     user = models.OneToOneField(
         to=User,
         on_delete=models.CASCADE,
@@ -52,8 +46,6 @@ class UserKey(models.Model):
     )
     public_key = models.TextField(
         verbose_name='RSA public key',
-        help_text=_(
-            'Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.')
     )
     master_key_cipher = models.BinaryField(
         max_length=512,

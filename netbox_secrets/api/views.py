@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from netbox.api.viewsets import NetBoxModelViewSet
 from netbox_secrets import filtersets
@@ -35,6 +35,16 @@ class SecretsRootView(APIRootView):
     def get_view_name(self):
         return 'Secrets'
 
+
+#
+# User Key
+#
+class UserKeyViewSet(ModelViewSet):
+    queryset = UserKey.objects.all()
+    serializer_class = serializers.UserKeySerializer
+
+    def get_queryset(self):
+        return UserKey.objects.filter(user=self.request.user)
 
 #
 # Secret Roles

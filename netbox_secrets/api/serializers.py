@@ -8,7 +8,29 @@ from netbox.constants import NESTED_SERIALIZER_PREFIX
 from utilities.api import get_serializer_for_model
 from .nested_serializers import *
 from ..constants import SECRET_ASSIGNABLE_MODELS
-from ..models import Secret, SecretRole
+from ..models import Secret, SecretRole, UserKey
+
+
+#
+# User Key
+#
+
+class UserKeySerializer(serializers.ModelSerializer):
+    public_key = serializers.CharField()
+    private_key = serializers.CharField(
+        write_only=True,
+    )
+
+    display = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = UserKey
+        fields = [
+            'pk', 'id', 'display', 'public_key', 'private_key', 'created', 'last_updated', 'is_active', 'is_filled'
+        ]
+
+    def get_display(self, obj):
+        return str(obj)
 
 
 #
