@@ -12,22 +12,30 @@ def populate_secretroles(apps, schema_editor):
 
     # Retrieve the necessary data from SecretStore objects
     roles = SecretRoleOld.objects.values(
-        'id', 'name', 'slug', 'description', 'created', 'last_updated', 'custom_field_data'
+        'id',
+        'name',
+        'slug',
+        'description',
+        'created',
+        'last_updated',
+        'custom_field_data',
     )
 
     # Queue SecretRoles to be created
     roles_to_create = []
     role_count = roles.count()
     for i, role in enumerate(roles, start=1):
-        roles_to_create.append(SecretRole(
-            id=role['id'],
-            name=role['name'],
-            slug=role['slug'],
-            description=role['description'],
-            created=role['created'],
-            last_updated=role['last_updated'],
-            custom_field_data=role['custom_field_data'],
-        ))
+        roles_to_create.append(
+            SecretRole(
+                id=role['id'],
+                name=role['name'],
+                slug=role['slug'],
+                description=role['description'],
+                created=role['created'],
+                last_updated=role['last_updated'],
+                custom_field_data=role['custom_field_data'],
+            ),
+        )
 
     # Bulk create the role objects
     SecretRole.objects.bulk_create(roles_to_create, batch_size=100)
@@ -39,8 +47,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            code=populate_secretroles,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(code=populate_secretroles, reverse_code=migrations.RunPython.noop),
     ]

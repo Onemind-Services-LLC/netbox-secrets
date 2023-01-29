@@ -2,7 +2,6 @@ from django.db.models import QuerySet
 
 
 class UserKeyQuerySet(QuerySet):
-
     def active(self):
         return self.filter(master_key_cipher__isnull=False)
 

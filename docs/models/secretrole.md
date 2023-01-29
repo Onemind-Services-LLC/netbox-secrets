@@ -1,6 +1,6 @@
 # Secret Roles
 
-Each secret is assigned a functional role which indicates what it is used for. Secret roles are customizable. 
+Each secret is assigned a functional role which indicates what it is used for. Secret roles are customizable.
 
 Typical roles might include:
 

@@ -8,5 +8,5 @@ __all__ = (
     'SecretForm',
     'SecretFilterForm',
     'UserKeyForm',
-    'ActivateUserKeyForm'
+    'ActivateUserKeyForm',
 )

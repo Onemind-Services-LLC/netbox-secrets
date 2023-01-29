@@ -1,12 +1,12 @@
 # Working with Secrets
 
-As with most other objects, the REST API can be used to view, create, modify, and delete secrets. However, additional 
+As with most other objects, the REST API can be used to view, create, modify, and delete secrets. However, additional
 steps are needed to encrypt or decrypt secret data.
 
 ## Generating a Session Key
 
-In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key, 
-send an authenticated request to the `/api/plugins/secrets/get-session-key/` endpoint with the private RSA key which 
+In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
+send an authenticated request to the `/api/plugins/secrets/get-session-key/` endpoint with the private RSA key which
 matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
 
 ```no-highlight
@@ -23,15 +23,15 @@ $ curl -X POST http://netbox/api/plugins/secrets/get-session-key/ \
 ```
 
 !!! note
-    To read the private key from a file, use the convention above. Alternatively, the private key can be read from an 
+    To read the private key from a file, use the convention above. Alternatively, the private key can be read from an
 environment variable using `--data-urlencode "private_key=$PRIVATE_KEY"`.
 
-The request uses the provided private key to unlock your stored copy of the master key and generate a temporary 
+The request uses the provided private key to unlock your stored copy of the master key and generate a temporary
 session key, which can be attached in the `X-Session-Key` header of future API requests.
 
 ## Retrieving Secrets
 
-A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its 
+A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its
 `plaintext` field set to null.
 
 ```no-highlight
@@ -145,7 +145,7 @@ $ curl http://netbox/api/plugins/secrets/secrets/secrets/?limit=3 \
 
 ## Creating and Updating Secrets
 
-Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its 
+Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its
 non-encrypted value, and NetBox uses the session key to compute and store the encrypted value.
 
 ```no-highlight

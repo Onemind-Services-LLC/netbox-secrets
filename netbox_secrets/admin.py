@@ -48,14 +48,19 @@ class UserKeyAdmin(admin.ModelAdmin):
                     return redirect('admin:netbox_secrets_userkey_changelist')
                 else:
                     messages.error(
-                        request, "Invalid private key provided. Unable to retrieve master key.", extra_tags='error'
+                        request,
+                        "Invalid private key provided. Unable to retrieve master key.",
+                        extra_tags='error',
                     )
         else:
-            form = ActivateUserKeyForm(
-                initial={'_selected_action': request.POST.getlist(ACTION_CHECKBOX_NAME)}
-            )
+            form = ActivateUserKeyForm(initial={'_selected_action': request.POST.getlist(ACTION_CHECKBOX_NAME)})
 
-        return render(request, 'netbox_secrets/activate_keys.html', {
-            'form': form,
-        })
+        return render(
+            request,
+            'netbox_secrets/activate_keys.html',
+            {
+                'form': form,
+            },
+        )
+
     activate_selected.short_description = "Activate selected user keys"
