@@ -3,8 +3,8 @@ import logging
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.utils import OperationalError
-from extras.plugins import PluginTemplateExtension
 
+from extras.plugins import PluginTemplateExtension
 from .models import Secret
 
 logger = logging.getLogger(__name__)
@@ -20,8 +20,11 @@ def secrets_panel(self):
     return self.render(
         'netbox_secrets/inc/secrets_panel.html',
         extra_context={
-            'secrets': Secret.objects.filter(assigned_object_type=assigned_object_type, assigned_object_id=obj.id),
-        },
+            'secrets': Secret.objects.filter(
+                assigned_object_type=assigned_object_type,
+                assigned_object_id=obj.id
+            )
+        }
     )
 
 
@@ -37,22 +40,18 @@ def get_display_on(app_model):
 
 # Generate plugin extensions for the defined classes
 try:
-    for content_type in ContentType.objects.all():
-        app_label = content_type.app_label
-        model = content_type.model
-        app_model_name = f'{app_label}.{model}'
-
-        if app_model_name in plugin_settings.get('apps'):
-            klass_name = f'{app_label}_{model}_plugin_template_extension'
-            dynamic_klass = type(
-                klass_name,
-                (PluginTemplateExtension,),
-                {'model': app_model_name, get_display_on(app_model_name): secrets_panel},
-            )
-            template_extensions.append(dynamic_klass)
+    for app_model in plugin_settings.get('apps'):
+        app_label, model = app_model.split('.')
+        klass_name = f'{app_label}_{model}_plugin_template_extension'
+        dynamic_klass = type(
+            klass_name,
+            (PluginTemplateExtension,),
+            {'model': app_model, get_display_on(app_model): secrets_panel}
+        )
+        template_extensions.append(dynamic_klass)
 except OperationalError as e:
     # This happens when the database is not yet ready
     logger.warning(f'Database not ready, skipping plugin extensions: {e}')
 except Exception as e:
     # Unexpected error
-    logger.error(e)
+    raise Exception(f'Unexpected error: {e}')

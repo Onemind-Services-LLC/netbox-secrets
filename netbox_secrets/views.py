@@ -10,19 +10,19 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
+
 from extras.signals import clear_webhooks
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import ConfirmationForm, restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
-from utilities.views import ViewTab, register_model_view
-
+from utilities.views import ViewTab, register_model_view, GetReturnURLMixin
 from . import exceptions, filtersets, forms, models, tables, utils
+
 
 #
 # Mixins
 #
-
 
 class ObjectChildrenViewMixin(generic.ObjectChildrenView):
     def get_extra_context(self, request, instance):
@@ -35,11 +35,10 @@ class ObjectChildrenViewMixin(generic.ObjectChildrenView):
 # Secret roles
 #
 
-
 class SecretRoleListView(generic.ObjectListView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
-    )
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
     table = tables.SecretRoleTable
     filterset = filtersets.SecretRoleFilterSet
     filterset_form = forms.SecretRoleFilterForm
@@ -61,18 +60,16 @@ class SecretRoleSecretView(ObjectChildrenViewMixin):
         label=_('Secrets'),
         badge=lambda obj: models.Secret.objects.filter(role=obj).count(),
         weight=500,
-        hide_if_empty=True,
+        hide_if_empty=True
     )
 
     def get_children(self, request, parent):
         return models.Secret.objects.filter(role=parent)
 
-
 @register_model_view(models.SecretRole, 'edit')
 class SecretRoleEditView(generic.ObjectEditView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
     form = forms.SecretRoleForm
-
 
 @register_model_view(models.SecretRole, 'delete')
 class SecretRoleDeleteView(generic.ObjectDeleteView):
@@ -86,25 +83,24 @@ class SecretRoleBulkImportView(generic.BulkImportView):
 
 
 class SecretRoleBulkEditView(generic.BulkEditView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
-    )
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
     filterset = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
     form = forms.SecretRoleBulkEditForm
 
 
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
-    )
+    queryset = models.SecretRole.objects.annotate(
+        secret_count=count_related(models.Secret, 'role')
+    ).prefetch_related('tags')
     table = tables.SecretRoleTable
 
 
 #
 # Secrets
 #
-
 
 class SecretListView(generic.ObjectListView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -113,11 +109,9 @@ class SecretListView(generic.ObjectListView):
     table = tables.SecretTable
     actions = ('bulk_delete', 'bulk_edit')
 
-
 @register_model_view(models.Secret)
 class SecretView(generic.ObjectView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
-
 
 @register_model_view(models.Secret, 'edit')
 class SecretEditView(generic.ObjectEditView):
@@ -130,8 +124,7 @@ class SecretEditView(generic.ObjectEditView):
             # Assign the assigned_object based on the URL parameters
             content_type = get_object_or_404(ContentType, pk=request.GET.get('assigned_object_type'))
             instance.assigned_object = get_object_or_404(
-                content_type.model_class(),
-                pk=request.GET.get('assigned_object_id'),
+                content_type.model_class(), pk=request.GET.get('assigned_object_id')
             )
 
         return instance
@@ -180,10 +173,8 @@ class SecretEditView(generic.ObjectEditView):
                     # We must have a session key in order to set the plaintext of a Secret
                     if form.cleaned_data['plaintext'] and session_key is None:
                         logger.debug("Unable to proceed: No session key was provided with the request")
-                        form.add_error(
-                            None,
-                            "No session key was provided with the request. Unable to encrypt secret data.",
-                        )
+                        form.add_error(None,
+                                       "No session key was provided with the request. Unable to encrypt secret data.")
 
                     elif form.cleaned_data['plaintext']:
                         master_key = None
@@ -204,23 +195,19 @@ class SecretEditView(generic.ObjectEditView):
 
                     if form.errors:
                         logger.debug("Form validation failed")
-                        return render(
-                            request,
-                            self.template_name,
-                            {
-                                'object': obj,
-                                'form': form,
-                                'return_url': self.get_return_url(request, obj),
-                                **self.get_extra_context(request, obj),
-                            },
-                        )
+                        return render(request, self.template_name, {
+                            'object': obj,
+                            'form': form,
+                            'return_url': self.get_return_url(request, obj),
+                            **self.get_extra_context(request, obj),
+                        })
 
                     obj.save()
                     form.save_m2m()
 
                     msg = '{} {}'.format(
                         'Created' if object_created else 'Modified',
-                        self.queryset.model._meta.verbose_name,
+                        self.queryset.model._meta.verbose_name
                     )
                     logger.info(f"{msg} {obj} (PK: {obj.pk})")
                     if hasattr(obj, 'get_absolute_url'):
@@ -253,17 +240,12 @@ class SecretEditView(generic.ObjectEditView):
         else:
             logger.debug("Form validation failed")
 
-        return render(
-            request,
-            self.template_name,
-            {
-                'object': obj,
-                'form': form,
-                'return_url': self.get_return_url(request, obj),
-                **self.get_extra_context(request, obj),
-            },
-        )
-
+        return render(request, self.template_name, {
+            'object': obj,
+            'form': form,
+            'return_url': self.get_return_url(request, obj),
+            **self.get_extra_context(request, obj),
+        })
 
 @register_model_view(models.Secret, 'delete')
 class SecretDeleteView(generic.ObjectDeleteView):
@@ -285,17 +267,12 @@ class UserKeyView(LoginRequiredMixin, View):
         except models.UserKey.DoesNotExist:
             userkey = None
 
-        return render(
-            request,
-            self.template_name,
-            {
-                'object': userkey,
-                'active_tab': 'userkey',
-            },
-        )
+        return render(request, self.template_name, {
+            'object': userkey,
+        })
 
 
-class UserKeyEditView(LoginRequiredMixin, View):
+class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
     queryset = models.SessionKey.objects.all()
     template_name = 'netbox_secrets/userkey_edit.html'
 
@@ -309,18 +286,14 @@ class UserKeyEditView(LoginRequiredMixin, View):
 
     def get(self, request):
         form = forms.UserKeyForm(instance=self.userkey)
-        print(self.template_name)
-        return render(
-            request,
-            self.template_name,
-            {
-                'object': self.userkey,
-                'form': form,
-                'active_tab': 'userkey',
-            },
-        )
+        return render(request, self.template_name, {
+            'object': self.userkey,
+            'form': form,
+            'return_url': self.get_return_url(request, self.userkey),
+        })
 
     def post(self, request):
+        logger = logging.getLogger('netbox.views.ObjectEditView')
         form = forms.UserKeyForm(data=request.POST, instance=self.userkey)
         if form.is_valid():
             uk = form.save(commit=False)
@@ -328,56 +301,16 @@ class UserKeyEditView(LoginRequiredMixin, View):
             uk.save()
             messages.success(request, "Your user key has been saved.")
             return redirect('plugins:netbox_secrets:userkey')
+        else:
+            logger.debug("Form validation failed")
+            messages.error(request, "Unable to save your user key.")
 
-        return render(
-            request,
-            self.template_name,
-            {
-                'userkey': self.userkey,
-                'form': form,
-                'active_tab': 'userkey',
-            },
-        )
+        return render(request, self.template_name, {
+            'userkey': self.userkey,
+            'form': form,
+        })
 
 
+@register_model_view(models.SessionKey, 'delete')
 class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = models.SessionKey.objects.all()
-
-    def get(self, request):
-        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
-        form = ConfirmationForm()
-
-        return render(
-            request,
-            'netbox_secrets/sessionkey_delete.html',
-            {
-                'object': sessionkey,
-                'obj_type': sessionkey._meta.verbose_name,
-                'form': form,
-                'return_url': reverse('plugins:netbox_secrets:userkey'),
-            },
-        )
-
-    def post(self, request):
-        sessionkey = get_object_or_404(models.SessionKey, userkey__user=request.user)
-        form = ConfirmationForm(request.POST)
-        if form.is_valid():
-            # Delete session key
-            sessionkey.delete()
-            messages.success(request, "Session key deleted")
-
-            # Delete cookie
-            response = redirect('plugins:netbox_secrets:userkey')
-            response.delete_cookie('session_key')
-
-            return response
-
-        return render(
-            request,
-            'netbox_secrets/sessionkey_delete.html',
-            {
-                'obj_type': sessionkey._meta.verbose_name,
-                'form': form,
-                'return_url': reverse('plugins:netbox_secrets:userkey'),
-            },
-        )
