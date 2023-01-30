@@ -5,17 +5,18 @@ from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
+from utilities.utils import count_related
 
-from netbox.api.viewsets import NetBoxModelViewSet
 from netbox_secrets import filtersets
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-from utilities.utils import count_related
+
 from . import serializers
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -46,14 +47,14 @@ class UserKeyViewSet(ModelViewSet):
     def get_queryset(self):
         return UserKey.objects.filter(user=self.request.user)
 
+
 #
 # Secret Roles
 #
 
+
 class SecretRoleViewSet(NetBoxModelViewSet):
-    queryset = SecretRole.objects.annotate(
-        secret_count=count_related(Secret, 'role')
-    ).prefetch_related('tags')
+    queryset = SecretRole.objects.annotate(secret_count=count_related(Secret, 'role')).prefetch_related('tags')
     serializer_class = serializers.SecretRoleSerializer
     filterset_class = filtersets.SecretRoleFilterSet
 
@@ -61,6 +62,7 @@ class SecretRoleViewSet(NetBoxModelViewSet):
 #
 # Secrets
 #
+
 
 class SecretViewSet(NetBoxModelViewSet):
     queryset = Secret.objects.prefetch_related('role', 'tags')
@@ -146,6 +148,7 @@ class GetSessionKeyViewSet(ViewSet):
     This endpoint accepts one optional parameter: `preserve_key`. If True and a session key exists, the existing session
     key will be returned instead of a new one.
     """
+
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -160,8 +163,8 @@ class GetSessionKeyViewSet(ViewSet):
                 'preserve_key': openapi.Schema(
                     type=openapi.TYPE_BOOLEAN,
                     description='Preserve existing session key',
-                    default=False
-                )
+                    default=False,
+                ),
             },
         ),
     )
@@ -207,9 +210,11 @@ class GetSessionKeyViewSet(ViewSet):
         encoded_key = base64.b64encode(key).decode()
 
         # Craft the response
-        response = Response({
-            'session_key': encoded_key,
-        })
+        response = Response(
+            {
+                'session_key': encoded_key,
+            },
+        )
 
         # If token authentication is not in use, assign the session key as a cookie
         if request.auth is None:
@@ -227,6 +232,7 @@ class GenerateRSAKeyPairViewSet(ViewSet):
             "private_key": "<private key>"
         }
     """
+
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -236,7 +242,7 @@ class GenerateRSAKeyPairViewSet(ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
                 description='Number of bits in the key',
-                default=public_key_size
+                default=public_key_size,
             ),
         ],
         responses={
@@ -251,10 +257,10 @@ class GenerateRSAKeyPairViewSet(ViewSet):
                     'private_key': openapi.Schema(
                         type=openapi.TYPE_STRING,
                         description='Private RSA key',
-                    )
+                    ),
                 },
-            )
-        }
+            ),
+        },
     )
     def list(self, request):
 
@@ -273,7 +279,9 @@ class GenerateRSAKeyPairViewSet(ViewSet):
         private_key = key.exportKey('PEM')
         public_key = key.publickey().exportKey('PEM')
 
-        return Response({
-            'private_key': private_key,
-            'public_key': public_key,
-        })
+        return Response(
+            {
+                'private_key': private_key,
+                'public_key': public_key,
+            },
+        )

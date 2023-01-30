@@ -13,8 +13,8 @@ from os.path import abspath, dirname
 # Read secret from file
 def _read_secret(secret_name, default=None):
     try:
-        f = open('/run/secrets/' + secret_name, 'r', encoding='utf-8')
-    except EnvironmentError:
+        f = open('/run/secrets/' + secret_name, encoding='utf-8')
+    except OSError:
         return default
     else:
         with f:
@@ -68,12 +68,14 @@ REDIS = {
         'HOST': environ.get('REDIS_CACHE_HOST', environ.get('REDIS_HOST', 'localhost')),
         'PORT': int(environ.get('REDIS_CACHE_PORT', environ.get('REDIS_PORT', 6379))),
         'PASSWORD': _read_secret(
-            'redis_cache_password', environ.get('REDIS_CACHE_PASSWORD', environ.get('REDIS_PASSWORD', ''))
+            'redis_cache_password',
+            environ.get('REDIS_CACHE_PASSWORD', environ.get('REDIS_PASSWORD', '')),
         ),
         'DATABASE': int(environ.get('REDIS_CACHE_DATABASE', 1)),
         'SSL': environ.get('REDIS_CACHE_SSL', environ.get('REDIS_SSL', 'False')).lower() == 'true',
         'INSECURE_SKIP_TLS_VERIFY': environ.get(
-            'REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY', environ.get('REDIS_INSECURE_SKIP_TLS_VERIFY', 'False')
+            'REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY',
+            environ.get('REDIS_INSECURE_SKIP_TLS_VERIFY', 'False'),
         ).lower()
         == 'true',
     },

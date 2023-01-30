@@ -9,7 +9,7 @@ def generate_random_key(bits=256):
     Generate a random encryption key. Sizes is given in bits and must be in increments of 32.
     """
     if bits % 32:
-        raise Exception("Invalid key size ({}). Key sizes must be in increments of 32 bits.".format(bits))
+        raise Exception(f"Invalid key size ({bits}). Key sizes must be in increments of 32 bits.")
     return os.urandom(int(bits / 8))
 
 

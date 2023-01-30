@@ -3,8 +3,8 @@ import logging
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.utils import OperationalError
-
 from extras.plugins import PluginTemplateExtension
+
 from .models import Secret
 
 logger = logging.getLogger(__name__)
@@ -20,11 +20,8 @@ def secrets_panel(self):
     return self.render(
         'netbox_secrets/inc/secrets_panel.html',
         extra_context={
-            'secrets': Secret.objects.filter(
-                assigned_object_type=assigned_object_type,
-                assigned_object_id=obj.id
-            )
-        }
+            'secrets': Secret.objects.filter(assigned_object_type=assigned_object_type, assigned_object_id=obj.id),
+        },
     )
 
 
@@ -46,7 +43,7 @@ try:
         dynamic_klass = type(
             klass_name,
             (PluginTemplateExtension,),
-            {'model': app_model, get_display_on(app_model): secrets_panel}
+            {'model': app_model, get_display_on(app_model): secrets_panel},
         )
         template_extensions.append(dynamic_klass)
 except OperationalError as e:

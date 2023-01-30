@@ -1,11 +1,12 @@
 import base64
 
+from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from django.urls import reverse
 from rest_framework import status
-
-from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import APITestCase, APIViewTestCases
+
+from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
+
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 
@@ -22,10 +23,9 @@ class SecretsTestMixin:
 
 
 class AppTest(APITestCase):
-
     def test_root(self):
         url = reverse('plugins-api:netbox_secrets-api:api-root')
-        response = self.client.get('{}?format=api'.format(url), **self.header)
+        response = self.client.get(f'{url}?format=api', **self.header)
 
         self.assertEqual(response.status_code, 200)
 
@@ -148,7 +148,6 @@ class SecretTest(
 
 
 class GetSessionKeyTest(APITestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -159,7 +158,7 @@ class GetSessionKeyTest(APITestCase):
         self.session_key.save(master_key)
 
         self.header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(self.token.key),
+            'HTTP_AUTHORIZATION': f'Token {self.token.key}',
         }
 
     def test_get_session_key(self):

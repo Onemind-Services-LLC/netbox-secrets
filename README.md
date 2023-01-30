@@ -108,7 +108,7 @@ python manage.py migrate
 Finally, readjust the indices for the `netbox-secrets` plugin
 
 ```shell
-python manage.py sqlsequencereset netbox_secrets 
+python manage.py sqlsequencereset netbox_secrets
 ```
 
 Run the output of the previous command in the database.
