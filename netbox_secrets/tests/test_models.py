@@ -7,20 +7,23 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from netbox_secrets.models import Secret, UserKey
-from netbox_secrets.utils.crypto import decrypt_master_key, encrypt_master_key, generate_random_key
+from netbox_secrets.utils.crypto import (
+    decrypt_master_key,
+    encrypt_master_key,
+    generate_random_key,
+)
 from netbox_secrets.utils.hashers import SecretValidationHasher
 
 
 class UserKeyTestCase(TestCase):
-
     def setUp(self):
         self.TEST_KEYS = {}
         key_size = settings.PLUGINS_CONFIG['netbox_secrets'].get('public_key_size')
         for username in ['alice', 'bob']:
             User.objects.create_user(username=username, password=username)
             key = RSA.generate(key_size)
-            self.TEST_KEYS['{}_public'.format(username)] = key.publickey().exportKey('PEM')
-            self.TEST_KEYS['{}_private'.format(username)] = key.exportKey('PEM')
+            self.TEST_KEYS[f'{username}_public'] = key.publickey().exportKey('PEM')
+            self.TEST_KEYS[f'{username}_private'] = key.exportKey('PEM')
 
     def test_01_fill(self):
         """
@@ -84,7 +87,6 @@ class UserKeyTestCase(TestCase):
 
 
 class SecretTestCase(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         # Generate a random key for encryption/decryption of secrets
@@ -106,10 +108,13 @@ class SecretTestCase(TestCase):
 
         # Ensure proper hashing algorithm is used
         hasher, iterations, salt, sha256 = s.hash.split('$')
-        self.assertEqual(hasher, 'pbkdf2_sha256', "Hashing algorithm has been modified to: {}".format(hasher))
-        self.assertGreaterEqual(int(iterations), SecretValidationHasher.iterations,
-                                "Insufficient iteration count ({}) for hash".format(iterations))
-        self.assertGreaterEqual(len(salt), 12, "Hash salt is too short ({} chars)".format(len(salt)))
+        self.assertEqual(hasher, 'pbkdf2_sha256', f"Hashing algorithm has been modified to: {hasher}")
+        self.assertGreaterEqual(
+            int(iterations),
+            SecretValidationHasher.iterations,
+            f"Insufficient iteration count ({iterations}) for hash",
+        )
+        self.assertGreaterEqual(len(salt), 12, f"Hash salt is too short ({len(salt)} chars)")
 
         # Test hash validation
         self.assertTrue(s.validate(plaintext), "Plaintext does not validate against the generated hash")

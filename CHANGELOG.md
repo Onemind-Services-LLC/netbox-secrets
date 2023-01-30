@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.3...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Secret role secrets count is always 0 [\#24](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/24)
+
+## [v1.7.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.3) (2023-01-23)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.2...v1.7.3)
+
+**Merged pull requests:**
+
+- Prepare for Pypi [\#23](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/23) ([abhi1693](https://github.com/abhi1693))
+
 ## [v1.7.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.2) (2023-01-19)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.1...v1.7.2)

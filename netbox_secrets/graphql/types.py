@@ -1,14 +1,14 @@
-from netbox_secrets import filtersets, models
-from netbox.graphql.types import ObjectType, NetBoxObjectType
+from netbox.graphql.types import NetBoxObjectType, ObjectType
 
-__all__ = (
+from netbox_secrets import filtersets, models
+
+__all__ = [
     'SecretRoleType',
     'SecretType',
-)
+]
 
 
 class SecretRoleType(ObjectType):
-
     class Meta:
         model = models.SecretRole
         fields = '__all__'
@@ -16,7 +16,6 @@ class SecretRoleType(ObjectType):
 
 
 class SecretType(NetBoxObjectType):
-
     class Meta:
         model = models.Secret
         fields = '__all__'

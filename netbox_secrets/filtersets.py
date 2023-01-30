@@ -9,10 +9,10 @@ from tenancy.models import Contact
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
-__all__ = (
+__all__ = [
     'SecretFilterSet',
     'SecretRoleFilterSet',
-)
+]
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_secrets']
 
@@ -22,10 +22,7 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
-    name = django_filters.ModelMultipleChoiceFilter(
-        queryset=SecretRole.objects.all(),
-        field_name='name'
-    )
+    name = django_filters.ModelMultipleChoiceFilter(queryset=SecretRole.objects.all(), field_name='name')
 
     class Meta:
         model = SecretRole
@@ -34,13 +31,11 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        return queryset.filter(
-            Q(name__icontains=value) |
-            Q(slug__icontains=value)
-        )
+        return queryset.filter(Q(name__icontains=value) | Q(slug__icontains=value))
 
 
 if plugin_settings.get('enable_contacts', False):
+
     class SecretFilterSet(NetBoxModelFilterSet):
         q = django_filters.CharFilter(
             method='search',
@@ -83,10 +78,10 @@ if plugin_settings.get('enable_contacts', False):
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(
-                Q(name__icontains=value)
-            )
+            return queryset.filter(Q(name__icontains=value))
+
 else:
+
     class SecretFilterSet(NetBoxModelFilterSet):
         q = django_filters.CharFilter(
             method='search',
@@ -123,6 +118,4 @@ else:
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(
-                Q(name__icontains=value)
-            )
+            return queryset.filter(Q(name__icontains=value))

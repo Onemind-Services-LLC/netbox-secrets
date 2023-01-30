@@ -1,9 +1,12 @@
 from netbox.api.routers import NetBoxRouter
-from . import views
 
+from . import views
 
 router = NetBoxRouter()
 router.APIRootView = views.SecretsRootView
+
+# User Key
+router.register('user-keys', views.UserKeyViewSet)
 
 # Secrets
 router.register('secret-roles', views.SecretRoleViewSet)

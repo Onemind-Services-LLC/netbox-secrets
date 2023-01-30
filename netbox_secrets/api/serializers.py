@@ -1,19 +1,50 @@
 from django.contrib.contenttypes.models import ContentType
 from drf_yasg.utils import swagger_serializer_method
-from rest_framework import serializers
-
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
+from rest_framework import serializers
 from utilities.api import get_serializer_for_model
-from .nested_serializers import *
+
 from ..constants import SECRET_ASSIGNABLE_MODELS
-from ..models import Secret, SecretRole
+from ..models import Secret, SecretRole, UserKey
+from .nested_serializers import *
+
+#
+# User Key
+#
+
+
+class UserKeySerializer(serializers.ModelSerializer):
+    public_key = serializers.CharField()
+    private_key = serializers.CharField(
+        write_only=True,
+    )
+
+    display = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = UserKey
+        fields = [
+            'pk',
+            'id',
+            'display',
+            'public_key',
+            'private_key',
+            'created',
+            'last_updated',
+            'is_active',
+            'is_filled',
+        ]
+
+    def get_display(self, obj):
+        return str(obj)
 
 
 #
 # Secret Roles
 #
+
 
 class SecretRoleSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secretrole-detail')
@@ -22,7 +53,15 @@ class SecretRoleSerializer(NetBoxModelSerializer):
     class Meta:
         model = SecretRole
         fields = [
-            'id', 'url', 'display', 'name', 'slug', 'description', 'custom_fields', 'created', 'last_updated',
+            'id',
+            'url',
+            'display',
+            'name',
+            'slug',
+            'description',
+            'custom_fields',
+            'created',
+            'last_updated',
             'secret_count',
         ]
 
@@ -31,11 +70,10 @@ class SecretRoleSerializer(NetBoxModelSerializer):
 # Secrets
 #
 
+
 class SecretSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:secret-detail')
-    assigned_object_type = ContentTypeField(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS)
-    )
+    assigned_object_type = ContentTypeField(queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS))
     assigned_object = serializers.SerializerMethodField(read_only=True)
     role = NestedSecretRoleSerializer()
     plaintext = serializers.CharField()
@@ -43,8 +81,20 @@ class SecretSerializer(NetBoxModelSerializer):
     class Meta:
         model = Secret
         fields = [
-            'id', 'url', 'display', 'assigned_object_type', 'assigned_object_id', 'assigned_object', 'role', 'name',
-            'plaintext', 'hash', 'tags', 'custom_fields', 'created', 'last_updated',
+            'id',
+            'url',
+            'display',
+            'assigned_object_type',
+            'assigned_object_id',
+            'assigned_object',
+            'role',
+            'name',
+            'plaintext',
+            'hash',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
         ]
         validators = []
 

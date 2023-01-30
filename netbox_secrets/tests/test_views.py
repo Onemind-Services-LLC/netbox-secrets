@@ -1,6 +1,8 @@
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.testing import ViewTestCases
+
+from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
+
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 
@@ -10,11 +12,7 @@ class SecretsTestMixin:
         Return the base format for a URL for the test's model. Override this to test for a model which belongs
         to a different app (e.g. testing Interfaces within the virtualization app).
         """
-        return '{}:{}:{}_{{}}'.format(
-            'plugins',
-            self.model._meta.app_label,
-            self.model._meta.model_name
-        )
+        return '{}:{}:{}_{{}}'.format('plugins', self.model._meta.app_label, self.model._meta.model_name)
 
 
 class SecretRoleTestCase(
@@ -24,17 +22,19 @@ class SecretRoleTestCase(
     ViewTestCases.DeleteObjectViewTestCase,
     ViewTestCases.ListObjectsViewTestCase,
     ViewTestCases.BulkEditObjectsViewTestCase,
-    ViewTestCases.BulkDeleteObjectsViewTestCase
+    ViewTestCases.BulkDeleteObjectsViewTestCase,
 ):
     model = SecretRole
 
     @classmethod
     def setUpTestData(cls):
-        SecretRole.objects.bulk_create([
-            SecretRole(name='Secret Role 1', slug='secret-role-1'),
-            SecretRole(name='Secret Role 2', slug='secret-role-2'),
-            SecretRole(name='Secret Role 3', slug='secret-role-3'),
-        ])
+        SecretRole.objects.bulk_create(
+            [
+                SecretRole(name='Secret Role 1', slug='secret-role-1'),
+                SecretRole(name='Secret Role 2', slug='secret-role-2'),
+                SecretRole(name='Secret Role 3', slug='secret-role-3'),
+            ],
+        )
 
         cls.form_data = {
             'name': 'Secret Role X',
@@ -61,7 +61,7 @@ class SecretTestCase(
     ViewTestCases.GetObjectChangelogViewTestCase,
     ViewTestCases.DeleteObjectViewTestCase,
     ViewTestCases.ListObjectsViewTestCase,
-    ViewTestCases.BulkDeleteObjectsViewTestCase
+    ViewTestCases.BulkDeleteObjectsViewTestCase,
 ):
     model = Secret
 
@@ -86,11 +86,13 @@ class SecretTestCase(
         SecretRole.objects.bulk_create(secretroles)
 
         # Create one secret per device to allow bulk-editing of names (which must be unique per device/role)
-        Secret.objects.bulk_create((
-            Secret(assigned_object=devices[0], role=secretroles[0], name='Secret 1', ciphertext=b'1234567890'),
-            Secret(assigned_object=devices[1], role=secretroles[0], name='Secret 2', ciphertext=b'1234567890'),
-            Secret(assigned_object=devices[2], role=secretroles[0], name='Secret 3', ciphertext=b'1234567890'),
-        ))
+        Secret.objects.bulk_create(
+            (
+                Secret(assigned_object=devices[0], role=secretroles[0], name='Secret 1', ciphertext=b'1234567890'),
+                Secret(assigned_object=devices[1], role=secretroles[0], name='Secret 2', ciphertext=b'1234567890'),
+                Secret(assigned_object=devices[2], role=secretroles[0], name='Secret 3', ciphertext=b'1234567890'),
+            ),
+        )
 
         cls.form_data = {
             'assigned_object_type': 'dcim.device',
