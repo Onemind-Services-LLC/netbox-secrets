@@ -1,6 +1,17 @@
 # Netbox Secrets
 
-This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps/netbox-secretstore) app.
+This is the continuation of the [NetBox Secretstore](https://github.com/DanSheps/netbox-secretstore) app. The original plugin
+is minimally maintained and has a lot of issues. This plugin is a complete rewrite of the original plugin. It is more generic
+and flexible than the original plugin. It is also regularly tested with the latest NetBox releases to ensure compatibility
+and stability.
+
+# Features
+
+* Store secrets in the database encrypted with a public key (RSA)
+* More generic and flexible than the original plugin (e.g. secrets can be assigned to any object in NetBox)
+* Secrets can be assigned to contacts to associate them with a secret (e.g. SSH key)
+* Updated user interface to make it easier to use and more intuitive to navigate
+* Regularly tested with the latest NetBox releases to ensure compatibility and stability
 
 # Compatibility
 
@@ -50,6 +61,28 @@ The following options are available in the configuration file:
   - __Description__: Size of the public key
   - __Default__: `2048`
   - __Options__: `2048`, `4096`, `8192`
+
+## Screenshots
+
+### User key (Without Session)
+
+![user-key.png](./assets/user-key.png)
+
+### User key (With Session)
+
+![user-key-session.png](./assets/user-key-session.png)
+
+### Secret Object View
+
+![secret.png](./assets/secret.png)
+
+### Secret Panel on Device
+
+![secret-panel.png](./assets/secret-panel.png)
+
+### Secret Role Object View
+
+![role.png](./assets/role.png)
 
 ## FAQ
 
