@@ -62,6 +62,28 @@ The following options are available in the configuration file:
   - __Default__: `2048`
   - __Options__: `2048`, `4096`, `8192`
 
+## Screenshots
+
+### User key (Without Session)
+
+![user-key.png](./assets/user-key.png)
+
+### User key (With Session)
+
+![user-key-session.png](./assets/user-key-session.png)
+
+### Secret Object View
+
+![secret.png](./assets/secret.png)
+
+### Secret Panel on Device
+
+![secret-panel.png](./assets/secret-panel.png)
+
+### Secret Role Object View
+
+![role.png](./assets/role.png)
+
 ## FAQ
 
 1. How can I migrate the data from `netbox-secretstore`?
