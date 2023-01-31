@@ -343,3 +343,6 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
 @register_model_view(models.SessionKey, 'delete')
 class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = models.SessionKey.objects.all()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(userkey__user=request.user)
