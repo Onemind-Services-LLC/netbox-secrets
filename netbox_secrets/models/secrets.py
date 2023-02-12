@@ -61,6 +61,9 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
 
         if self.public_key:
 
+            if isinstance(self.public_key, bytes):
+                self.public_key = self.public_key.decode('utf-8')
+
             # Validate the public key format
             if self.public_key.startswith('ssh-rsa '):
                 raise ValidationError(
