@@ -328,7 +328,6 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             return redirect('plugins:netbox_secrets:userkey')
         else:
             logger.debug("Form validation failed")
-            messages.error(request, "Unable to save your user key.")
 
         return render(
             request,
@@ -336,6 +335,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             {
                 'userkey': self.userkey,
                 'form': form,
+                'object': self.userkey,
             },
         )
 

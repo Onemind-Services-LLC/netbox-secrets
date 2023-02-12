@@ -1,5 +1,9 @@
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 
+__all__ = [
+    'SecretValidationHasher',
+]
+
 
 class SecretValidationHasher(PBKDF2PasswordHasher):
     """

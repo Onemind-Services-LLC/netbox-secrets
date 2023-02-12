@@ -1,7 +1,4 @@
-import os
-
 from Crypto.Cipher import AES
-from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
@@ -16,14 +13,9 @@ from netbox.models import NetBoxModel
 from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
 from utilities.querysets import RestrictedQuerySet
 
-from netbox_secrets.exceptions import InvalidKey
-from netbox_secrets.hashers import SecretValidationHasher
-from netbox_secrets.querysets import UserKeyQuerySet
-from netbox_secrets.utils import (
-    decrypt_master_key,
-    encrypt_master_key,
-    generate_random_key,
-)
+from ..exceptions import InvalidKey
+from ..querysets import UserKeyQuerySet
+from ..utils import *
 
 __all__ = [
     'Secret',
@@ -70,14 +62,30 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
         if self.public_key:
 
             # Validate the public key format
+            if self.public_key.startswith('ssh-rsa '):
+                raise ValidationError(
+                    {
+                        'public_key': "OpenSSH line format is not supported. Please ensure that your public is in PEM (base64) format.",
+                    },
+                )
+
             try:
-                pubkey = RSA.import_key(self.public_key)
-            except ValueError:
-                raise ValidationError({'public_key': "Invalid RSA key format."})
+                pubkey = RSA.importKey(self.public_key)
+            except ValueError as e:
+                raise ValidationError(
+                    {
+                        'public_key': f"Invalid RSA key: {e}",
+                    },
+                )
+            if pubkey.has_private():
+                raise ValidationError(
+                    {'public_key': "This looks like a private key. Please provide your public RSA key."},
+                )
+            try:
+                PKCS1_OAEP.new(pubkey)
             except Exception:
                 raise ValidationError(
-                    "Something went wrong while trying to save your key. Please ensure that you're "
-                    "uploading a valid RSA public key in PEM format (no SSH/PGP).",
+                    {'public_key': "Error validating RSA key. Please ensure that your key supports PKCS#1 OAEP."},
                 )
 
             # Validate the public key length
