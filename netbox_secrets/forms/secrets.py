@@ -1,11 +1,6 @@
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
-from netbox_secrets.constants import *
-from netbox_secrets.models import Secret, SecretRole, UserKey
-
 from netbox.forms import (
     NetBoxModelBulkEditForm,
     NetBoxModelFilterSetForm,
@@ -18,33 +13,11 @@ from utilities.forms import (
     DynamicModelMultipleChoiceField,
     SlugField,
     SmallTextarea,
-    TagFilterField
+    TagFilterField,
 )
 
-
-def validate_rsa_key(key, is_secret=True):
-    """
-    Validate the format and type of an RSA key.
-    """
-    if key.startswith('ssh-rsa '):
-        raise forms.ValidationError(
-            "OpenSSH line format is not supported. Please ensure that your public is in PEM (base64) format.",
-        )
-    try:
-        key = RSA.importKey(key)
-    except ValueError:
-        raise forms.ValidationError("Invalid RSA key. Please ensure that your key is in PEM (base64) format.")
-    except Exception as e:
-        raise forms.ValidationError(f"Invalid key detected: {e}")
-    if is_secret and not key.has_private():
-        raise forms.ValidationError("This looks like a public key. Please provide your private RSA key.")
-    elif not is_secret and key.has_private():
-        raise forms.ValidationError("This looks like a private key. Please provide your public RSA key.")
-    try:
-        PKCS1_OAEP.new(key)
-    except Exception:
-        raise forms.ValidationError("Error validating RSA key. Please ensure that your key supports PKCS#1 OAEP.")
-
+from ..constants import *
+from ..models import Secret, SecretRole, UserKey
 
 #
 # Secret roles
@@ -172,14 +145,6 @@ class UserKeyForm(forms.ModelForm):
     class Meta:
         model = UserKey
         fields = ['public_key']
-
-    def clean_public_key(self):
-        key = self.cleaned_data['public_key']
-
-        # Validate the RSA key format.
-        validate_rsa_key(key, is_secret=False)
-
-        return key
 
 
 class ActivateUserKeyForm(forms.Form):

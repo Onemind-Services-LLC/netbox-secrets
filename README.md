@@ -60,7 +60,7 @@ The following options are available in the configuration file:
   - __Type__: `Integer`
   - __Description__: Size of the public key
   - __Default__: `2048`
-  - __Options__: `2048`, `4096`, `8192`
+  - __Options__: `2048`, `4096`
 
 ## Screenshots
 
