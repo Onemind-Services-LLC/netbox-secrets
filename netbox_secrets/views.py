@@ -9,14 +9,15 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
+
 from extras.signals import clear_webhooks
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
-from utilities.forms import ConfirmationForm, restrict_form_fields
+from utilities.forms import restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
-
 from . import exceptions, filtersets, forms, models, tables, utils
+
 
 #
 # Mixins
@@ -320,12 +321,18 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
     def post(self, request):
         logger = logging.getLogger('netbox.views.ObjectEditView')
         form = forms.UserKeyForm(data=request.POST, instance=self.userkey)
+        user_key = [i for i in models.UserKey.objects.exclude(user=self.userkey.user) if i.is_active()]
+
         if form.is_valid():
-            uk = form.save(commit=False)
-            uk.user = request.user
-            uk.save()
-            messages.success(request, "Your user key has been saved.")
-            return redirect('plugins:netbox_secrets:userkey')
+            if len(user_key) > 0:
+                uk = form.save(commit=False)
+                uk.user = request.user
+                uk.save()
+                messages.success(request, "Your user key has been saved.")
+                return redirect('plugins:netbox_secrets:userkey')
+            else:
+                logger.debug("Only 1 user key is active")
+                messages.error(request, "Only 1 user key is active so, you cannot change your keys.")
         else:
             logger.debug("Form validation failed")
 
