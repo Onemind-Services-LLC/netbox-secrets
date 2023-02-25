@@ -324,7 +324,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         user_key = [i for i in models.UserKey.objects.exclude(user=self.userkey.user) if i.is_active()]
 
         if form.is_valid():
-            if len(user_key) > 0:
+            if (len(user_key) > 0) or (models.UserKey.objects.all().count() == 0):
                 uk = form.save(commit=False)
                 uk.user = request.user
                 uk.save()
