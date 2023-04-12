@@ -53,20 +53,25 @@ def update_objectchanges(apps, schema_editor):
     ObjectChange = apps.get_model('extras', 'ObjectChange')
     ContentType = apps.get_model('contenttypes', 'ContentType')
 
-    ctsecret = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'Secret'))
-    ctsecretrole = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SecretRole'))
-    ctuserkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'UserKey'))
-    ctsessionkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SessionKey'))
+    try:
+        ctsecret = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'Secret'))
+        ctsecretrole = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SecretRole'))
+        ctuserkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'UserKey'))
+        ctsessionkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SessionKey'))
 
-    ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
-    ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
-    ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
-    ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
+        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
+        ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
+        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
 
-    ObjectChange.objects.filter(changed_object_type_id=ctnbsecret.id).update(changed_object_type_id=ctsecret.id)
-    ObjectChange.objects.filter(changed_object_type_id=ctnbsecretrole.id).update(changed_object_type_id=ctsecretrole.id)
-    ObjectChange.objects.filter(changed_object_type_id=ctnbsessionkey.id).update(changed_object_type_id=ctsessionkey.id)
-    ObjectChange.objects.filter(changed_object_type_id=ctnbuserkey.id).update(changed_object_type_id=ctuserkey.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsecret.id).update(changed_object_type_id=ctsecret.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsecretrole.id).update(
+            changed_object_type_id=ctsecretrole.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsessionkey.id).update(
+            changed_object_type_id=ctsessionkey.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbuserkey.id).update(changed_object_type_id=ctuserkey.id)
+    except (ContentType.DoesNotExist, LookupError):
+        pass
 
 
 class Migration(migrations.Migration):
