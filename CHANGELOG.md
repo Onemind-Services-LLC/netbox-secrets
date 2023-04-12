@@ -2,11 +2,47 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.3...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.5...HEAD)
 
 **Closed issues:**
 
+- \[Bug\]: secret on a other plugin object [\#45](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/45)
+- \[Feature\]: Add more filters for secrets table [\#39](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/39)
+- \[Feature\]: Do not allow to replace public key if only 1 user key exists in DB [\#38](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/38)
+
+**Merged pull requests:**
+
+- Added migrations for object changes from old app [\#46](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/46) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.7.5](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.5) (2023-01-31)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.4...v1.7.5)
+
+**Closed issues:**
+
+- \[Bug\]: Unable to delete session key [\#34](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/34)
+
+**Merged pull requests:**
+
+- PRVB [\#36](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/36) ([abhi1693](https://github.com/abhi1693))
+- Fixed session key delete [\#35](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/35) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.7.4](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.4) (2023-01-30)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.3...v1.7.4)
+
+**Closed issues:**
+
+- \[Housekeeping\]: Improve user key UI [\#27](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/27)
+- \[Docs\]: Add section of why this plugin was created and what is it trying to solve [\#25](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/25)
 - \[Bug\]: Secret role secrets count is always 0 [\#24](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/24)
+
+**Merged pull requests:**
+
+- PRVB [\#31](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/31) ([abhi1693](https://github.com/abhi1693))
+- Added overview and features section to README.md [\#30](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/30) ([abhi1693](https://github.com/abhi1693))
+- Refactored code [\#29](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/29) ([abhi1693](https://github.com/abhi1693))
+- Improved user key UI [\#28](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/28) ([abhi1693](https://github.com/abhi1693))
 
 ## [v1.7.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.3) (2023-01-23)
 
