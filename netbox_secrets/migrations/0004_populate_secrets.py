@@ -46,10 +46,40 @@ def populate_secrets(apps, schema_editor):
     # Bulk create the secret objects
     Secret.objects.bulk_create(secrets_to_create, batch_size=100)
 
+def update_objectchanges(apps, schema_editor):
+    """
+    Update the ObjectChange records to reflect the new model name.
+    """
+    ObjectChange = apps.get_model('extras', 'ObjectChange')
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+
+    try:
+        ctsecret = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'Secret'))
+        ctsecretrole = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SecretRole'))
+        ctuserkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'UserKey'))
+        ctsessionkey = ContentType.objects.get_for_model(apps.get_model('netbox_secrets', 'SessionKey'))
+
+        ctnbsecret = ContentType.objects.get(app_label='netbox_secretstore', model='secret')
+        ctnbsecretrole = ContentType.objects.get(app_label='netbox_secretstore', model='secretrole')
+        ctnbuserkey = ContentType.objects.get(app_label='netbox_secretstore', model='userkey')
+        ctnbsessionkey = ContentType.objects.get(app_label='netbox_secretstore', model='sessionkey')
+
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsecret.id).update(changed_object_type_id=ctsecret.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsecretrole.id).update(
+            changed_object_type_id=ctsecretrole.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbsessionkey.id).update(
+            changed_object_type_id=ctsessionkey.id)
+        ObjectChange.objects.filter(changed_object_type_id=ctnbuserkey.id).update(changed_object_type_id=ctuserkey.id)
+    except (ContentType.DoesNotExist, LookupError):
+        pass
+
 
 class Migration(migrations.Migration):
     dependencies = [
         ('netbox_secrets', '0003_populate_secretroles'),
     ]
 
-    operations = [migrations.RunPython(code=populate_secrets, reverse_code=migrations.RunPython.noop)]
+    operations = [
+        migrations.RunPython(code=populate_secrets, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(code=update_objectchanges, reverse_code=migrations.RunPython.noop),
+    ]
