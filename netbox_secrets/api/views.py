@@ -151,6 +151,9 @@ class GetSessionKeyViewSet(ViewSet):
 
     permission_classes = [IsAuthenticated]
 
+    # Override Netbox DEFAULT_PARSER_CLASSES - FormParser is required to process url encoded private_key
+    parser_classes = [JSONParser, FormParser]
+    
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
