@@ -88,14 +88,16 @@ The following options are available in the configuration file:
 
 1. How can I migrate the data from `netbox-secretstore`?
 
-_Note: This is a one-way migration. You can't migrate back to `netbox-secretstore`. Ensure you do not have any data for netbox-secrets already in the database_
+_Note: This is a one-way migration. You can't migrate back to `netbox-secretstore`. Ensure you do not have any data including tables for netbox-secrets already in the database_
 
-These instructions assume that you are running Netbox v3.4.x and the plugin version 1.6.x. Install a new version
+These instructions assume that you are running Netbox v3.4.x and the plugin version 1.7.x. Install a new version
 of `netbox_secretstore` as:
 
 ```shell
 pip install git+https://github.com/Onemind-Services-LLC/netbox-secretstore@migration/nb34
 ```
+
+_Note: You should have netbox-secretstore v1.4.4 installed now._
 
 Make sure to add both plugins to the `configuration.py` before the migration.
 
@@ -113,4 +115,4 @@ python manage.py sqlsequencereset netbox_secrets
 
 Run the output of the previous command in the database.
 
-You can now remove `netbox-secretstore` from the application.
+You can now remove `netbox-secretstore` from the application. You may have clean up your database of the old tables manually.

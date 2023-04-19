@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.5...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.6...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Migration \(from netbox-secretstore\) fails [\#44](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/44)
+
+## [v1.7.6](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.6) (2023-04-12)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.5...v1.7.6)
 
 **Closed issues:**
 
