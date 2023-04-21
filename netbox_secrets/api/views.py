@@ -152,7 +152,7 @@ class GetSessionKeyViewSet(ViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    parser_classes = [ JSONParser, FormParser ]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
     
     @swagger_auto_schema(
         request_body=openapi.Schema(
