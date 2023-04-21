@@ -7,7 +7,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import  JSONParser, FormParser
+from rest_framework.parsers import  JSONParser, FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
