@@ -272,7 +272,7 @@ class Secret(NetBoxModel):
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
-    # Internal field for searching the
+    # Internal field for searching the assinged object
     _object_repr = models.CharField(
         max_length=200,
         editable=False,
