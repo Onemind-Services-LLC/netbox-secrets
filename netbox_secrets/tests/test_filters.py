@@ -1,9 +1,9 @@
-from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from django.test import TestCase
-from virtualization.models import Cluster, ClusterType, VirtualMachine
 
+from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from netbox_secrets.filtersets import *
 from netbox_secrets.models import Secret, SecretRole
+from virtualization.models import Cluster, ClusterType, VirtualMachine
 
 
 class SecretRoleTestCase(TestCase):
@@ -85,7 +85,7 @@ class SecretTestCase(TestCase):
 
     def test_name(self):
         name = Secret.objects.all()
-        params = {'name': [name[0].pk, name[1].pk, name[2].pk, name[3].pk, name[4].pk, name[5].pk]}
+        params = {'name': [name[0].name, name[1].name, name[2].name, name[3].name, name[4].name, name[5].name]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 6)
 
     def test_role(self):
