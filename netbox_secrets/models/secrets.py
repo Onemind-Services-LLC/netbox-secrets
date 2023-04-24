@@ -12,10 +12,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
+
 from netbox.models import NetBoxModel
 from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
-from utilities.querysets import RestrictedQuerySet
-
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.querysets import UserKeyQuerySet
@@ -24,6 +23,7 @@ from netbox_secrets.utils import (
     encrypt_master_key,
     generate_random_key,
 )
+from utilities.querysets import RestrictedQuerySet
 
 __all__ = [
     'Secret',
@@ -272,6 +272,13 @@ class Secret(NetBoxModel):
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
+    # Internal field for searching the
+    _object_repr = models.CharField(
+        max_length=200,
+        editable=False,
+        blank=True,
+        null=True
+    )
     assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
     role = models.ForeignKey(to='SecretRole', on_delete=models.PROTECT, related_name='secrets')
     name = models.CharField(max_length=100, blank=True)
@@ -303,6 +310,11 @@ class Secret(NetBoxModel):
     @classmethod
     def get_prerequisite_models(cls):
         return [SecretRole]
+
+    def save(self, *args, **kwargs):
+        self._object_repr = str(self.assigned_object)
+
+        return super().save(*args, **kwargs)
 
     def to_csv(self):
         return (
@@ -345,7 +357,7 @@ class Secret(NetBoxModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2 : plaintext_length + 2].decode('utf8')
+        return s[2: plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """
