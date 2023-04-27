@@ -143,6 +143,24 @@ $ curl http://netbox/api/plugins/secrets/secrets/secrets/?limit=3 \
 }
 ```
 
+To get a list of secrets from the assigned object
+
+```no-highlight
+$ curl http://netbox/api/plugins/secrets/secrets/secrets/?assigned_object_type=dcim.device&assigned_object_id=103 \
+-H "Authorization: Token $TOKEN" \
+-H "Accept: application/json; indent=4" \
+-H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
+```
+
+```json
+{
+    "count": 2,
+    "next": "http://netbox/api/plugins/secrets/secrets/secrets/?limit=3&offset=3",
+    "previous": null,
+    "results": [...]
+}
+```
+
 ## Creating and Updating Secrets
 
 Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its
@@ -154,7 +172,7 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 -H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk=" \
---data '{"device": 1827, "role": 1, "name": "backup", "plaintext": "Drowssap1"}'
+--data '{"assigned_object_id": 1827, "assigned_object_type": "dcim.device", "role": 1, "name": "backup", "plaintext": "Drowssap1"}'
 ```
 
 ```json
