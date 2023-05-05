@@ -1,14 +1,15 @@
 from django.contrib.contenttypes.models import ContentType
-from drf_yasg.utils import swagger_serializer_method
+from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
-from rest_framework import serializers
 from utilities.api import get_serializer_for_model
-
+from .nested_serializers import *
 from ..constants import SECRET_ASSIGNABLE_MODELS
 from ..models import Secret, SecretRole, UserKey
-from .nested_serializers import *
+
 
 #
 # User Key
@@ -98,7 +99,7 @@ class SecretSerializer(NetBoxModelSerializer):
         ]
         validators = []
 
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
+    @extend_schema_field(serializers.DictField())
     def get_assigned_object(self, obj):
         serializer = get_serializer_for_model(obj.assigned_object, prefix=NESTED_SERIALIZER_PREFIX)
         context = {'request': self.context['request']}
