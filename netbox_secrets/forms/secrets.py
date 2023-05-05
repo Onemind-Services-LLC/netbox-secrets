@@ -3,6 +3,8 @@ from Crypto.PublicKey import RSA
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
+from netbox_secrets.constants import *
+from netbox_secrets.models import Secret, SecretRole, UserKey
 
 from netbox.forms import (
     NetBoxModelBulkEditForm,
@@ -10,14 +12,11 @@ from netbox.forms import (
     NetBoxModelForm,
     NetBoxModelImportForm,
 )
-from netbox_secrets.constants import *
-from netbox_secrets.models import Secret, SecretRole, UserKey
-from utilities.forms import (
+from utilities.forms.fields import (
     ContentTypeMultipleChoiceField,
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
-    SlugField,
-    SmallTextarea,
+    SlugField
 )
 
 
@@ -161,7 +160,7 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
 
 class UserKeyForm(forms.ModelForm):
     public_key = forms.CharField(
-        widget=SmallTextarea(
+        widget=forms.Textarea(
             attrs={
                 'class': 'form-control',
             },

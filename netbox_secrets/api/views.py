@@ -3,20 +3,18 @@ import base64
 from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from utilities.utils import count_related
 
+from netbox.api.viewsets import NetBoxModelViewSet
 from netbox_secrets import filtersets
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-
+from utilities.utils import count_related
 from . import serializers
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -151,23 +149,8 @@ class GetSessionKeyViewSet(ViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['private_key'],
-            properties={
-                'private_key': openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description='Private RSA key used to decrypt the session key',
-                ),
-                'preserve_key': openapi.Schema(
-                    type=openapi.TYPE_BOOLEAN,
-                    description='Preserve existing session key',
-                    default=False,
-                ),
-            },
-        ),
-    )
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
     def create(self, request):
 
         # Read private key
@@ -235,33 +218,6 @@ class GenerateRSAKeyPairViewSet(ViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                name='key_size',
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                description='Number of bits in the key',
-                default=public_key_size,
-            ),
-        ],
-        responses={
-            200: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                required=['public_key', 'private_key'],
-                properties={
-                    'public_key': openapi.Schema(
-                        type=openapi.TYPE_STRING,
-                        description='Public RSA key',
-                    ),
-                    'private_key': openapi.Schema(
-                        type=openapi.TYPE_STRING,
-                        description='Private RSA key',
-                    ),
-                },
-            ),
-        },
-    )
     def list(self, request):
 
         # Determine what size key to generate
