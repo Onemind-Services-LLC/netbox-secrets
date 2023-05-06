@@ -6,6 +6,9 @@
 
 **Closed issues:**
 
+
+- \[Bug\]: Dont work after update netbox to 3.5.0 [\#53](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/53)
+- \[Bug\]: Unable to generate session key via API [\#47](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/47)
 - \[Bug\]: Migration \(from netbox-secretstore\) fails [\#44](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/44)
 
 ## [v1.7.6](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.6) (2023-04-12)

@@ -35,7 +35,7 @@ jobs:
           add: "CHANGELOG.md"
           message: "[skip ci] Updated CHANGELOG.md"
           new_branch: dev
-          push: origin dev --set-upstream --force
+          push: origin dev --set-upstream
           committer_name: GitHub Actions
           committer_email: actions@github.com
           default_author: github_actions
