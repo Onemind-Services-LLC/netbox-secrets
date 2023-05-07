@@ -16,7 +16,8 @@ from utilities.forms.fields import (
     ContentTypeMultipleChoiceField,
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
-    SlugField
+    SlugField,
+TagFilterField
 )
 
 
@@ -139,18 +140,20 @@ class SecretForm(NetBoxModelForm):
 
 class SecretFilterForm(NetBoxModelFilterSetForm):
     model = Secret
-    q = forms.CharField(required=False, label=_('Search'))
-    id = DynamicModelMultipleChoiceField(
-        queryset=Secret.objects.all(),
-        required=False,
-        label='Name'
+
+    fieldsets = (
+        (None, ('q', 'filter_id', 'tag')),
+        ('Attributes', ('role_id', 'assigned_object_type_id')),
     )
+
+    q = forms.CharField(required=False, label=_('Search'))
     assigned_object_type_id = ContentTypeMultipleChoiceField(
         queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
         required=False,
         label='Object type(s)',
     )
     role_id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Role'))
+    tag = TagFilterField(model)
 
 
 #
