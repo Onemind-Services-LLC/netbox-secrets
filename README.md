@@ -46,7 +46,7 @@ The following options are available in the configuration file:
   - __Type__: `String`
   - __Description__: Where to display the secret on the detail page of the defined apps
   - __Default__: `left_page`
-  - __Options__: `left_page`, `right_page`, `full_width_page`
+  - __Options__: `left_page`, `right_page`, `full_width_page`, `tab_view`
 - `display_setting`
   - __Type__: `Dict`
   - __Description__: Set display setting for concrete model
