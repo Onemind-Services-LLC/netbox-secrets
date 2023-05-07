@@ -19,6 +19,7 @@ and stability.
 |----------------|----------------|
 | 3.3.x          | 1.4.x, 1.5.x   |
 | 3.4.x          | 1.6.x, 1.7.x   |
+| 3.5.x          | 1.8.x          |
 
 # Installation
 
@@ -61,6 +62,20 @@ The following options are available in the configuration file:
   - __Description__: Size of the public key
   - __Default__: `2048`
   - __Options__: `2048`, `4096`, `8192`
+
+## Extra Configuration
+
+The following options are inherited from NetBox to configure the cookies:
+
+- `SESSION_COOKIE_SECURE`
+  - __Type__: `Boolean`
+  - __Description__: [Session Cookie Secure](https://docs.netbox.dev/en/stable/configuration/security/#session_cookie_secure)
+- `LOGIN_TIMEOUT`
+  - __Type__: `Integer`
+  - __Description__: [Login Timeout](https://docs.netbox.dev/en/stable/configuration/security/#login_timeout)
+
+__Note: These options should be set in the NetBox configuration file.__
+
 
 ## Screenshots
 

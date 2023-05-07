@@ -21,14 +21,14 @@ body:
     attributes:
       label: NetBox Secrets plugin version
       description: What version of the NetBox Secrets plugin are you currently running?
-      placeholder: v1.5.0
+      placeholder: v1.8.0
     validations:
       required: true
   - type: input
     attributes:
       label: NetBox version
       description: What version of NetBox are you currently running?
-      placeholder: v3.3.10
+      placeholder: v3.5.1
     validations:
       required: true
   - type: textarea
