@@ -7,6 +7,7 @@
 **Closed issues:**
 
 - \[Bug\]: Dont work after update netbox to 3.5.0 [\#53](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/53)
+- \[Bug\]: Unable to search secrets by name or assigned device \(UI  and API\) [\#49](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/49)
 - \[Bug\]: Unable to generate session key via API [\#47](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/47)
 - \[Bug\]: Migration \(from netbox-secretstore\) fails [\#44](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/44)
 
