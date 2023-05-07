@@ -1,21 +1,8 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
-from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import gettext as _
-from netbox.forms import (
-    NetBoxModelBulkEditForm,
-    NetBoxModelFilterSetForm,
-    NetBoxModelForm,
-    NetBoxModelImportForm,
-)
-from utilities.forms.fields import (
-    ContentTypeMultipleChoiceField,
-    DynamicModelChoiceField,
-    DynamicModelMultipleChoiceField,
-    SlugField,
-    TagFilterField,
-)
+from netbox.forms import NetBoxModelForm
+from utilities.forms.fields import DynamicModelChoiceField, SlugField
 
 from ..constants import *
 from ..models import Secret, SecretRole, UserKey
@@ -45,46 +32,12 @@ def validate_rsa_key(key, is_secret=True):
         raise forms.ValidationError("Error validating RSA key. Please ensure that your key supports PKCS#1 OAEP.")
 
 
-#
-# Secret roles
-#
-
-
 class SecretRoleForm(NetBoxModelForm):
     slug = SlugField()
 
     class Meta:
         model = SecretRole
         fields = ('name', 'slug', 'description')
-
-
-class SecretRoleImportForm(NetBoxModelImportForm):
-    slug = SlugField()
-
-    class Meta:
-        model = SecretRole
-        fields = ('name', 'slug')
-
-
-class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
-    pk = forms.ModelMultipleChoiceField(queryset=SecretRole.objects.all(), widget=forms.MultipleHiddenInput)
-    description = forms.CharField(max_length=200, required=False)
-
-    model = SecretRole
-
-    class Meta:
-        nullable_fields = ['description']
-
-
-class SecretRoleFilterForm(NetBoxModelFilterSetForm):
-    model = SecretRole
-    q = forms.CharField(required=False, label=_('Search'))
-    name = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False)
-
-
-#
-# Secrets
-#
 
 
 class SecretForm(NetBoxModelForm):
@@ -136,29 +89,6 @@ class SecretForm(NetBoxModelForm):
             raise forms.ValidationError(
                 {'plaintext2': "The two given plaintext values do not match. Please check your input."},
             )
-
-
-class SecretFilterForm(NetBoxModelFilterSetForm):
-    model = Secret
-
-    fieldsets = (
-        (None, ('q', 'filter_id', 'tag')),
-        ('Attributes', ('role_id', 'assigned_object_type_id')),
-    )
-
-    q = forms.CharField(required=False, label=_('Search'))
-    assigned_object_type_id = ContentTypeMultipleChoiceField(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
-        required=False,
-        label='Object type(s)',
-    )
-    role_id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Role'))
-    tag = TagFilterField(model)
-
-
-#
-# UserKeys
-#
 
 
 class UserKeyForm(forms.ModelForm):
