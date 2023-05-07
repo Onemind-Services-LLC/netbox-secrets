@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
     "@types/cookie": "^0.5.1",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "eslint": "^8.40.0",
     "eslint-config-prettier": "^8.8.0",
