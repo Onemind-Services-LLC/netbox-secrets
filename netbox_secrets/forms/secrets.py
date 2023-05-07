@@ -3,9 +3,6 @@ from Crypto.PublicKey import RSA
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
-from netbox_secrets.constants import *
-from netbox_secrets.models import Secret, SecretRole, UserKey
-
 from netbox.forms import (
     NetBoxModelBulkEditForm,
     NetBoxModelFilterSetForm,
@@ -17,8 +14,11 @@ from utilities.forms.fields import (
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
     SlugField,
-TagFilterField
+    TagFilterField,
 )
+
+from ..constants import *
+from ..models import Secret, SecretRole, UserKey
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -169,7 +169,8 @@ class UserKeyForm(forms.ModelForm):
             },
         ),
         label='Public Key (PEM format)',
-        help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.',
+        help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please '
+        'note that passphrase-protected keys are not supported.',
     )
 
     class Meta:

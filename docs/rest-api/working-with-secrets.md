@@ -6,11 +6,11 @@ steps are needed to encrypt or decrypt secret data.
 ## Generating a Session Key
 
 In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
-send an authenticated request to the `/api/plugins/secrets/get-session-key/` endpoint with the private RSA key which
+send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
 matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
 
 ```no-highlight
-$ curl -X POST http://netbox/api/plugins/secrets/get-session-key/ \
+$ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 --data-urlencode "private_key@<filename>"

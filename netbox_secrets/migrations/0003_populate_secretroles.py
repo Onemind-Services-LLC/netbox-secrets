@@ -23,7 +23,6 @@ def populate_secretroles(apps, schema_editor):
 
     # Queue SecretRoles to be created
     roles_to_create = []
-    role_count = roles.count()
     for i, role in enumerate(roles, start=1):
         roles_to_create.append(
             SecretRole(

@@ -3,18 +3,18 @@ import base64
 from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
+from drf_spectacular import utils as drf_utils
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet
+from rest_framework import mixins as drf_mixins
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
-
-from netbox.api.viewsets import NetBoxModelViewSet
-from netbox_secrets import filtersets
-from netbox_secrets.exceptions import InvalidKey
-from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from utilities.utils import count_related
+
+from .. import exceptions, filtersets, models
 from . import serializers
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -39,11 +39,11 @@ class SecretsRootView(APIRootView):
 # User Key
 #
 class UserKeyViewSet(ModelViewSet):
-    queryset = UserKey.objects.all()
+    queryset = models.UserKey.objects.all()
     serializer_class = serializers.UserKeySerializer
 
     def get_queryset(self):
-        return UserKey.objects.filter(user=self.request.user)
+        return models.UserKey.objects.filter(user=self.request.user)
 
 
 #
@@ -52,7 +52,9 @@ class UserKeyViewSet(ModelViewSet):
 
 
 class SecretRoleViewSet(NetBoxModelViewSet):
-    queryset = SecretRole.objects.annotate(secret_count=count_related(Secret, 'role')).prefetch_related('tags')
+    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
+        'tags',
+    )
     serializer_class = serializers.SecretRoleSerializer
     filterset_class = filtersets.SecretRoleFilterSet
 
@@ -63,7 +65,7 @@ class SecretRoleViewSet(NetBoxModelViewSet):
 
 
 class SecretViewSet(NetBoxModelViewSet):
-    queryset = Secret.objects.prefetch_related('role', 'tags')
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
     serializer_class = serializers.SecretSerializer
     filterset_class = filtersets.SecretFilterSet
 
@@ -99,9 +101,9 @@ class SecretViewSet(NetBoxModelViewSet):
             # Attempt to retrieve the master key for encryption/decryption if a session key has been provided.
             if session_key is not None:
                 try:
-                    sk = SessionKey.objects.get(userkey__user=request.user)
+                    sk = models.SessionKey.objects.get(userkey__user=request.user)
                     self.master_key = sk.get_master_key(session_key)
-                except (SessionKey.DoesNotExist, InvalidKey):
+                except (models.SessionKey.DoesNotExist, exceptions.InvalidKey):
                     raise ValidationError("Invalid session key.")
 
     def retrieve(self, request, *args, **kwargs):
@@ -138,30 +140,71 @@ class SecretViewSet(NetBoxModelViewSet):
         return Response(serializer.data)
 
 
-class GetSessionKeyViewSet(ViewSet):
-    """
-    Retrieve a temporary session key to use for encrypting and decrypting secrets via the API. The user's private RSA
-    key is POSTed with the name `private_key`.
-
-    This endpoint accepts one optional parameter: `preserve_key`. If True and a session key exists, the existing session
-    key will be returned instead of a new one.
-    """
-
-    permission_classes = [IsAuthenticated]
-
+#
+# Session Keys
+#
+class SessionKeyViewSet(
+    drf_mixins.ListModelMixin,
+    drf_mixins.RetrieveModelMixin,
+    drf_mixins.DestroyModelMixin,
+    BaseViewSet,
+):
+    queryset = models.SessionKey.objects.prefetch_related('userkey__user')
+    serializer_class = serializers.SessionKeySerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
-    def create(self, request):
+    def get_queryset(self):
+        return models.SessionKey.objects.filter(userkey__user=self.request.user)
 
-        # Read private key
+    @drf_utils.extend_schema(
+        request=serializers.SessionKeyCreateSerializer,
+        responses={
+            201: drf_utils.OpenApiResponse(
+                description="Session key created successfully.",
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'session_key': 'string',
+                    },
+                },
+                examples=[
+                    drf_utils.OpenApiExample(
+                        name='Session key created successfully',
+                        value={
+                            'session_key': 'Zm9vYmFy',
+                        },
+                    ),
+                ],
+            ),
+            400: drf_utils.OpenApiResponse(
+                description="Session key creation failed.",
+                response={
+                    'type': 'string',
+                },
+                examples=[
+                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
+                    drf_utils.OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
+                    drf_utils.OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
+                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
+                ],
+            ),
+        },
+    )
+    def create(self, request):
+        """
+        Creates a new session key for the current user.
+        """
+
         private_key = request.data.get('private_key', None)
+        preserve_key = str(request.data.get('preserve_key', False)).lower() in ['true', 'yes', '1']
+
         if private_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_MISSING)
 
         # Validate user key
         try:
-            user_key = UserKey.objects.get(user=request.user)
-        except UserKey.DoesNotExist:
+            user_key = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
         if not user_key.is_active():
             return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
@@ -171,12 +214,9 @@ class GetSessionKeyViewSet(ViewSet):
         if master_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
 
-        try:
-            current_session_key = SessionKey.objects.get(userkey__user_id=request.user.pk)
-        except SessionKey.DoesNotExist:
-            current_session_key = None
+        current_session_key = self.queryset.first()
 
-        if current_session_key and request.data.get('preserve_key', False):
+        if current_session_key and preserve_key:
 
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
@@ -184,8 +224,8 @@ class GetSessionKeyViewSet(ViewSet):
         else:
 
             # Create a new SessionKey
-            SessionKey.objects.filter(userkey__user=request.user).delete()
-            sk = SessionKey(userkey=user_key)
+            self.queryset.delete()
+            sk = models.SessionKey(userkey=user_key)
             sk.save(master_key=master_key)
             key = sk.key
 
@@ -216,7 +256,12 @@ class GenerateRSAKeyPairViewSet(ViewSet):
         }
     """
 
+    serializer_class = serializers.RSAKeyPairSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # This is only used to generate the schema
+        return models.UserKey.objects.filter(user=self.request.user)
 
     def list(self, request):
 

@@ -11,6 +11,8 @@ from os.path import abspath, dirname
 # Based on https://github.com/netbox-community/netbox/blob/master/netbox/netbox/configuration.example.py
 
 # Read secret from file
+
+
 def _read_secret(secret_name, default=None):
     try:
         f = open('/run/secrets/' + secret_name, encoding='utf-8')

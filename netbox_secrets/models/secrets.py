@@ -12,18 +12,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-
-from netbox.models import NetBoxModel
+from netbox.models import PrimaryModel
 from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
-from netbox_secrets.exceptions import InvalidKey
-from netbox_secrets.hashers import SecretValidationHasher
-from netbox_secrets.querysets import UserKeyQuerySet
-from netbox_secrets.utils import (
-    decrypt_master_key,
-    encrypt_master_key,
-    generate_random_key,
-)
 from utilities.querysets import RestrictedQuerySet
+
+from ..exceptions import InvalidKey
+from ..hashers import SecretValidationHasher
+from ..querysets import UserKeyQuerySet
+from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
 
 __all__ = [
     'Secret',
@@ -223,7 +219,7 @@ class SessionKey(models.Model):
         return session_key
 
 
-class SecretRole(NetBoxModel):
+class SecretRole(PrimaryModel):
     """
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
     such as "Login Credentials" or "SNMP Communities."
@@ -255,7 +251,7 @@ class SecretRole(NetBoxModel):
         )
 
 
-class Secret(NetBoxModel):
+class Secret(PrimaryModel):
     """
     A Secret stores an AES256-encrypted copy of sensitive data, such as passwords or secret keys. An irreversible
     SHA-256 hash is stored along with the ciphertext for validation upon decryption. Each Secret is assigned to exactly
@@ -273,12 +269,7 @@ class Secret(NetBoxModel):
     )
     assigned_object_id = models.PositiveIntegerField()
     # Internal field for searching the assinged object
-    _object_repr = models.CharField(
-        max_length=200,
-        editable=False,
-        blank=True,
-        null=True
-    )
+    _object_repr = models.CharField(max_length=200, editable=False, blank=True, null=True)
     assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
     role = models.ForeignKey(to='SecretRole', on_delete=models.PROTECT, related_name='secrets')
     name = models.CharField(max_length=100, blank=True)
@@ -357,7 +348,7 @@ class Secret(NetBoxModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2: plaintext_length + 2].decode('utf8')
+        return s[2 : plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """
