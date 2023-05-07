@@ -269,6 +269,13 @@ class SecretDeleteView(generic.ObjectDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
+class SecretBulkEditView(generic.BulkEditView):
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    filterset = filtersets.SecretFilterSet
+    table = tables.SecretTable
+    form = forms.SecretBulkEditForm
+
+
 class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet

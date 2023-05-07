@@ -27,12 +27,17 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = SecretRole
-        fields = ['id', 'name', 'slug']
+        fields = ['id', 'name', 'slug', 'description', 'comments']
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        return queryset.filter(Q(name__icontains=value) | Q(slug__icontains=value))
+        return queryset.filter(
+            Q(name__icontains=value)
+            | Q(slug__icontains=value)
+            | Q(description__icontains=value)
+            | Q(comments__icontains=value),
+        )
 
 
 if plugin_settings.get('enable_contacts', False):
@@ -78,13 +83,20 @@ if plugin_settings.get('enable_contacts', False):
                 'role',
                 'name',
                 'contact',
+                'description',
+                'comments',
                 '_object_repr',
             ]
 
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(Q(name__icontains=value) | Q(_object_repr__icontains=value))
+            return queryset.filter(
+                Q(name__icontains=value)
+                | Q(_object_repr__icontains=value)
+                | Q(description__icontains=value)
+                | Q(comments__icontains=value),
+            )
 
 else:
 
@@ -115,9 +127,24 @@ else:
 
         class Meta:
             model = Secret
-            fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name', '_object_repr']
+            fields = [
+                'id',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
+                '_object_repr',
+                'description',
+                'comments',
+            ]
 
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(Q(name__icontains=value) | Q(_object_repr__icontains=value))
+            return queryset.filter(
+                Q(name__icontains=value)
+                | Q(_object_repr__icontains=value)
+                | Q(description__icontains=value)
+                | Q(comments__icontains=value),
+            )

@@ -3,6 +3,10 @@ from utilities.forms.fields import SlugField
 
 from ..models import SecretRole
 
+__all__ = [
+    'SecretRoleImportForm',
+]
+
 
 class SecretRoleImportForm(NetBoxModelImportForm):
     slug = SlugField()

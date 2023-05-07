@@ -11,6 +11,11 @@ from utilities.forms.fields import (
 from ..constants import *
 from ..models import Secret, SecretRole
 
+__all__ = [
+    'SecretRoleFilterForm',
+    'SecretFilterForm',
+]
+
 
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole

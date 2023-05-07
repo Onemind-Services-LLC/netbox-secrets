@@ -227,12 +227,8 @@ class SecretRole(PrimaryModel):
 
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
-    description = models.CharField(
-        max_length=200,
-        blank=True,
-    )
 
-    csv_headers = ['name', 'slug', 'description']
+    clone_fields = ['tags']
 
     class Meta:
         ordering = ['name']
@@ -242,13 +238,6 @@ class SecretRole(PrimaryModel):
 
     def get_absolute_url(self):
         return reverse('plugins:netbox_secrets:secretrole', args=[self.pk])
-
-    def to_csv(self):
-        return (
-            self.name,
-            self.slug,
-            self.description,
-        )
 
 
 class Secret(PrimaryModel):

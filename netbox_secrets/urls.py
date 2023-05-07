@@ -15,6 +15,7 @@ urlpatterns = [
     path('secrets/', views.SecretListView.as_view(), name='secret_list'),
     path('secrets/add/', views.SecretEditView.as_view(), name='secret_add'),
     path('secrets/delete/', views.SecretBulkDeleteView.as_view(), name='secret_bulk_delete'),
+    path('secrets/edit/', views.SecretBulkEditView.as_view(), name='secret_bulk_edit'),
     path('secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'secret'))),
     # User
     path('user-key/', views.UserKeyView.as_view(), name='userkey'),
