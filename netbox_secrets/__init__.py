@@ -24,5 +24,26 @@ class NetBoxSecrets(PluginConfig):
         'public_key_size': 2048,
     }
 
+    def ready(self):
+        super().ready()
+
+        # Configure generic relations for secrets
+        from django.contrib.contenttypes.fields import GenericRelation
+        from django.contrib.contenttypes.models import ContentType
+
+        from .constants import SECRET_ASSIGNABLE_MODELS
+        from .models import Secret
+
+        for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
+            GenericRelation(
+                to=Secret,
+                content_type_field='assigned_object_type',
+                object_id_field='assigned_object_id',
+                related_query_name=content_type.model,
+            ).contribute_to_class(
+                content_type.model_class(),
+                'secrets',
+            )
+
 
 config = NetBoxSecrets
