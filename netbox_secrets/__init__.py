@@ -1,5 +1,6 @@
 from importlib.metadata import metadata
 
+from django.db.utils import ProgrammingError
 from extras.plugins import PluginConfig
 
 metadata = metadata('netbox_secrets')
@@ -34,16 +35,19 @@ class NetBoxSecrets(PluginConfig):
         from .constants import SECRET_ASSIGNABLE_MODELS
         from .models import Secret
 
-        for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
-            GenericRelation(
-                to=Secret,
-                content_type_field='assigned_object_type',
-                object_id_field='assigned_object_id',
-                related_query_name=content_type.model,
-            ).contribute_to_class(
-                content_type.model_class(),
-                'secrets',
-            )
+        try:
+            for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
+                GenericRelation(
+                    to=Secret,
+                    content_type_field='assigned_object_type',
+                    object_id_field='assigned_object_id',
+                    related_query_name=content_type.model,
+                ).contribute_to_class(
+                    content_type.model_class(),
+                    'secrets',
+                )
+        except ProgrammingError:
+            pass
 
 
 config = NetBoxSecrets

@@ -271,7 +271,10 @@ class Secret(PrimaryModel):
     objects = RestrictedQuerySet.as_manager()
 
     plaintext = None
-    csv_headers = ['assigned_object_type', 'assigned_object_id', 'role', 'name', 'plaintext']
+
+    clone_fields = ('role', 'assigned_object_id', 'assigned_object_type', 'tags')
+
+    prerequisite_models = ('netbox_secrets.SecretRole', *plugin_settings.get('apps'))
 
     class Meta:
         ordering = ('role', 'name', 'pk')
@@ -287,23 +290,10 @@ class Secret(PrimaryModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_secrets:secret', args=[self.pk])
 
-    @classmethod
-    def get_prerequisite_models(cls):
-        return [SecretRole]
-
     def save(self, *args, **kwargs):
         self._object_repr = str(self.assigned_object)
 
         return super().save(*args, **kwargs)
-
-    def to_csv(self):
-        return (
-            f'{self.assigned_object_type.app_label}.{self.assigned_object_type.model}',
-            self.assigned_object_id,
-            self.role,
-            self.name,
-            self.plaintext or '',
-        )
 
     def _pad(self, s):
         """
