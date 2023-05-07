@@ -223,11 +223,11 @@ function initSecretsEdit() {
   const privateKeyModal = new window.Modal('#privkey_modal');
 
   /**
-   * Check the cookie store for a `session_key`. If not present, prompt the user to submit their
+   * Check the cookie store for a `netbox_secrets_sessionid`. If not present, prompt the user to submit their
    * private key.
    */
   function handleSubmit(event: Event): void {
-    if (document.cookie.indexOf('session_key') === -1) {
+    if (document.cookie.indexOf('netbox_secrets_sessionid') === -1) {
       event.preventDefault();
       privateKeyModal.show();
     }

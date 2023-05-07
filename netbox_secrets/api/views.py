@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from rest_framework import mixins as drf_mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -14,8 +14,7 @@ from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from utilities.utils import count_related
 
-
-from .. import exceptions, filtersets, models
+from .. import constants, exceptions, filtersets, models
 from . import serializers
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -88,8 +87,8 @@ class SecretViewSet(NetBoxModelViewSet):
 
             # Read session key from HTTP cookie or header if it has been provided. The session key must be provided in
             # order to encrypt/decrypt secrets.
-            if 'session_key' in request.COOKIES:
-                session_key = base64.b64decode(request.COOKIES['session_key'])
+            if constants.SESSION_COOKIE_NAME in request.COOKIES:
+                session_key = base64.b64decode(request.COOKIES[constants.SESSION_COOKIE_NAME])
             elif 'HTTP_X_SESSION_KEY' in request.META:
                 session_key = base64.b64decode(request.META['HTTP_X_SESSION_KEY'])
             else:
@@ -148,11 +147,12 @@ class SessionKeyViewSet(
     drf_mixins.ListModelMixin,
     drf_mixins.RetrieveModelMixin,
     drf_mixins.DestroyModelMixin,
+    mixins.BriefModeMixin,
+    mixins.BulkDestroyModelMixin,
     BaseViewSet,
 ):
     queryset = models.SessionKey.objects.prefetch_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
-    parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def get_queryset(self):
         return models.SessionKey.objects.filter(userkey__user=self.request.user)
@@ -238,12 +238,13 @@ class SessionKeyViewSet(
             {
                 'session_key': encoded_key,
             },
+            status=200 if preserve_key else 201,
         )
 
         # If token authentication is not in use, assign the session key as a cookie
         if request.auth is None:
             response.set_cookie(
-                'session_key',
+                constants.SESSION_COOKIE_NAME,
                 value=encoded_key,
                 httponly=True,
                 secure=settings.SESSION_COOKIE_SECURE,
@@ -294,3 +295,71 @@ class GenerateRSAKeyPairViewSet(ViewSet):
                 'public_key': public_key,
             },
         )
+
+
+class GetSessionKeyViewSet(ViewSet):
+    """
+    Retrieve a temporary session key to use for encrypting and decrypting secrets via the API. The user's private RSA
+    key is POSTed with the name `private_key`.
+    This endpoint accepts one optional parameter: `preserve_key`. If True and a session key exists, the existing session
+    key will be returned instead of a new one.
+
+    Deprecation notice: This endpoint is deprecated and will be removed in a future release. Use the `SessionKeyViewSet`.
+    """
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def create(self, request):
+
+        # Read private key
+        private_key = request.data.get('private_key', None)
+        if private_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_MISSING)
+
+        # Validate user key
+        try:
+            user_key = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
+            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+        if not user_key.is_active():
+            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+
+        # Validate private key
+        master_key = user_key.get_master_key(private_key)
+        if master_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+
+        try:
+            current_session_key = models.SessionKey.objects.get(userkey__user_id=request.user.pk)
+        except models.SessionKey.DoesNotExist:
+            current_session_key = None
+
+        if current_session_key and request.data.get('preserve_key', False):
+
+            # Retrieve the existing session key
+            key = current_session_key.get_session_key(master_key)
+
+        else:
+
+            # Create a new SessionKey
+            models.SessionKey.objects.filter(userkey__user=request.user).delete()
+            sk = models.SessionKey(userkey=user_key)
+            sk.save(master_key=master_key)
+            key = sk.key
+
+        # Encode the key using base64. (b64decode() returns a bytestring under Python 3.)
+        encoded_key = base64.b64encode(key).decode()
+
+        # Craft the response
+        response = Response(
+            {
+                'session_key': encoded_key,
+            },
+        )
+
+        # If token authentication is not in use, assign the session key as a cookie
+        if request.auth is None:
+            response.set_cookie('session_key', value=encoded_key)
+
+        return response

@@ -1,13 +1,14 @@
 import base64
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
+from users.models import ObjectPermission
 from utilities.testing import APITestCase, APIViewTestCases
 
-from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-
-from .constants import PRIVATE_KEY, PUBLIC_KEY
+from ..models import *
+from .constants import *
 
 
 class SecretsTestMixin:
@@ -147,6 +148,113 @@ class SecretTest(
         return instance
 
 
+class SessionKeyTest(
+    APIViewTestCases.GetObjectViewTestCase,
+    APIViewTestCases.ListObjectsViewTestCase,
+    APIViewTestCases.DeleteObjectViewTestCase,
+):
+    model = SessionKey
+    view_namespace = 'plugins-api:netbox_secrets'
+    brief_fields = ['display', 'id', 'url']
+    create_data = [
+        {'private_key': PRIVATE_KEY},
+        {'private_key': PRIVATE_KEY, 'preserve_key': True},
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+        userkey = UserKey(user=self.user, public_key=PUBLIC_KEY)
+        userkey.save()
+
+        master_key = userkey.get_master_key(PRIVATE_KEY)
+        self.session_key = SessionKey(userkey=userkey)
+        self.session_key.save(master_key)
+
+        self.header = {
+            'HTTP_AUTHORIZATION': f'Token {self.token.key}',
+        }
+
+    def test_create_session_key(self):
+        encoded_session_key = base64.b64encode(self.session_key.key).decode()
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(name='Test permission', actions=['add'])
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        initial_count = self._get_queryset().count()
+        response = self.client.post(self._get_list_url(), self.create_data[0], format='json', **self.header)
+
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+        self.assertEqual(self._get_queryset().count(), initial_count)
+
+        self.assertIsNotNone(response.data.get('session_key'))
+        self.assertNotEqual(response.data.get('session_key'), encoded_session_key)
+
+    def test_get_session_key_preserved(self):
+        encoded_session_key = base64.b64encode(self.session_key.key).decode()
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(name='Test permission', actions=['add'])
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        initial_count = self._get_queryset().count()
+        response = self.client.post(self._get_list_url(), self.create_data[1], format='json', **self.header)
+
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(self._get_queryset().count(), initial_count)
+
+        self.assertIsNotNone(response.data.get('session_key'))
+        self.assertEqual(response.data.get('session_key'), encoded_session_key)
+
+    def test_get_object(self):
+        instance = self._get_queryset().first()
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(name='Test permission', constraints={'pk': instance.pk}, actions=['view'])
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        # Try GET to permitted object
+        url = self._get_detail_url(instance)
+        self.assertHttpStatus(self.client.get(url, **self.header), status.HTTP_200_OK)
+
+    def test_list_objects(self):
+        instance = self._get_queryset().first()
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(name='Test permission', constraints={'pk__in': [instance.pk]}, actions=['view'])
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        # Try GET to permitted objects
+        response = self.client.get(self._get_list_url(), **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_bulk_delete_objects(self):
+        # Add object-level permission
+        obj_perm = ObjectPermission(name='Test permission', actions=['delete'])
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        # Target the three most recently created objects to avoid triggering recursive deletions
+        # (e.g. with MPTT objects)
+        id_list = list(self._get_queryset().order_by('-id').values_list('id', flat=True)[:3])
+        self.assertEqual(len(id_list), 1, "Insufficient number of objects to test bulk deletion")
+        data = [{"id": id} for id in id_list]
+
+        initial_count = self._get_queryset().count()
+        response = self.client.delete(self._get_list_url(), data, format='json', **self.header)
+        self.assertHttpStatus(response, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self._get_queryset().count(), initial_count - 1)
+
+
 class GetSessionKeyTest(APITestCase):
     def setUp(self):
         super().setUp()
@@ -164,7 +272,7 @@ class GetSessionKeyTest(APITestCase):
     def test_get_session_key(self):
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
-        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
         data = {
             'private_key': PRIVATE_KEY,
         }
@@ -177,7 +285,7 @@ class GetSessionKeyTest(APITestCase):
     def test_get_session_key_preserved(self):
         encoded_session_key = base64.b64encode(self.session_key.key).decode()
 
-        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
         data = {
             'private_key': PRIVATE_KEY,
             'preserve_key': True,
