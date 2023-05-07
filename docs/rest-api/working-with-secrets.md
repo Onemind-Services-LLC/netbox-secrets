@@ -18,7 +18,17 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 
 ```json
 {
-    "session_key": "dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
+    "pk": 7,
+    "id": 7,
+    "url": "http://172.16.14.63:8000/api/plugins/secrets/session-keys/7/",
+    "display": "admin (RSA)",
+    "userkey": {
+        "id": 1,
+        "url": "http://172.16.14.63:8000/api/plugins/secrets/user-keys/1/",
+        "display": "admin"
+    },
+    "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A=",
+    "created": "2023-05-07T20:29:38.089884Z"
 }
 ```
 
