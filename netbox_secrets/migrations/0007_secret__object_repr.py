@@ -26,5 +26,5 @@ class Migration(migrations.Migration):
             name='_object_repr',
             field=models.CharField(blank=True, editable=False, max_length=200, null=True),
         ),
-        migrations.RunPython(copy_assigned_object)
+        migrations.RunPython(copy_assigned_object),
     ]

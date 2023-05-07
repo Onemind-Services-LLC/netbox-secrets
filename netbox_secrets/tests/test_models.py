@@ -80,7 +80,7 @@ class UserKeyTestCase(TestCase):
         secret_key = generate_random_key()
         secret_key_cipher = encrypt_master_key(secret_key, self.TEST_KEYS['alice_public'])
         try:
-            decrypted_secret_key = decrypt_master_key(secret_key_cipher, self.TEST_KEYS['bob_private'])
+            decrypt_master_key(secret_key_cipher, self.TEST_KEYS['bob_private'])
             self.fail("Decrypting secret key from Alice's UserKey using Bob's private key did not fail")
         except ValueError:
             pass

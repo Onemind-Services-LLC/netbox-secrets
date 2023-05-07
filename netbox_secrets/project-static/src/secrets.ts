@@ -169,7 +169,7 @@ function initLockUnlock() {
  * @param privateKey RSA Private Key (valid JSON string)
  */
 function requestSessionKey(privateKey: string) {
-  apiPostForm('/api/plugins/secrets/get-session-key/', {
+  apiPostForm('/api/plugins/secrets/session-keys/', {
     private_key: privateKey,
     preserve: true,
   }).then(res => {

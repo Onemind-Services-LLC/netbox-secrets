@@ -1,9 +1,9 @@
-from django.test import TestCase
-
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
+from django.test import TestCase
+from virtualization.models import Cluster, ClusterType, VirtualMachine
+
 from netbox_secrets.filtersets import *
 from netbox_secrets.models import Secret, SecretRole
-from virtualization.models import Cluster, ClusterType, VirtualMachine
 
 
 class SecretRoleTestCase(TestCase):

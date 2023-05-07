@@ -3,10 +3,10 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.translation import gettext as _
-
 from netbox.filtersets import NetBoxModelFilterSet
 from tenancy.models import Contact
 from utilities.filters import MultiValueCharFilter
+
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
@@ -43,9 +43,7 @@ if plugin_settings.get('enable_contacts', False):
             label='Search',
         )
 
-        name = MultiValueCharFilter(
-            lookup_expr='iexact'
-        )
+        name = MultiValueCharFilter(lookup_expr='iexact')
 
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
@@ -72,16 +70,21 @@ if plugin_settings.get('enable_contacts', False):
 
         class Meta:
             model = Secret
-            fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name', 'contact',
-                      '_object_repr']
+            fields = [
+                'id',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
+                'contact',
+                '_object_repr',
+            ]
 
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(
-                Q(name__icontains=value) |
-                Q(_object_repr__icontains=value)
-            )
+            return queryset.filter(Q(name__icontains=value) | Q(_object_repr__icontains=value))
 
 else:
 
@@ -91,9 +94,7 @@ else:
             label='Search',
         )
 
-        name = MultiValueCharFilter(
-            lookup_expr='iexact'
-        )
+        name = MultiValueCharFilter(lookup_expr='iexact')
 
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
@@ -119,7 +120,4 @@ else:
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(
-                Q(name__icontains=value) |
-                Q(_object_repr__icontains=value)
-            )
+            return queryset.filter(Q(name__icontains=value) | Q(_object_repr__icontains=value))
