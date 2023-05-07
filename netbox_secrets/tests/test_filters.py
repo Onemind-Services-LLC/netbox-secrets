@@ -85,7 +85,7 @@ class SecretTestCase(TestCase):
 
     def test_name(self):
         name = Secret.objects.all()
-        params = {'name': [name[0].pk, name[1].pk, name[2].pk, name[3].pk, name[4].pk, name[5].pk]}
+        params = {'name': [name[0].name, name[1].name, name[2].name, name[3].name, name[4].name, name[5].name]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 6)
 
     def test_role(self):

@@ -12,18 +12,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-from netbox.models import NetBoxModel
+from netbox.models import PrimaryModel
 from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
 from utilities.querysets import RestrictedQuerySet
 
-from netbox_secrets.exceptions import InvalidKey
-from netbox_secrets.hashers import SecretValidationHasher
-from netbox_secrets.querysets import UserKeyQuerySet
-from netbox_secrets.utils import (
-    decrypt_master_key,
-    encrypt_master_key,
-    generate_random_key,
-)
+from ..exceptions import InvalidKey
+from ..hashers import SecretValidationHasher
+from ..querysets import UserKeyQuerySet
+from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
 
 __all__ = [
     'Secret',
@@ -223,7 +219,7 @@ class SessionKey(models.Model):
         return session_key
 
 
-class SecretRole(NetBoxModel):
+class SecretRole(PrimaryModel):
     """
     A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
     such as "Login Credentials" or "SNMP Communities."
@@ -231,12 +227,8 @@ class SecretRole(NetBoxModel):
 
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
-    description = models.CharField(
-        max_length=200,
-        blank=True,
-    )
 
-    csv_headers = ['name', 'slug', 'description']
+    clone_fields = ['tags']
 
     class Meta:
         ordering = ['name']
@@ -247,15 +239,8 @@ class SecretRole(NetBoxModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_secrets:secretrole', args=[self.pk])
 
-    def to_csv(self):
-        return (
-            self.name,
-            self.slug,
-            self.description,
-        )
 
-
-class Secret(NetBoxModel):
+class Secret(PrimaryModel):
     """
     A Secret stores an AES256-encrypted copy of sensitive data, such as passwords or secret keys. An irreversible
     SHA-256 hash is stored along with the ciphertext for validation upon decryption. Each Secret is assigned to exactly
@@ -272,6 +257,8 @@ class Secret(NetBoxModel):
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
+    # Internal field for searching the assinged object
+    _object_repr = models.CharField(max_length=200, editable=False, blank=True, null=True)
     assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
     role = models.ForeignKey(to='SecretRole', on_delete=models.PROTECT, related_name='secrets')
     name = models.CharField(max_length=100, blank=True)
@@ -284,7 +271,10 @@ class Secret(NetBoxModel):
     objects = RestrictedQuerySet.as_manager()
 
     plaintext = None
-    csv_headers = ['assigned_object_type', 'assigned_object_id', 'role', 'name', 'plaintext']
+
+    clone_fields = ('role', 'assigned_object_id', 'assigned_object_type', 'tags')
+
+    prerequisite_models = ('netbox_secrets.SecretRole', *plugin_settings.get('apps'))
 
     class Meta:
         ordering = ('role', 'name', 'pk')
@@ -300,18 +290,10 @@ class Secret(NetBoxModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_secrets:secret', args=[self.pk])
 
-    @classmethod
-    def get_prerequisite_models(cls):
-        return [SecretRole]
+    def save(self, *args, **kwargs):
+        self._object_repr = str(self.assigned_object)
 
-    def to_csv(self):
-        return (
-            f'{self.assigned_object_type.app_label}.{self.assigned_object_type.model}',
-            self.assigned_object_id,
-            self.role,
-            self.name,
-            self.plaintext or '',
-        )
+        return super().save(*args, **kwargs)
 
     def _pad(self, s):
         """

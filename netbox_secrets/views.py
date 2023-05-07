@@ -12,11 +12,11 @@ from django.views.generic.base import View
 from extras.signals import clear_webhooks
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
-from utilities.forms import ConfirmationForm, restrict_form_fields
+from utilities.forms import restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
 
-from . import exceptions, filtersets, forms, models, tables, utils
+from . import constants, exceptions, filtersets, forms, models, tables, utils
 
 #
 # Mixins
@@ -269,6 +269,13 @@ class SecretDeleteView(generic.ObjectDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
+class SecretBulkEditView(generic.BulkEditView):
+    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    filterset = filtersets.SecretFilterSet
+    table = tables.SecretTable
+    form = forms.SecretBulkEditForm
+
+
 class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
@@ -346,3 +353,9 @@ class SessionKeyDeleteView(generic.ObjectDeleteView):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(userkey__user=request.user)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        # Delete the cookie
+        response.delete_cookie(constants.SESSION_COOKIE_NAME)
+        return response

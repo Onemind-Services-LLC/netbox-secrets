@@ -15,7 +15,6 @@ def populate_userkeys(apps, schema_editor):
 
     # Queue UserKeys to be created
     userkeys_to_create = []
-    userkey_count = userkeys.count()
     for i, userkey in enumerate(userkeys, start=1):
         userkeys_to_create.append(
             UserKey(

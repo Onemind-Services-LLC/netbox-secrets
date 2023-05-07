@@ -13,3 +13,10 @@ for app_model in plugin_settings.get('apps'):
     SECRET_ASSIGNABLE_MODELS |= Q(app_label=app_label, model=model)
 
 SECRET_PLAINTEXT_MAX_LENGTH = 65535
+
+
+#
+# Session Keys
+#
+
+SESSION_COOKIE_NAME = 'netbox_secrets_sessionid'

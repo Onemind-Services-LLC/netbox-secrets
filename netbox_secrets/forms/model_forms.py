@@ -1,24 +1,18 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
-from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import gettext as _
-from netbox.forms import (
-    NetBoxModelBulkEditForm,
-    NetBoxModelFilterSetForm,
-    NetBoxModelForm,
-    NetBoxModelImportForm,
-)
-from utilities.forms import (
-    ContentTypeMultipleChoiceField,
-    DynamicModelChoiceField,
-    DynamicModelMultipleChoiceField,
-    SlugField,
-    SmallTextarea,
-)
+from netbox.forms import NetBoxModelForm
+from utilities.forms.fields import CommentField, DynamicModelChoiceField, SlugField
 
-from netbox_secrets.constants import *
-from netbox_secrets.models import Secret, SecretRole, UserKey
+from ..constants import *
+from ..models import Secret, SecretRole, UserKey
+
+__all__ = [
+    'ActivateUserKeyForm',
+    'SecretRoleForm',
+    'SecretForm',
+    'UserKeyForm',
+]
 
 
 def validate_rsa_key(key, is_secret=True):
@@ -45,46 +39,14 @@ def validate_rsa_key(key, is_secret=True):
         raise forms.ValidationError("Error validating RSA key. Please ensure that your key supports PKCS#1 OAEP.")
 
 
-#
-# Secret roles
-#
-
-
 class SecretRoleForm(NetBoxModelForm):
     slug = SlugField()
 
-    class Meta:
-        model = SecretRole
-        fields = ('name', 'slug', 'description')
-
-
-class SecretRoleImportForm(NetBoxModelImportForm):
-    slug = SlugField()
+    fieldsets = ((None, ('name', 'slug', 'description', 'tags')),)
 
     class Meta:
         model = SecretRole
-        fields = ('name', 'slug')
-
-
-class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
-    pk = forms.ModelMultipleChoiceField(queryset=SecretRole.objects.all(), widget=forms.MultipleHiddenInput)
-    description = forms.CharField(max_length=200, required=False)
-
-    model = SecretRole
-
-    class Meta:
-        nullable_fields = ['description']
-
-
-class SecretRoleFilterForm(NetBoxModelFilterSetForm):
-    model = SecretRole
-    q = forms.CharField(required=False, label=_('Search'))
-    name = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False)
-
-
-#
-# Secrets
-#
+        fields = ('name', 'slug', 'description', 'comments', 'tags')
 
 
 class SecretForm(NetBoxModelForm):
@@ -111,6 +73,13 @@ class SecretForm(NetBoxModelForm):
     )
     role = DynamicModelChoiceField(queryset=SecretRole.objects.all())
 
+    comments = CommentField()
+
+    fieldsets = (
+        (None, ('name', 'description', 'role', 'tags')),
+        ('Secret Data', ('plaintext', 'plaintext2')),
+    )
+
     class Meta:
         model = Secret
         fields = (
@@ -119,6 +88,8 @@ class SecretForm(NetBoxModelForm):
             'plaintext',
             'plaintext2',
             'tags',
+            'description',
+            'comments',
         )
 
     def __init__(self, *args, **kwargs):
@@ -138,31 +109,16 @@ class SecretForm(NetBoxModelForm):
             )
 
 
-class SecretFilterForm(NetBoxModelFilterSetForm):
-    model = Secret
-    q = forms.CharField(required=False, label=_('Search'))
-    assigned_object_type_id = ContentTypeMultipleChoiceField(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
-        required=False,
-        label='Object type(s)',
-    )
-    role_id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Role'))
-
-
-#
-# UserKeys
-#
-
-
 class UserKeyForm(forms.ModelForm):
     public_key = forms.CharField(
-        widget=SmallTextarea(
+        widget=forms.Textarea(
             attrs={
                 'class': 'form-control',
             },
         ),
         label='Public Key (PEM format)',
-        help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please note that passphrase-protected keys are not supported.',
+        help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please '
+        'note that passphrase-protected keys are not supported.',
     )
 
     class Meta:

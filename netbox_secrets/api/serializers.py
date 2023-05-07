@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from drf_yasg.utils import swagger_serializer_method
+from drf_spectacular.utils import extend_schema_field
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
@@ -7,8 +7,18 @@ from rest_framework import serializers
 from utilities.api import get_serializer_for_model
 
 from ..constants import SECRET_ASSIGNABLE_MODELS
-from ..models import Secret, SecretRole, UserKey
+from ..models import *
 from .nested_serializers import *
+
+__all__ = [
+    'SecretRoleSerializer',
+    'SecretSerializer',
+    'SessionKeySerializer',
+    'SessionKeyCreateSerializer',
+    'UserKeySerializer',
+    'RSAKeyPairSerializer',
+]
+
 
 #
 # User Key
@@ -16,6 +26,7 @@ from .nested_serializers import *
 
 
 class UserKeySerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:userkey-detail')
     public_key = serializers.CharField()
     private_key = serializers.CharField(
         write_only=True,
@@ -23,11 +34,16 @@ class UserKeySerializer(serializers.ModelSerializer):
 
     display = serializers.SerializerMethodField(read_only=True)
 
+    is_active = serializers.BooleanField(read_only=True)
+
+    is_filled = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = UserKey
         fields = [
             'pk',
             'id',
+            'url',
             'display',
             'public_key',
             'private_key',
@@ -37,8 +53,64 @@ class UserKeySerializer(serializers.ModelSerializer):
             'is_filled',
         ]
 
+    @extend_schema_field(serializers.CharField())
     def get_display(self, obj):
         return str(obj)
+
+
+#
+# Session Keys
+#
+
+
+class SessionKeySerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:sessionkey-detail')
+
+    display = serializers.SerializerMethodField(read_only=True)
+
+    userkey = NestedUserKeySerializer()
+
+    session_key = serializers.SerializerMethodField(
+        read_only=True,
+    )
+
+    class Meta:
+        model = SessionKey
+        fields = [
+            'pk',
+            'id',
+            'url',
+            'display',
+            'userkey',
+            'session_key',
+            'created',
+        ]
+
+    @extend_schema_field(serializers.CharField())
+    def get_display(self, obj):
+        return str(obj)
+
+    @extend_schema_field(serializers.CharField())
+    def get_session_key(self, obj):
+        return self.context.get('session_key', None)
+
+
+class SessionKeyCreateSerializer(serializers.ModelSerializer):
+    private_key = serializers.CharField(
+        write_only=True,
+    )
+
+    preserve_key = serializers.BooleanField(
+        default=False,
+        write_only=True,
+    )
+
+    class Meta:
+        model = SessionKey
+        fields = [
+            'private_key',
+            'preserve_key',
+        ]
 
 
 #
@@ -59,6 +131,7 @@ class SecretRoleSerializer(NetBoxModelSerializer):
             'name',
             'slug',
             'description',
+            'comments',
             'custom_fields',
             'created',
             'last_updated',
@@ -91,6 +164,8 @@ class SecretSerializer(NetBoxModelSerializer):
             'name',
             'plaintext',
             'hash',
+            'description',
+            'comments',
             'tags',
             'custom_fields',
             'created',
@@ -98,7 +173,7 @@ class SecretSerializer(NetBoxModelSerializer):
         ]
         validators = []
 
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
+    @extend_schema_field(serializers.DictField())
     def get_assigned_object(self, obj):
         serializer = get_serializer_for_model(obj.assigned_object, prefix=NESTED_SERIALIZER_PREFIX)
         context = {'request': self.context['request']}
@@ -115,3 +190,8 @@ class SecretSerializer(NetBoxModelSerializer):
         super().validate(data)
 
         return data
+
+
+class RSAKeyPairSerializer(serializers.Serializer):
+    public_key = serializers.CharField()
+    private_key = serializers.CharField()

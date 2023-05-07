@@ -5,10 +5,8 @@ from . import views
 router = NetBoxRouter()
 router.APIRootView = views.SecretsRootView
 
-# User Key
 router.register('user-keys', views.UserKeyViewSet)
-
-# Secrets
+router.register('session-keys', views.SessionKeyViewSet)
 router.register('secret-roles', views.SecretRoleViewSet)
 router.register('secrets', views.SecretViewSet)
 

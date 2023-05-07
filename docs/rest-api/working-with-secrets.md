@@ -6,11 +6,11 @@ steps are needed to encrypt or decrypt secret data.
 ## Generating a Session Key
 
 In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
-send an authenticated request to the `/api/plugins/secrets/get-session-key/` endpoint with the private RSA key which
+send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
 matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
 
 ```no-highlight
-$ curl -X POST http://netbox/api/plugins/secrets/get-session-key/ \
+$ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 --data-urlencode "private_key@<filename>"
@@ -18,7 +18,17 @@ $ curl -X POST http://netbox/api/plugins/secrets/get-session-key/ \
 
 ```json
 {
-    "session_key": "dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
+    "pk": 7,
+    "id": 7,
+    "url": "http://172.16.14.63:8000/api/plugins/secrets/session-keys/7/",
+    "display": "admin (RSA)",
+    "userkey": {
+        "id": 1,
+        "url": "http://172.16.14.63:8000/api/plugins/secrets/user-keys/1/",
+        "display": "admin"
+    },
+    "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A=",
+    "created": "2023-05-07T20:29:38.089884Z"
 }
 ```
 
@@ -143,6 +153,24 @@ $ curl http://netbox/api/plugins/secrets/secrets/secrets/?limit=3 \
 }
 ```
 
+To get a list of secrets from the assigned object
+
+```no-highlight
+$ curl http://netbox/api/plugins/secrets/secrets/secrets/?assigned_object_type=dcim.device&assigned_object_id=103 \
+-H "Authorization: Token $TOKEN" \
+-H "Accept: application/json; indent=4" \
+-H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk="
+```
+
+```json
+{
+    "count": 2,
+    "next": "http://netbox/api/plugins/secrets/secrets/secrets/?limit=3&offset=3",
+    "previous": null,
+    "results": [...]
+}
+```
+
 ## Creating and Updating Secrets
 
 Session keys are required when creating or modifying secrets. The secret's `plaintext` attribute is set to its
@@ -154,7 +182,7 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
 -H "X-Session-Key: dyEnxlc9lnGzaOAV1dV/xqYPV63njIbdZYOgnAlGPHk=" \
---data '{"device": 1827, "role": 1, "name": "backup", "plaintext": "Drowssap1"}'
+--data '{"assigned_object_id": 1827, "assigned_object_type": "dcim.device", "role": 1, "name": "backup", "plaintext": "Drowssap1"}'
 ```
 
 ```json

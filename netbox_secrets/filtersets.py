@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils.translation import gettext as _
 from netbox.filtersets import NetBoxModelFilterSet
 from tenancy.models import Contact
+from utilities.filters import MultiValueCharFilter
 
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
@@ -26,12 +27,17 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = SecretRole
-        fields = ['id', 'name', 'slug']
+        fields = ['id', 'name', 'slug', 'description', 'comments']
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        return queryset.filter(Q(name__icontains=value) | Q(slug__icontains=value))
+        return queryset.filter(
+            Q(name__icontains=value)
+            | Q(slug__icontains=value)
+            | Q(description__icontains=value)
+            | Q(comments__icontains=value),
+        )
 
 
 if plugin_settings.get('enable_contacts', False):
@@ -42,11 +48,7 @@ if plugin_settings.get('enable_contacts', False):
             label='Search',
         )
 
-        name = django_filters.ModelMultipleChoiceFilter(
-            queryset=Secret.objects.all(),
-            field_name='name',
-            label='Name',
-        )
+        name = MultiValueCharFilter(lookup_expr='iexact')
 
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
@@ -73,12 +75,28 @@ if plugin_settings.get('enable_contacts', False):
 
         class Meta:
             model = Secret
-            fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name', 'contact']
+            fields = [
+                'id',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
+                'contact',
+                'description',
+                'comments',
+                '_object_repr',
+            ]
 
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(Q(name__icontains=value))
+            return queryset.filter(
+                Q(name__icontains=value)
+                | Q(_object_repr__icontains=value)
+                | Q(description__icontains=value)
+                | Q(comments__icontains=value),
+            )
 
 else:
 
@@ -88,11 +106,7 @@ else:
             label='Search',
         )
 
-        name = django_filters.ModelMultipleChoiceFilter(
-            queryset=Secret.objects.all(),
-            field_name='name',
-            label='Name',
-        )
+        name = MultiValueCharFilter(lookup_expr='iexact')
 
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
@@ -113,9 +127,24 @@ else:
 
         class Meta:
             model = Secret
-            fields = ['id', 'assigned_object_type_id', 'assigned_object_id', 'role_id', 'role', 'name']
+            fields = [
+                'id',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
+                '_object_repr',
+                'description',
+                'comments',
+            ]
 
         def search(self, queryset, name, value):
             if not value.strip():
                 return queryset
-            return queryset.filter(Q(name__icontains=value))
+            return queryset.filter(
+                Q(name__icontains=value)
+                | Q(_object_repr__icontains=value)
+                | Q(description__icontains=value)
+                | Q(comments__icontains=value),
+            )

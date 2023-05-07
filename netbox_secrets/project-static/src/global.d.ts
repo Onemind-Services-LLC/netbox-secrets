@@ -1,4 +1,4 @@
-type Dict<T extends unknown = unknown> = Record<string, T>;
+type Dict<T extends unknown = unknown> = Record<string, T>; // eslint-disable-line @typescript-eslint/no-unnecessary-type-constraint
 
 type Primitives = string | number | boolean | undefined | null;
 

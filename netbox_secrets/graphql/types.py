@@ -18,5 +18,16 @@ class SecretRoleType(ObjectType):
 class SecretType(NetBoxObjectType):
     class Meta:
         model = models.Secret
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'description',
+            'role',
+            'assigned_object_type',
+            'assigned_object_id',
+            'comments',
+            'tags',
+            'created',
+            'last_updated',
+        ]
         filterset_class = filtersets.SecretFilterSet

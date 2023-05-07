@@ -26,7 +26,6 @@ def populate_secrets(apps, schema_editor):
 
     # Queue Secrets to be created
     secrets_to_create = []
-    secret_count = secrets.count()
     for i, secret in enumerate(secrets, start=1):
         secrets_to_create.append(
             Secret(
@@ -45,6 +44,7 @@ def populate_secrets(apps, schema_editor):
 
     # Bulk create the secret objects
     Secret.objects.bulk_create(secrets_to_create, batch_size=100)
+
 
 def update_objectchanges(apps, schema_editor):
     """
@@ -66,9 +66,11 @@ def update_objectchanges(apps, schema_editor):
 
         ObjectChange.objects.filter(changed_object_type_id=ctnbsecret.id).update(changed_object_type_id=ctsecret.id)
         ObjectChange.objects.filter(changed_object_type_id=ctnbsecretrole.id).update(
-            changed_object_type_id=ctsecretrole.id)
+            changed_object_type_id=ctsecretrole.id,
+        )
         ObjectChange.objects.filter(changed_object_type_id=ctnbsessionkey.id).update(
-            changed_object_type_id=ctsessionkey.id)
+            changed_object_type_id=ctsessionkey.id,
+        )
         ObjectChange.objects.filter(changed_object_type_id=ctnbuserkey.id).update(changed_object_type_id=ctuserkey.id)
     except (ContentType.DoesNotExist, LookupError):
         pass
