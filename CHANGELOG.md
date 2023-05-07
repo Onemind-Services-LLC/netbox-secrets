@@ -11,6 +11,13 @@
 - \[Bug\]: Unable to generate session key via API [\#47](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/47)
 - \[Bug\]: Migration \(from netbox-secretstore\) fails [\#44](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/44)
 
+**Merged pull requests:**
+
+- PRVB [\#57](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/57) ([abhi1693](https://github.com/abhi1693))
+- Adds support for NetBox v3.5 [\#54](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/54) ([kprince28](https://github.com/kprince28))
+- Fix secret filters [\#51](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/51) ([kprince28](https://github.com/kprince28))
+- Add FormParser for session key view [\#50](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/50) ([kirk444](https://github.com/kirk444))
+
 ## [v1.7.6](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.7.6) (2023-04-12)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.5...v1.7.6)
