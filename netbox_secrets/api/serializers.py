@@ -70,6 +70,10 @@ class SessionKeySerializer(serializers.ModelSerializer):
 
     userkey = NestedUserKeySerializer()
 
+    session_key = serializers.SerializerMethodField(
+        read_only=True,
+    )
+
     class Meta:
         model = SessionKey
         fields = [
@@ -78,12 +82,17 @@ class SessionKeySerializer(serializers.ModelSerializer):
             'url',
             'display',
             'userkey',
+            'session_key',
             'created',
         ]
 
     @extend_schema_field(serializers.CharField())
     def get_display(self, obj):
         return str(obj)
+
+    @extend_schema_field(serializers.CharField())
+    def get_session_key(self, obj):
+        return self.context.get('session_key', None)
 
 
 class SessionKeyCreateSerializer(serializers.ModelSerializer):

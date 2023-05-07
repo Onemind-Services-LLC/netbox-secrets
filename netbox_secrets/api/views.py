@@ -162,20 +162,7 @@ class SessionKeyViewSet(
         responses={
             201: drf_utils.OpenApiResponse(
                 description="Session key created successfully.",
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'session_key': 'string',
-                    },
-                },
-                examples=[
-                    drf_utils.OpenApiExample(
-                        name='Session key created successfully',
-                        value={
-                            'session_key': 'Zm9vYmFy',
-                        },
-                    ),
-                ],
+                response=serializers.SessionKeySerializer,
             ),
             400: drf_utils.OpenApiResponse(
                 description="Session key creation failed.",
@@ -221,6 +208,7 @@ class SessionKeyViewSet(
 
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
+            self.queryset = current_session_key
 
         else:
 
@@ -229,15 +217,17 @@ class SessionKeyViewSet(
             sk = models.SessionKey(userkey=user_key)
             sk.save(master_key=master_key)
             key = sk.key
+            self.queryset = sk
 
         # Encode the key using base64. (b64decode() returns a bytestring under Python 3.)
         encoded_key = base64.b64encode(key).decode()
 
         # Craft the response
         response = Response(
-            {
-                'session_key': encoded_key,
-            },
+            self.serializer_class(
+                self.queryset,
+                context={'request': request, 'session_key': encoded_key},
+            ).data,
             status=200 if preserve_key else 201,
         )
 
