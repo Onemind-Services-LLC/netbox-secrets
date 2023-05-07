@@ -64,6 +64,11 @@ class SecretForm(NetBoxModelForm):
     )
     role = DynamicModelChoiceField(queryset=SecretRole.objects.all())
 
+    fieldsets = (
+        (None, ('name', 'description', 'role', 'tags')),
+        ('Secret Data', ('plaintext', 'plaintext2')),
+    )
+
     class Meta:
         model = Secret
         fields = (

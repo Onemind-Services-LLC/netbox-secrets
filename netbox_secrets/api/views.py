@@ -246,7 +246,6 @@ class SessionKeyViewSet(
             response.set_cookie(
                 constants.SESSION_COOKIE_NAME,
                 value=encoded_key,
-                httponly=True,
                 secure=settings.SESSION_COOKIE_SECURE,
                 samesite='Strict',
                 max_age=settings.LOGIN_TIMEOUT,
