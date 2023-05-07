@@ -14,6 +14,7 @@ from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from utilities.utils import count_related
 
+
 from .. import exceptions, filtersets, models
 from . import serializers
 
@@ -241,7 +242,14 @@ class SessionKeyViewSet(
 
         # If token authentication is not in use, assign the session key as a cookie
         if request.auth is None:
-            response.set_cookie('session_key', value=encoded_key)
+            response.set_cookie(
+                'session_key',
+                value=encoded_key,
+                httponly=True,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite='Strict',
+                max_age=settings.LOGIN_TIMEOUT,
+            )
 
         return response
 

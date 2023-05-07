@@ -9,14 +9,15 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
+
 from extras.signals import clear_webhooks
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.utils import count_related, prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
-
 from . import exceptions, filtersets, forms, models, tables, utils
+
 
 #
 # Mixins
@@ -346,3 +347,9 @@ class SessionKeyDeleteView(generic.ObjectDeleteView):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(userkey__user=request.user)
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        # Delete the cookie
+        response.delete_cookie('session_key')
+        return response

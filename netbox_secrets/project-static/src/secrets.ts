@@ -171,7 +171,7 @@ function initLockUnlock() {
 function requestSessionKey(privateKey: string) {
   apiPostForm('/api/plugins/secrets/session-keys/', {
     private_key: privateKey,
-    preserve: true,
+    preserve_key: true,
   }).then(res => {
     if (!hasError(res)) {
       // If the session key has been added from the user key page, reload the page.
