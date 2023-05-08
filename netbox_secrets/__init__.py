@@ -1,6 +1,6 @@
 from importlib.metadata import metadata
 
-from django.db.utils import ProgrammingError
+from django.db.utils import OperationalError, ProgrammingError
 from extras.plugins import PluginConfig
 
 metadata = metadata('netbox_secrets')
@@ -46,7 +46,7 @@ class NetBoxSecrets(PluginConfig):
                     content_type.model_class(),
                     'secrets',
                 )
-        except ProgrammingError:
+        except (OperationalError, ProgrammingError):
             pass
 
 
