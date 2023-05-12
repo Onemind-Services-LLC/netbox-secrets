@@ -4,7 +4,7 @@
   "main": "dist/secrets.js",
   "license": "Apache-2.0",
   "scripts": {
-    "bundle": "node bundle.js && cp dist/secrets.js* ../static/netbox_secrets/",
+    "bundle": "node bundle.js && cp -fv dist/secrets.js* ../static/netbox_secrets/",
     "bundle:styles": "node bundle.js --styles",
     "bundle:scripts": "node bundle.js --scripts",
     "format": "yarn format:scripts && yarn format:styles",
