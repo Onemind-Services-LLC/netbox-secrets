@@ -4,7 +4,6 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from rest_framework import mixins as drf_mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -12,10 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from utilities.utils import count_related
 
-from .. import constants, exceptions, filtersets, models
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
+from utilities.utils import count_related
 from . import serializers
+from .. import constants, exceptions, filtersets, models
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 public_key_size = plugin_settings.get('public_key_size')
@@ -202,32 +202,32 @@ class SessionKeyViewSet(
         if master_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
 
-        current_session_key = self.queryset.first()
+        try:
+            current_session_key = models.SessionKey.objects.get(userkey__user_id=request.user.pk)
+        except models.SessionKey.DoesNotExist:
+            current_session_key = None
 
         if current_session_key and preserve_key:
 
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
-            self.queryset = current_session_key
 
         else:
 
             # Create a new SessionKey
-            self.queryset.delete()
+            models.SessionKey.objects.filter(userkey__user=request.user).delete()
             sk = models.SessionKey(userkey=user_key)
             sk.save(master_key=master_key)
             key = sk.key
-            self.queryset = sk
 
         # Encode the key using base64. (b64decode() returns a bytestring under Python 3.)
         encoded_key = base64.b64encode(key).decode()
 
         # Craft the response
         response = Response(
-            self.serializer_class(
-                self.queryset,
-                context={'request': request, 'session_key': encoded_key},
-            ).data,
+            {
+                'session_key': encoded_key,
+            },
             status=200 if preserve_key else 201,
         )
 
