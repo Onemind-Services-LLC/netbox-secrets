@@ -4,7 +4,6 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from rest_framework import mixins as drf_mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -12,10 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from utilities.utils import count_related
 
-from .. import constants, exceptions, filtersets, models
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
+from utilities.utils import count_related
 from . import serializers
+from .. import constants, exceptions, filtersets, models
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 public_key_size = plugin_settings.get('public_key_size')
@@ -202,7 +202,7 @@ class SessionKeyViewSet(
         if master_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
 
-        current_session_key = self.queryset.first()
+        current_session_key = self.get_queryset().first()
 
         if current_session_key and preserve_key:
 
