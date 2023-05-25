@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
+from netbox.api.viewsets import BaseViewSet, mixins, NetBoxModelViewSet
 from utilities.utils import count_related
 from . import serializers
 from .. import constants, exceptions, filtersets, models
@@ -43,7 +43,7 @@ class UserKeyViewSet(ModelViewSet):
     serializer_class = serializers.UserKeySerializer
 
     def get_queryset(self):
-        return models.UserKey.objects.filter(user=self.request.user)
+        return super().get_queryset().filter(user=self.request.user)
 
 
 #
@@ -155,7 +155,9 @@ class SessionKeyViewSet(
     serializer_class = serializers.SessionKeySerializer
 
     def get_queryset(self):
-        return models.SessionKey.objects.filter(userkey__user=self.request.user)
+        # Overrides self.queryset to always return the restricted key filtered by the request.user
+        self.queryset = super().get_queryset().filter(userkey__user=self.request.user)
+        return self.queryset
 
     @drf_utils.extend_schema(
         request=serializers.SessionKeyCreateSerializer,
@@ -202,7 +204,7 @@ class SessionKeyViewSet(
         if master_key is None:
             return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
 
-        current_session_key = self.get_queryset().first()
+        current_session_key = self.queryset.first()
 
         if current_session_key and preserve_key:
 
