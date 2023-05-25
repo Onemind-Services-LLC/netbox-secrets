@@ -2,7 +2,24 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.6...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.1...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Deleting assigned object doesn't delete secret [\#61](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/61)
+- \[Bug\]: Failed to build docker image [\#58](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/58)
+
+## [v1.8.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.1) (2023-05-08)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.0...v1.8.1)
+
+**Merged pull requests:**
+
+- Handled operational error during collectstatic [\#59](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/59) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.8.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.0) (2023-05-07)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.7.6...v1.8.0)
 
 **Closed issues:**
 

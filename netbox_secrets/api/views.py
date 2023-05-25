@@ -4,7 +4,6 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from rest_framework import mixins as drf_mixins
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -12,10 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from utilities.utils import count_related
 
-from .. import constants, exceptions, filtersets, models
+from netbox.api.viewsets import BaseViewSet, mixins, NetBoxModelViewSet
+from utilities.utils import count_related
 from . import serializers
+from .. import constants, exceptions, filtersets, models
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 public_key_size = plugin_settings.get('public_key_size')
@@ -43,7 +43,7 @@ class UserKeyViewSet(ModelViewSet):
     serializer_class = serializers.UserKeySerializer
 
     def get_queryset(self):
-        return models.UserKey.objects.filter(user=self.request.user)
+        return super().get_queryset().filter(user=self.request.user)
 
 
 #
@@ -149,13 +149,19 @@ class SessionKeyViewSet(
     drf_mixins.DestroyModelMixin,
     mixins.BriefModeMixin,
     mixins.BulkDestroyModelMixin,
+    mixins.ObjectValidationMixin,
     BaseViewSet,
 ):
     queryset = models.SessionKey.objects.prefetch_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
 
     def get_queryset(self):
-        return models.SessionKey.objects.filter(userkey__user=self.request.user)
+        if self.request.user.is_authenticated:
+            # Overrides self.queryset to always return the restricted key filtered by the request.user
+            self.queryset = super().get_queryset().filter(userkey__user=self.request.user)
+            return self.queryset
+
+        return super().get_queryset()
 
     @drf_utils.extend_schema(
         request=serializers.SessionKeyCreateSerializer,
