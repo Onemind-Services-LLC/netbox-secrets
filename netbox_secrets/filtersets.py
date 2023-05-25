@@ -3,10 +3,10 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.translation import gettext as _
+
 from netbox.filtersets import NetBoxModelFilterSet
 from tenancy.models import Contact
-from utilities.filters import MultiValueCharFilter
-
+from utilities.filters import ContentTypeFilter, MultiValueCharFilter
 from .constants import SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole
 
@@ -61,8 +61,9 @@ if plugin_settings.get('enable_contacts', False):
             label='Role (slug)',
         )
 
+        assigned_object_type = ContentTypeFilter()
+
         assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
-            field_name='assigned_object_type',
             queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
             label='Object type (ID)',
         )
@@ -77,6 +78,7 @@ if plugin_settings.get('enable_contacts', False):
             model = Secret
             fields = [
                 'id',
+                'assigned_object_type',
                 'assigned_object_type_id',
                 'assigned_object_id',
                 'role_id',
@@ -119,8 +121,9 @@ else:
             label='Role (slug)',
         )
 
+        assigned_object_type = ContentTypeFilter()
+
         assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
-            field_name='assigned_object_type',
             queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
             label='Object type (ID)',
         )
@@ -129,6 +132,7 @@ else:
             model = Secret
             fields = [
                 'id',
+                'assigned_object_type',
                 'assigned_object_type_id',
                 'assigned_object_id',
                 'role_id',
