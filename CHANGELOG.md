@@ -1,13 +1,19 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v1.8.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.2) (2023-05-25)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.1...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.1...v1.8.2)
 
 **Closed issues:**
 
 - \[Bug\]: Deleting assigned object doesn't delete secret [\#61](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/61)
+- \[Bug\]: Decryption fails even with valid session key [\#60](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/60)
 - \[Bug\]: Failed to build docker image [\#58](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/58)
+
+**Merged pull requests:**
+
+- PRVB [\#66](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/66) ([abhi1693](https://github.com/abhi1693))
+- \[Fix\]: The session wasn't working for other users [\#64](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/64) ([kprince28](https://github.com/kprince28))
 
 ## [v1.8.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.1) (2023-05-08)
 
