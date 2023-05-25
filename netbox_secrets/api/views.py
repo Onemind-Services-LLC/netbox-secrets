@@ -149,15 +149,19 @@ class SessionKeyViewSet(
     drf_mixins.DestroyModelMixin,
     mixins.BriefModeMixin,
     mixins.BulkDestroyModelMixin,
+    mixins.ObjectValidationMixin,
     BaseViewSet,
 ):
     queryset = models.SessionKey.objects.prefetch_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
 
     def get_queryset(self):
-        # Overrides self.queryset to always return the restricted key filtered by the request.user
-        self.queryset = super().get_queryset().filter(userkey__user=self.request.user)
-        return self.queryset
+        if self.request.user.is_authenticated:
+            # Overrides self.queryset to always return the restricted key filtered by the request.user
+            self.queryset = super().get_queryset().filter(userkey__user=self.request.user)
+            return self.queryset
+
+        return super().get_queryset()
 
     @drf_utils.extend_schema(
         request=serializers.SessionKeyCreateSerializer,
