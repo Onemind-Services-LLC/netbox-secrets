@@ -23,7 +23,7 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
-    name = django_filters.ModelMultipleChoiceFilter(queryset=SecretRole.objects.all(), field_name='name')
+    name = MultiValueCharFilter(lookup_expr='iexact')
 
     class Meta:
         model = SecretRole
