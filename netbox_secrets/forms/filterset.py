@@ -20,7 +20,7 @@ __all__ = [
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole
     q = forms.CharField(required=False, label=_('Search'))
-    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Name'))
+    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles'))
 
 
 class SecretFilterForm(NetBoxModelFilterSetForm):
