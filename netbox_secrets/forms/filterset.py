@@ -1,13 +1,13 @@
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
+
 from netbox.forms import NetBoxModelFilterSetForm
 from utilities.forms.fields import (
     ContentTypeMultipleChoiceField,
     DynamicModelMultipleChoiceField,
     TagFilterField,
 )
-
 from ..constants import *
 from ..models import Secret, SecretRole
 
@@ -20,7 +20,7 @@ __all__ = [
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole
     q = forms.CharField(required=False, label=_('Search'))
-    name = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False)
+    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles'))
 
 
 class SecretFilterForm(NetBoxModelFilterSetForm):
