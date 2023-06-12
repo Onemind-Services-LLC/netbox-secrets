@@ -6,13 +6,15 @@ from django.db import migrations, models
 
 def copy_assigned_object(apps, schema_editor):
     Secret = apps.get_model('netbox_secrets', 'Secret')
-
-    for secret in Secret.objects.all():
-        content_type = ContentType.objects.get(id=secret.assigned_object_type_id)
-        Model = apps.get_model(content_type.app_label, str(content_type.model).capitalize())
-        object = Model.objects.filter(id=secret.assigned_object_id).first()
-        secret._object_repr = object.name
-        secret.save()
+    try:
+        for secret in Secret.objects.all():
+            content_type = ContentType.objects.get(id=secret.assigned_object_type_id)
+            Model = apps.get_model(content_type.app_label, str(content_type.model).capitalize())
+            object = Model.objects.filter(id=secret.assigned_object_id).first()
+            secret._object_repr = object.name
+            secret.save()
+    except:
+        pass
 
 
 class Migration(migrations.Migration):

@@ -1,5 +1,21 @@
 # Changelog
 
+## [v1.8.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.3) (2023-06-02)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.2...v1.8.3)
+
+**Closed issues:**
+
+- \[Bug\]: API get /secret-roles/?name=XXX doesn't work [\#68](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/68)
+- \[Bug\]: netbox-secrets 1.8.2 break netbox  [\#67](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/67)
+- \[Feature\]: Add the possibility of permissions to different groups/users keys as appropriate [\#62](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/62)
+- \[Feature\]: Add ability to link the device with secrets to click and connect [\#33](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/33)
+
+**Merged pull requests:**
+
+- Prepare for release [\#70](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/70) ([abhi1693](https://github.com/abhi1693))
+- Fix secret role filterset [\#69](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/69) ([kprince28](https://github.com/kprince28))
+
 ## [v1.8.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.2) (2023-05-25)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.1...v1.8.2)
