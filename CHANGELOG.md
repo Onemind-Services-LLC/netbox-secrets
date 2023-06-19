@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.3...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.4...HEAD)
+
+**Merged pull requests:**
+
+- Fix migration to skip deleted devices and virtual machines [\#75](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/75) ([kprince28](https://github.com/kprince28))
+
+## [v1.8.4](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.4) (2023-06-12)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.3...v1.8.4)
 
 **Closed issues:**
 
