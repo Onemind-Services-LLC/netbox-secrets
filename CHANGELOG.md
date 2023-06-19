@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.3...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Migration Failure due to previous bug [\#73](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/73)
+
+**Merged pull requests:**
+
+- Prepare for release [\#74](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/74) ([kprince28](https://github.com/kprince28))
+- Fix copy of data in migration [\#72](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/72) ([kprince28](https://github.com/kprince28))
+
 ## [v1.8.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.3) (2023-06-02)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.2...v1.8.3)
