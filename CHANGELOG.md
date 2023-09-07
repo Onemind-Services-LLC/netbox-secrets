@@ -17,6 +17,8 @@
 
 **Merged pull requests:**
 
+- Prepare for release [\#98](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/98) ([abhi1693](https://github.com/abhi1693))
+- Add support for NetBox v3.6 [\#97](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/97) ([kprince28](https://github.com/kprince28))
 - Bump word-wrap from 1.2.3 to 1.2.4 in /netbox\_secrets/project-static [\#86](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/86) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump semver from 6.3.0 to 6.3.1 in /netbox\_secrets/project-static [\#84](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/84) ([dependabot[bot]](https://github.com/apps/dependabot))
 
