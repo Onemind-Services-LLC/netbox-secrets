@@ -20,6 +20,7 @@ and stability.
 | 3.3.x          | 1.4.x, 1.5.x   |
 | 3.4.x          | 1.6.x, 1.7.x   |
 | 3.5.x          | 1.8.x          |
+| 3.6.x          | 1.9.x          |
 
 # Installation
 
@@ -61,7 +62,7 @@ The following options are available in the configuration file:
   - __Type__: `Integer`
   - __Description__: Size of the public key
   - __Default__: `2048`
-  - __Options__: `2048`, `4096`, `8192`
+  - __Options__: `2048`, `4096`, `8192`Dev
 
 ## Extra Configuration
 
