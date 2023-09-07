@@ -2,7 +2,35 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.3...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.5...HEAD)
+
+**Closed issues:**
+
+- \[Feature\]: Add support for NetBox v3.6 [\#95](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/95)
+- \[Bug\]: Unable to add secrets in netbox through the API using a python script  [\#93](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/93)
+- \[Bug\]: Unable to view secrets in netbox web ui \(3.5.4 / 1.8.3 + 1.8.5\) [\#81](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/81)
+- \[Bug\]: Session Key is needed for API POSTS and no field is declared for this and Session Key is null when retrieved from API [\#80](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/80)
+- \[Feature\]: Add clone button for secret object view [\#78](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/78)
+- \[Bug\]: Adding Secrets is not appearing  [\#77](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/77)
+- \[Bug\]: /get-session-key/ does not accept query string parameter ?preserve\_key=True any more [\#65](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/65)
+- \[Feature\]: Add options to add certificates to device/store [\#32](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/32)
+
+**Merged pull requests:**
+
+- Bump word-wrap from 1.2.3 to 1.2.4 in /netbox\_secrets/project-static [\#86](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/86) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump semver from 6.3.0 to 6.3.1 in /netbox\_secrets/project-static [\#84](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/84) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v1.8.5](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.5) (2023-06-19)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.4...v1.8.5)
+
+**Merged pull requests:**
+
+- Fix migration to skip deleted devices and virtual machines [\#75](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/75) ([kprince28](https://github.com/kprince28))
+
+## [v1.8.4](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.8.4) (2023-06-12)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.3...v1.8.4)
 
 **Closed issues:**
 
