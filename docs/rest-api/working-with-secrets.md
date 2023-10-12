@@ -7,13 +7,20 @@ steps are needed to encrypt or decrypt secret data.
 
 In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
 send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
-matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
+matches your [UserKey](../models/userkey.md). Place the private RSA key in a json file.
+
+```json
+{
+    "private_key": "-----BEGIN RSA PRIVATE KEY-----\ndOkWQjKxgxvzML1H+2knURmjGYi6EMfQDBuhpglNWvBC4P0uO/tpFPkkfAQaBOnM\nqsntoedpfl1rr5Q30qS3/ozwjDTnRqllOvuk8GevrM6al2Em/Be2SWl9KBC6iiHY\nrXfrj5aH0W2v/4yKKpn290D4NkGj0g2SgDdgefQfXa6/L0H2eCrRDkRFtQc9Dflq\n-----END RSA PRIVATE KEY-----\n"
+}
+```
 
 ```no-highlight
 $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
---data-urlencode "private_key@<filename>"
+-H "Content-Type: application/json" \
+--data @<filename>
 ```
 
 ```json
@@ -34,7 +41,7 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 
 !!! note
     To read the private key from a file, use the convention above. Alternatively, the private key can be read from an
-environment variable using `--data-urlencode "private_key=$PRIVATE_KEY"`.
+environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`.
 
 The request uses the provided private key to unlock your stored copy of the master key and generate a temporary
 session key, which can be attached in the `X-Session-Key` header of future API requests.
