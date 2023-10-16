@@ -35,10 +35,11 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 
 !!! note
     To read the private key from a file, use the convention above. Alternatively, the private key can be read from an
-environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`. Converting your private key from PEM RSA to
-json works like this:
+environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`.
 
-```
+Use the following CLI command to convert your PEM RSA key to json:
+
+```no-highlight
 jq -sR . <filename>
 ```
 
