@@ -35,7 +35,12 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 
 !!! note
     To read the private key from a file, use the convention above. Alternatively, the private key can be read from an
-environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`.
+environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`. Converting your private key from PEM RSA to
+json works like this:
+
+```
+jq -sR . <filename>
+```
 
 The request uses the provided private key to unlock your stored copy of the master key and generate a temporary
 session key, which can be attached in the `X-Session-Key` header of future API requests.
