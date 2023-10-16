@@ -9,12 +9,6 @@ In order to encrypt or decrypt secret data, a session key must be attached to th
 send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
 matches your [UserKey](../models/userkey.md). Place the private RSA key in a json file.
 
-```json
-{
-    "private_key": "-----BEGIN RSA PRIVATE KEY-----\ndOkWQjKxgxvzML1H+2knURmjGYi6EMfQDBuhpglNWvBC4P0uO/tpFPkkfAQaBOnM\nqsntoedpfl1rr5Q30qS3/ozwjDTnRqllOvuk8GevrM6al2Em/Be2SWl9KBC6iiHY\nrXfrj5aH0W2v/4yKKpn290D4NkGj0g2SgDdgefQfXa6/L0H2eCrRDkRFtQc9Dflq\n-----END RSA PRIVATE KEY-----\n"
-}
-```
-
 ```no-highlight
 $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 -H "Authorization: Token $TOKEN" \
