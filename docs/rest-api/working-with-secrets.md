@@ -21,11 +21,11 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 {
     "pk": 7,
     "id": 7,
-    "url": "http://172.16.14.63:8000/api/plugins/secrets/session-keys/7/",
+    "url": "http://netbox/api/plugins/secrets/session-keys/7/",
     "display": "admin (RSA)",
     "userkey": {
         "id": 1,
-        "url": "http://172.16.14.63:8000/api/plugins/secrets/user-keys/1/",
+        "url": "http://netbox/api/plugins/secrets/user-keys/1/",
         "display": "admin"
     },
     "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A=",
