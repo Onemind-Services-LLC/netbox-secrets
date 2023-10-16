@@ -46,6 +46,24 @@ jq -sR . <filename>
 The request uses the provided private key to unlock your stored copy of the master key and generate a temporary
 session key, which can be attached in the `X-Session-Key` header of future API requests.
 
+### Depracated!
+
+If you still want to use `application/x-www-form-urlencoded` you can use the **depracated** API endpoint
+`http://netbox/api/plugins/secrets/get-session-key/`.
+
+```no-highlight
+curl -X POST https://netbox-test.tugraz.at/api/plugins/secrets/get-session-key/ \
+-H "Authorization: Token $TOKEN" \
+-H "Accept: application/json; indent=4" \
+--data-urlencode "private_key@<filename>" 
+```
+
+```json
+{
+    "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A="
+}
+```
+
 ## Retrieving Secrets
 
 A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its
