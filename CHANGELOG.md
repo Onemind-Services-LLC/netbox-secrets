@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v1.9.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.0) (2023-09-07)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.5...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.5...v1.9.0)
 
 **Closed issues:**
 
