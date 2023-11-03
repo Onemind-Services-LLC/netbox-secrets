@@ -19,8 +19,12 @@ __all__ = [
 
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole
-    q = forms.CharField(required=False, label=_('Search'))
-    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles'))
+    fieldsets = (
+        (None, ('q', 'filter_id', 'tag')),
+        ('Secret Role', ('id',))
+    )
+    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles Name'))
+    tag = TagFilterField(model)
 
 
 class SecretFilterForm(NetBoxModelFilterSetForm):
@@ -28,10 +32,15 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
 
     fieldsets = (
         (None, ('q', 'filter_id', 'tag')),
+        ('Secret', ('id',)),
         ('Attributes', ('role_id', 'assigned_object_type_id')),
     )
 
-    q = forms.CharField(required=False, label=_('Search'))
+    id = DynamicModelMultipleChoiceField(
+        queryset=Secret.objects.all(),
+        required=False,
+        label=_('Name')
+    )
     assigned_object_type_id = ContentTypeMultipleChoiceField(
         queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
         required=False,
