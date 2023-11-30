@@ -19,15 +19,15 @@ class UserKeyAdmin(admin.ModelAdmin):
             return ['public_key'] + self.readonly_fields
         return self.readonly_fields
 
-    def get_actions(self, request):
-        # Bulk deletion is disabled at the manager level, so remove the action from the admin site for this model.
-        actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        if not request.user.has_perm('secrets.change_userkey'):
-            del actions['activate_selected']
-        return actions
+    def response_action(self, request, queryset):
+        # Modify request.POST to remove the empty string from the list of selected objects.
+        post = request.POST.copy()
+        post.setlist(ACTION_CHECKBOX_NAME, list(filter(None, post.getlist(ACTION_CHECKBOX_NAME))))
+        request.POST = post
 
+        return super().response_action(request, queryset)
+
+    @admin.action(description='Activate selected public keys', permissions=['change'])
     def activate_selected(self, request, queryset):
         """
         Enable bulk activation of UserKeys
@@ -63,4 +63,3 @@ class UserKeyAdmin(admin.ModelAdmin):
             },
         )
 
-    activate_selected.short_description = "Activate selected user keys"
