@@ -276,7 +276,7 @@ class GenerateRSAKeyPairViewSet(ViewSet):
         except ValueError:
             key_size = public_key_size
 
-        if key_size not in range(2048, 4097, 256):
+        if key_size not in range(2048, 8193, 256):
             key_size = public_key_size
 
         # Export RSA private and public keys in PEM format
