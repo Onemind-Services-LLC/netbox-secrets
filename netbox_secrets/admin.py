@@ -43,7 +43,11 @@ class UserKeyAdmin(admin.ModelAdmin):
         try:
             my_userkey = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
-            messages.error(request, "You do not have an active User Key.")
+            messages.error(request, "You do not have a User Key.")
+            return redirect('admin:netbox_secrets_userkey_changelist')
+
+        if not my_userkey.is_active():
+            messages.error(request, "Your User Key is not active.")
             return redirect('admin:netbox_secrets_userkey_changelist')
 
         if 'activate' in request.POST:
@@ -51,8 +55,12 @@ class UserKeyAdmin(admin.ModelAdmin):
             if form.is_valid():
                 master_key = my_userkey.get_master_key(form.cleaned_data['secret_key'])
                 if master_key is not None:
-                    for uk in form.cleaned_data['_selected_action']:
+                    for uk in form.cleaned_data[ACTION_CHECKBOX_NAME]:
                         uk.activate(master_key)
+                    messages.success(
+                        request,
+                        "Successfully activated {} user keys.".format(len(form.cleaned_data[ACTION_CHECKBOX_NAME])),
+                    )
                     return redirect('admin:netbox_secrets_userkey_changelist')
                 else:
                     messages.error(
@@ -61,7 +69,7 @@ class UserKeyAdmin(admin.ModelAdmin):
                         extra_tags='error',
                     )
         else:
-            form = ActivateUserKeyForm(initial={'_selected_action': request.POST.getlist(ACTION_CHECKBOX_NAME)})
+            form = ActivateUserKeyForm(initial={ACTION_CHECKBOX_NAME: request.POST.getlist(ACTION_CHECKBOX_NAME)})
 
         return render(
             request,
