@@ -13,6 +13,14 @@ class UserKeyAdmin(admin.ModelAdmin):
     fields = ['user', 'public_key', 'is_active', 'last_updated']
     readonly_fields = ['user', 'is_active', 'last_updated']
 
+    def has_add_permission(self, request):
+        # Don't allow a user to create a new public key directly.
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Don't allow a user to delete a public key directly.
+        return False
+
     def get_readonly_fields(self, request, obj=None):
         # Don't allow a user to modify an existing public key directly.
         if obj and obj.public_key:
