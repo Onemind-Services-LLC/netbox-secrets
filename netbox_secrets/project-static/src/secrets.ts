@@ -88,7 +88,13 @@ function toggleSecretButtons(id: string, action: 'lock' | 'unlock') {
  * Initialize Lock & Unlock button event listeners & callbacks.
  */
 function initLockUnlock() {
-  const privateKeyModal = new window.Modal('#privkey_modal');
+  const privateKeyModalElement = document.querySelector('#privkey_modal');
+  let privateKeyModal = null;
+  if (privateKeyModalElement) {
+    privateKeyModal = new window.Modal(privateKeyModalElement);
+  } else {
+    return;
+  }
 
   /**
    * Unlock a secret, or prompt the user for their private key, if a session key is not available.
@@ -220,7 +226,13 @@ function initGetSessionKey() {
  * Initialize Secret Edit Form Handler.
  */
 function initSecretsEdit() {
-  const privateKeyModal = new window.Modal('#privkey_modal');
+  const privateKeyModalElement = document.querySelector('#privkey_modal');
+  let privateKeyModal = null;
+  if (privateKeyModalElement) {
+    privateKeyModal = new window.Modal(privateKeyModalElement);
+  } else {
+    return;
+  }
 
   /**
    * Check the cookie store for a `netbox_secrets_sessionid`. If not present, prompt the user to submit their
@@ -241,8 +253,34 @@ function initSecretsEdit() {
   }
 }
 
+/** Download the newly generated key pair. **/
+function initDownloadKeyPair() {
+  const element = document.getElementById('new_keypair_modal') as HTMLDivElement;
+  const publicElem = element.querySelector<HTMLTextAreaElement>('textarea#new_pubkey');
+  const privateElem = element.querySelector<HTMLTextAreaElement>('textarea#new_privkey');
+
+  function downloadKeyPair() {
+    if (publicElem === null || privateElem === null) {
+      console.error('Public or private key elements are not found');
+      return;
+    } else {
+      console.log('Public or private key elements are found');
+    }
+  }
+
+  for (const element of document.querySelectorAll<HTMLButtonElement>('button.download_keypair')) {
+    element.addEventListener('click', () => downloadKeyPair());
+  }
+}
+
 export function initSecrets() {
-  for (const func of [initGenerateKeyPair, initLockUnlock, initGetSessionKey, initSecretsEdit]) {
+  for (const func of [
+    initGenerateKeyPair,
+    initDownloadKeyPair,
+    initLockUnlock,
+    initGetSessionKey,
+    initSecretsEdit,
+  ]) {
     func();
   }
 }
