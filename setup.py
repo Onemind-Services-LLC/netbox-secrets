@@ -26,7 +26,7 @@ environments.
 
 setup(
     name='netbox-secrets',
-    version='1.9.0',
+    version='1.9.1',
     description=description,
     long_description=long_description,
     url='https://github.com/Onemind-Services-LLC/netbox-secrets/',
