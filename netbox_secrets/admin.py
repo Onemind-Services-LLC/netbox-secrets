@@ -70,4 +70,3 @@ class UserKeyAdmin(admin.ModelAdmin):
                 'form': form,
             },
         )
-

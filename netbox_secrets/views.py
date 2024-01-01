@@ -10,7 +10,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
-from extras.signals import clear_webhooks
+from extras.signals import clear_events
 from netbox.views import generic
 from tenancy.views import ObjectContactsView
 from utilities.exceptions import AbortRequest, PermissionsViolation
@@ -146,7 +146,6 @@ class SecretEditView(generic.ObjectEditView):
         }
 
     def dispatch(self, request, *args, **kwargs):
-
         # Check that the user has a valid UserKey
         try:
             uk = models.UserKey.objects.get(user=request.user)
@@ -251,7 +250,7 @@ class SecretEditView(generic.ObjectEditView):
             except (AbortRequest, PermissionsViolation) as e:
                 logger.debug(e.message)
                 form.add_error(None, e.message)
-                clear_webhooks.send(sender=self)
+                clear_events.send(sender=self)
 
         else:
             logger.debug("Form validation failed")
@@ -287,6 +286,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
+
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')

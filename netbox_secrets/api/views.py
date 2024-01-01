@@ -72,7 +72,6 @@ class SecretViewSet(NetBoxModelViewSet):
     master_key = None
 
     def get_serializer_context(self):
-
         # Make the master key available to the serializer for encrypting plaintext values
         context = super().get_serializer_context()
         context['master_key'] = self.master_key
@@ -80,11 +79,9 @@ class SecretViewSet(NetBoxModelViewSet):
         return context
 
     def initial(self, request, *args, **kwargs):
-
         super().initial(request, *args, **kwargs)
 
         if request.user.is_authenticated:
-
             # Read session key from HTTP cookie or header if it has been provided. The session key must be provided in
             # order to encrypt/decrypt secrets.
             if constants.SESSION_COOKIE_NAME in request.COOKIES:
@@ -107,7 +104,6 @@ class SecretViewSet(NetBoxModelViewSet):
                     raise ValidationError("Invalid session key.")
 
     def retrieve(self, request, *args, **kwargs):
-
         secret = self.get_object()
 
         # Attempt to decrypt the secret if the master key is known
@@ -118,12 +114,10 @@ class SecretViewSet(NetBoxModelViewSet):
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
-
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-
             # Attempt to decrypt all secrets if the master key is known
             if self.master_key is not None:
                 secrets = []
@@ -211,13 +205,11 @@ class SessionKeyViewSet(
         current_session_key = self.queryset.first()
 
         if current_session_key and preserve_key:
-
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
             self.queryset = current_session_key
 
         else:
-
             # Create a new SessionKey
             self.queryset.delete()
             sk = models.SessionKey(userkey=user_key)
@@ -268,7 +260,6 @@ class GenerateRSAKeyPairViewSet(ViewSet):
         return models.UserKey.objects.filter(user=self.request.user)
 
     def list(self, request):
-
         # Determine what size key to generate
         try:
             key_size = request.GET.get('key_size', public_key_size)
@@ -306,7 +297,6 @@ class GetSessionKeyViewSet(ViewSet):
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def create(self, request):
-
         # Read private key
         private_key = request.data.get('private_key', None)
         if private_key is None:
@@ -331,12 +321,10 @@ class GetSessionKeyViewSet(ViewSet):
             current_session_key = None
 
         if current_session_key and request.data.get('preserve_key', False):
-
             # Retrieve the existing session key
             key = current_session_key.get_session_key(master_key)
 
         else:
-
             # Create a new SessionKey
             models.SessionKey.objects.filter(userkey__user=request.user).delete()
             sk = models.SessionKey(userkey=user_key)

@@ -21,6 +21,7 @@ and stability.
 | 3.4.x          | 1.6.x, 1.7.x   |
 | 3.5.x          | 1.8.x          |
 | 3.6.x          | 1.9.x          |
+| 3.7.x          | 1.10.x         |
 
 # Installation
 

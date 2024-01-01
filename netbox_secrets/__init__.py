@@ -14,8 +14,8 @@ class NetBoxSecrets(PluginConfig):
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
     base_url = 'secrets'
-    min_version = '3.6.0'
-    max_version = '3.6.99'
+    min_version = '3.7.0'
+    max_version = '3.7.99'
     required_settings = []
     default_settings = {
         'apps': ['dcim.device', 'virtualization.virtualmachine'],

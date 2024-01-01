@@ -6,9 +6,20 @@
 
 **Closed issues:**
 
+- \[Bug\]:  [\#112](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/112)
 - \[Bug\]: Unable to Activate Selected User Keys in Admin Panel [\#106](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/106)
+- \[Bug\]: Button copy to clipboard not working [\#104](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/104)
 - \[Bug\]: Code key length mistake 4097 instead of 4096 [\#92](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/92)
+- \[Bug\]: Cannot decrypt existing secrets once the RSA key pair has been changed [\#88](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/88)
 - \[Docs\]: API Pulling session Key [\#83](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/83)
+
+**Merged pull requests:**
+
+- Release v1.9.1 [\#118](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/118) ([abhi1693](https://github.com/abhi1693))
+- Code Key Length Fixes [\#110](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/110) ([yash-pal1](https://github.com/yash-pal1))
+- Update Filtersets and Filterforms with Test Cases [\#107](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/107) ([yash-pal1](https://github.com/yash-pal1))
+- Top Level menu added to Navigation [\#105](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/105) ([yash-pal1](https://github.com/yash-pal1))
+- Add docs howto create session-key [\#103](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/103) ([jhofmueller](https://github.com/jhofmueller))
 
 ## [v1.9.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.0) (2023-09-07)
 

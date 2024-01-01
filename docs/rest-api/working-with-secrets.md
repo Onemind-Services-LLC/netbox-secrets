@@ -55,7 +55,7 @@ If you still want to use `application/x-www-form-urlencoded` you can use the **d
 curl -X POST https://netbox-test.tugraz.at/api/plugins/secrets/get-session-key/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
---data-urlencode "private_key@<filename>" 
+--data-urlencode "private_key@<filename>"
 ```
 
 ```json
