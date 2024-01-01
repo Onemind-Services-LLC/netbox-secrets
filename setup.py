@@ -1,9 +1,6 @@
 from setuptools import find_packages, setup
 
-description = """
-Enhance your secret management with encrypted storage and flexible, user-friendly features, seamlessly integrated into
-the NetBox environment.
-"""
+description = "Enhance your secret management with encrypted storage and flexible, user-friendly features."
 
 long_description="""
 # NetBox Secrets
@@ -29,6 +26,7 @@ setup(
     version='1.9.1',
     description=description,
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url='https://github.com/Onemind-Services-LLC/netbox-secrets/',
     author='Abhimanyu Saharan',
     author_email='asaharan@onemindservices.com',
