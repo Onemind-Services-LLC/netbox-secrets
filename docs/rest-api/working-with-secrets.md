@@ -7,24 +7,25 @@ steps are needed to encrypt or decrypt secret data.
 
 In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
 send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
-matches your [UserKey](../models/userkey.md). The private key must be POSTed with the name `private_key`.
+matches your [UserKey](../models/userkey.md). Place the private RSA key in a json file.
 
 ```no-highlight
 $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 -H "Authorization: Token $TOKEN" \
 -H "Accept: application/json; indent=4" \
---data-urlencode "private_key@<filename>"
+-H "Content-Type: application/json" \
+--data @<filename>
 ```
 
 ```json
 {
     "pk": 7,
     "id": 7,
-    "url": "http://172.16.14.63:8000/api/plugins/secrets/session-keys/7/",
+    "url": "http://netbox/api/plugins/secrets/session-keys/7/",
     "display": "admin (RSA)",
     "userkey": {
         "id": 1,
-        "url": "http://172.16.14.63:8000/api/plugins/secrets/user-keys/1/",
+        "url": "http://netbox/api/plugins/secrets/user-keys/1/",
         "display": "admin"
     },
     "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A=",
@@ -34,10 +35,34 @@ $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
 
 !!! note
     To read the private key from a file, use the convention above. Alternatively, the private key can be read from an
-environment variable using `--data-urlencode "private_key=$PRIVATE_KEY"`.
+environment variable using `--data "{\"private_key\": \"$PRIVATEKEY\"}"`.
+
+Use the following CLI command to convert your PEM RSA key to json:
+
+```no-highlight
+jq -sR . <filename>
+```
 
 The request uses the provided private key to unlock your stored copy of the master key and generate a temporary
 session key, which can be attached in the `X-Session-Key` header of future API requests.
+
+### Depracated!
+
+If you still want to use `application/x-www-form-urlencoded` you can use the **depracated** API endpoint
+`http://netbox/api/plugins/secrets/get-session-key/`.
+
+```no-highlight
+curl -X POST https://netbox-test.tugraz.at/api/plugins/secrets/get-session-key/ \
+-H "Authorization: Token $TOKEN" \
+-H "Accept: application/json; indent=4" \
+--data-urlencode "private_key@<filename>" 
+```
+
+```json
+{
+    "session_key": "4H8MCOl98qom7Ug5fQTzsFcH600SRWxe7KlUyIYxJ+A="
+}
+```
 
 ## Retrieving Secrets
 

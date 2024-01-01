@@ -1,7 +1,10 @@
-from extras.plugins import PluginMenuButton, PluginMenuItem
+from django.conf import settings
+from extras.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
 from utilities.choices import ButtonColorChoices
 
-menu_items = (
+plugins_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
+
+menu_buttons = (
     PluginMenuItem(
         link_text="User Key",
         link="plugins:netbox_secrets:userkey",
@@ -34,3 +37,12 @@ menu_items = (
         permissions=["netbox_secrets.view_secret"],
     ),
 )
+
+if plugins_settings.get('top_level_menu'):
+    menu = PluginMenu(
+        label='Secrets',
+        groups=(('Secrets', menu_buttons),),
+        icon_class='mdi mdi-eye-closed',
+    )
+else:
+    menu_items = menu_buttons

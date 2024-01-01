@@ -19,15 +19,11 @@ plugin_settings = settings.PLUGINS_CONFIG['netbox_secrets']
 
 
 class SecretRoleFilterSet(NetBoxModelFilterSet):
-    q = django_filters.CharFilter(
-        method='search',
-        label='Search',
-    )
     name = MultiValueCharFilter(lookup_expr='iexact')
 
     class Meta:
         model = SecretRole
-        fields = ['id', 'name', 'slug', 'description', 'comments']
+        fields = ['id', 'slug', 'description', 'comments']
 
     def search(self, queryset, name, value):
         if not value.strip():
@@ -43,13 +39,6 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
 if plugin_settings.get('enable_contacts', False):
 
     class SecretFilterSet(NetBoxModelFilterSet):
-        q = django_filters.CharFilter(
-            method='search',
-            label='Search',
-        )
-
-        name = MultiValueCharFilter(lookup_expr='iexact')
-
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
             label='Role (ID)',
@@ -78,12 +67,6 @@ if plugin_settings.get('enable_contacts', False):
             model = Secret
             fields = [
                 'id',
-                'assigned_object_type',
-                'assigned_object_type_id',
-                'assigned_object_id',
-                'role_id',
-                'role',
-                'name',
                 'contact',
                 'description',
                 'comments',
@@ -103,13 +86,9 @@ if plugin_settings.get('enable_contacts', False):
 else:
 
     class SecretFilterSet(NetBoxModelFilterSet):
-        q = django_filters.CharFilter(
-            method='search',
-            label='Search',
+        name = MultiValueCharFilter(
+            lookup_expr='iexact'
         )
-
-        name = MultiValueCharFilter(lookup_expr='iexact')
-
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
             label='Role (ID)',
@@ -132,12 +111,6 @@ else:
             model = Secret
             fields = [
                 'id',
-                'assigned_object_type',
-                'assigned_object_type_id',
-                'assigned_object_id',
-                'role_id',
-                'role',
-                'name',
                 '_object_repr',
                 'description',
                 'comments',

@@ -13,21 +13,21 @@ class UserKeyAdmin(admin.ModelAdmin):
     fields = ['user', 'public_key', 'is_active', 'last_updated']
     readonly_fields = ['user', 'is_active', 'last_updated']
 
+    def has_add_permission(self, request):
+        # Don't allow a user to create a new public key directly.
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # Don't allow a user to delete a public key directly.
+        return False
+
     def get_readonly_fields(self, request, obj=None):
         # Don't allow a user to modify an existing public key directly.
         if obj and obj.public_key:
             return ['public_key'] + self.readonly_fields
         return self.readonly_fields
 
-    def get_actions(self, request):
-        # Bulk deletion is disabled at the manager level, so remove the action from the admin site for this model.
-        actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        if not request.user.has_perm('secrets.change_userkey'):
-            del actions['activate_selected']
-        return actions
-
+    @admin.action(description='Activate selected public keys', permissions=['change'])
     def activate_selected(self, request, queryset):
         """
         Enable bulk activation of UserKeys
@@ -35,7 +35,11 @@ class UserKeyAdmin(admin.ModelAdmin):
         try:
             my_userkey = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
-            messages.error(request, "You do not have an active User Key.")
+            messages.error(request, "You do not have a User Key.")
+            return redirect('admin:netbox_secrets_userkey_changelist')
+
+        if not my_userkey.is_active():
+            messages.error(request, "Your User Key is not active.")
             return redirect('admin:netbox_secrets_userkey_changelist')
 
         if 'activate' in request.POST:
@@ -43,8 +47,12 @@ class UserKeyAdmin(admin.ModelAdmin):
             if form.is_valid():
                 master_key = my_userkey.get_master_key(form.cleaned_data['secret_key'])
                 if master_key is not None:
-                    for uk in form.cleaned_data['_selected_action']:
+                    for uk in form.cleaned_data[ACTION_CHECKBOX_NAME]:
                         uk.activate(master_key)
+                    messages.success(
+                        request,
+                        "Successfully activated {} user keys.".format(len(form.cleaned_data[ACTION_CHECKBOX_NAME])),
+                    )
                     return redirect('admin:netbox_secrets_userkey_changelist')
                 else:
                     messages.error(
@@ -53,7 +61,7 @@ class UserKeyAdmin(admin.ModelAdmin):
                         extra_tags='error',
                     )
         else:
-            form = ActivateUserKeyForm(initial={'_selected_action': request.POST.getlist(ACTION_CHECKBOX_NAME)})
+            form = ActivateUserKeyForm(initial={ACTION_CHECKBOX_NAME: request.POST.getlist(ACTION_CHECKBOX_NAME)})
 
         return render(
             request,
@@ -63,4 +71,3 @@ class UserKeyAdmin(admin.ModelAdmin):
             },
         )
 
-    activate_selected.short_description = "Activate selected user keys"

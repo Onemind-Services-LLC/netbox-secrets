@@ -2,7 +2,17 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.5...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.0...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Unable to Activate Selected User Keys in Admin Panel [\#106](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/106)
+- \[Bug\]: Code key length mistake 4097 instead of 4096 [\#92](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/92)
+- \[Docs\]: API Pulling session Key [\#83](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/83)
+
+## [v1.9.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.0) (2023-09-07)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.8.5...v1.9.0)
 
 **Closed issues:**
 
@@ -17,6 +27,8 @@
 
 **Merged pull requests:**
 
+- Prepare for release [\#98](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/98) ([abhi1693](https://github.com/abhi1693))
+- Add support for NetBox v3.6 [\#97](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/97) ([kprince28](https://github.com/kprince28))
 - Bump word-wrap from 1.2.3 to 1.2.4 in /netbox\_secrets/project-static [\#86](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/86) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump semver from 6.3.0 to 6.3.1 in /netbox\_secrets/project-static [\#84](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/84) ([dependabot[bot]](https://github.com/apps/dependabot))
 

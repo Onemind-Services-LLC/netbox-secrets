@@ -87,10 +87,10 @@ class UserKey(ChangeLoggingMixin, WebhooksMixin):
                     },
                 )
             # We can't use keys bigger than our master_key_cipher field can hold
-            if pubkey_length > 4096:
+            if pubkey_length > 8192:
                 raise ValidationError(
                     {
-                        'public_key': "Public key size ({}) is too large. Maximum key size is 4096 bits.".format(
+                        'public_key': "Public key size ({}) is too large. Maximum key size is 8192 bits.".format(
                             pubkey_length,
                         ),
                     },

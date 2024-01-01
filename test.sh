@@ -8,9 +8,6 @@
 # exit when a command exits with an exit code != 0
 set -e
 
-# NETBOX_VARIANT is used by `Dockerfile` to determine the tag
-NETBOX_VARIANT="${1-latest}"
-
 # The docker compose command to use
 doco="docker compose --file docker-compose.yml"
 

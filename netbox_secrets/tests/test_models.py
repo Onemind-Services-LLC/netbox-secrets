@@ -50,18 +50,13 @@ class UserKeyTestCase(TestCase):
         """
         rsa = RSA.generate(settings.PLUGINS_CONFIG['netbox_secrets'].get('public_key_size', 2048) - 256)
         small_key = rsa.publickey().exportKey('PEM')
-        try:
+        with self.assertRaises(ValidationError):
             UserKey(public_key=small_key).clean()
-            self.fail("UserKey.clean() did not fail with an undersized RSA key")
-        except ValidationError:
-            pass
-        rsa = RSA.generate(4096 + 256)  # Max size is 4096 (enforced by master_key_cipher field size)
+
+        rsa = RSA.generate(8192 + 256)  # Max size is 8192 (enforced by master_key_cipher field size)
         big_key = rsa.publickey().exportKey('PEM')
-        try:
+        with self.assertRaises(ValidationError):
             UserKey(public_key=big_key).clean()
-            self.fail("UserKey.clean() did not fail with an oversized RSA key")
-        except ValidationError:
-            pass
 
     def test_04_master_key_retrieval(self):
         """
@@ -161,7 +156,7 @@ class SecretTestCase(TestCase):
         """
         Test encrypting a plaintext value of the maximum length.
         """
-        plaintext = '0123456789abcdef' * 4096
+        plaintext = '0123456789abcdef' * 8192
         plaintext = plaintext[:65535]  # 65,535 chars
         secret = Secret(plaintext=plaintext)
         secret.encrypt(self.secret_key)
