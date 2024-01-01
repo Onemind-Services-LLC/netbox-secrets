@@ -27,14 +27,6 @@ class UserKeyAdmin(admin.ModelAdmin):
             return ['public_key'] + self.readonly_fields
         return self.readonly_fields
 
-    def response_action(self, request, queryset):
-        # Modify request.POST to remove the empty string from the list of selected objects.
-        post = request.POST.copy()
-        post.setlist(ACTION_CHECKBOX_NAME, list(filter(None, post.getlist(ACTION_CHECKBOX_NAME))))
-        request.POST = post
-
-        return super().response_action(request, queryset)
-
     @admin.action(description='Activate selected public keys', permissions=['change'])
     def activate_selected(self, request, queryset):
         """
