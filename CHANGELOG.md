@@ -2,7 +2,19 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.0...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.1...HEAD)
+
+**Closed issues:**
+
+- Netbox v3.7.0 support [\#117](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/117)
+
+**Merged pull requests:**
+
+- Release v1.10.0 [\#119](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/119) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.9.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.1) (2024-01-01)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.0...v1.9.1)
 
 **Closed issues:**
 
