@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from netbox_secrets.filtersets import *
@@ -19,16 +20,12 @@ class SecretRoleTestCase(TestCase):
         )
         SecretRole.objects.bulk_create(roles)
 
-    def test_id(self):
+    def test_secret_role(self):
+        name = SecretRole.objects.all()
         params = {'id': self.queryset.values_list('pk', flat=True)[:2]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_name(self):
-        name = SecretRole.objects.all()
         params = {'name': [name[0].name, name[1].name]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_slug(self):
         params = {'slug': ['secret-role-1', 'secret-role-2']}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
@@ -79,18 +76,28 @@ class SecretTestCase(TestCase):
         for s in secrets:
             s.save()
 
-    def test_id(self):
-        params = {'id': self.queryset.values_list('pk', flat=True)[:2]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_name(self):
-        name = Secret.objects.all()
-        params = {'name': [name[0].name, name[1].name, name[2].name, name[3].name, name[4].name, name[5].name]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 6)
+    def test_Secret(self):
+        secrets = Secret.objects.all()[:4]
+        params = {'id': [secrets[0].id, secrets[1].id, secrets[2].id, secrets[3].id]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
+        params = {'name': [secrets[0].name, secrets[1].name, secrets[2].name, secrets[3].name]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
 
     def test_role(self):
         roles = SecretRole.objects.all()[:2]
-        params = {'role_id': [roles[0].pk, roles[1].pk]}
+        params = {'role_id': [roles[0].id, roles[1].id]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
         params = {'role': [roles[0].slug, roles[1].slug]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
+
+    def test_assigned_object(self):
+        params = {
+            'assigned_object_type': 'dcim.device',
+            'assigned_object_id': [Device.objects.first().pk],
+        }
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+        params = {
+            'assigned_object_type': 'virtualization.virtualmachine',
+            'assigned_object_id': [VirtualMachine.objects.first().pk],
+        }
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
