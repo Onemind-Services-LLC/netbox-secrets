@@ -13,7 +13,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from netbox.models import PrimaryModel
-from netbox.models.features import ChangeLoggingMixin, WebhooksMixin
+from netbox.models.features import ChangeLoggingMixin, EventRulesMixin
 from utilities.querysets import RestrictedQuerySet
 
 from ..exceptions import InvalidKey
@@ -31,7 +31,7 @@ __all__ = [
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
-class UserKey(ChangeLoggingMixin, WebhooksMixin):
+class UserKey(ChangeLoggingMixin, EventRulesMixin):
     """
     A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's

@@ -10,7 +10,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
-from extras.signals import clear_webhooks
+from extras.signals import clear_events
 from netbox.views import generic
 from tenancy.views import ObjectContactsView
 from utilities.exceptions import AbortRequest, PermissionsViolation
@@ -251,7 +251,7 @@ class SecretEditView(generic.ObjectEditView):
             except (AbortRequest, PermissionsViolation) as e:
                 logger.debug(e.message)
                 form.add_error(None, e.message)
-                clear_webhooks.send(sender=self)
+                clear_events.send(sender=self)
 
         else:
             logger.debug("Form validation failed")
