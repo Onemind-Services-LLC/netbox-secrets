@@ -6,6 +6,8 @@
 
 **Closed issues:**
 
+- \[Bug\]: Unable to Activate Selected User Keys in Admin Panel [\#106](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/106)
+- \[Bug\]: Code key length mistake 4097 instead of 4096 [\#92](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/92)
 - \[Docs\]: API Pulling session Key [\#83](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/83)
 
 ## [v1.9.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.0) (2023-09-07)
