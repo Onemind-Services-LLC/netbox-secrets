@@ -64,7 +64,6 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
         super().clean()
 
         if self.public_key:
-
             # Validate the public key format
             try:
                 pubkey = RSA.import_key(self.public_key)
@@ -97,7 +96,6 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
                 )
 
     def save(self, *args, **kwargs):
-
         # Check whether public_key has been modified. If so, nullify the initial master_key_cipher.
         if self.__initial_master_key_cipher and self.public_key != self.__initial_public_key:
             self.master_key_cipher = None
@@ -110,7 +108,6 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-
         # If Secrets exist and this is the last active UserKey, prevent its deletion. Deleting the last UserKey will
         # result in the master key being destroyed and rendering all Secrets inaccessible.
         if Secret.objects.count() and [uk.pk for uk in UserKey.objects.active()] == [self.pk]:
@@ -180,7 +177,6 @@ class SessionKey(models.Model):
         return f'{self.userkey.user.username} (RSA)'
 
     def save(self, master_key=None, *args, **kwargs):
-
         if master_key is None:
             raise Exception("The master key must be provided to save a session key.")
 
@@ -197,7 +193,6 @@ class SessionKey(models.Model):
         super().save(*args, **kwargs)
 
     def get_master_key(self, session_key):
-
         # Validate the provided session key
         if not check_password(session_key, self.hash):
             raise InvalidKey("Invalid session key")
@@ -208,7 +203,6 @@ class SessionKey(models.Model):
         return master_key
 
     def get_session_key(self, master_key):
-
         # Recover session key using the master key
         session_key = strxor.strxor(master_key, bytes(self.cipher))
 

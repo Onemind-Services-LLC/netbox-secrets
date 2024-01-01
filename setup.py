@@ -5,7 +5,7 @@ description = "Enhance your secret management with encrypted storage and flexibl
 
 readme = os.path.join(os.path.dirname(__file__), 'README.md')
 
-with open(readme, 'r') as fh:
+with open(readme) as fh:
     long_description = fh.read()
 
 setup(

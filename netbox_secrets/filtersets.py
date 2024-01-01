@@ -86,9 +86,7 @@ if plugin_settings.get('enable_contacts', False):
 else:
 
     class SecretFilterSet(NetBoxModelFilterSet):
-        name = MultiValueCharFilter(
-            lookup_expr='iexact'
-        )
+        name = MultiValueCharFilter(lookup_expr='iexact')
         role_id = django_filters.ModelMultipleChoiceFilter(
             queryset=SecretRole.objects.all(),
             label='Role (ID)',

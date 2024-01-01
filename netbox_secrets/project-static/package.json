@@ -1,22 +1,7 @@
 {
-  "name": "netbox_secrets",
-  "version": "0.1.0",
-  "main": "dist/secrets.js",
-  "license": "Apache-2.0",
-  "scripts": {
-    "bundle": "node bundle.js && cp -fv dist/secrets.js* ../static/netbox_secrets/",
-    "bundle:styles": "node bundle.js --styles",
-    "bundle:scripts": "node bundle.js --scripts",
-    "format": "yarn format:scripts && yarn format:styles",
-    "format:scripts": "prettier -w src/**/*.ts",
-    "format:styles": "prettier -w styles/**/*.scss",
-    "validate": "yarn validate:types && yarn validate:lint",
-    "validate:lint": "eslint -c .eslintrc ./src/**/*.ts",
-    "validate:types": "tsc --noEmit",
-    "validate:formatting": "yarn validate:formatting:scripts && yarn validate:formatting:styles",
-    "validate:formatting:styles": "prettier -c styles/**/*.scss",
-    "validate:formatting:scripts": "prettier -c src/**/*.ts"
-  },
+  "browserslist": [
+    "defaults"
+  ],
   "dependencies": {
     "cookie": "^0.5.0",
     "esbuild": "^0.17.18"
@@ -35,18 +20,33 @@
     "prettier-eslint": "^15.0.1",
     "typescript": "^5.0.4"
   },
+  "license": "Apache-2.0",
+  "main": "dist/secrets.js",
+  "name": "netbox_secrets",
   "prettier": {
-    "semi": true,
-    "printWidth": 100,
-    "tabWidth": 2,
-    "singleQuote": true,
+    "arrowParens": "avoid",
     "bracketSpacing": true,
     "jsxBracketSameLine": false,
-    "useTabs": false,
-    "arrowParens": "avoid",
-    "trailingComma": "all"
+    "printWidth": 100,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "useTabs": false
   },
-  "browserslist": [
-    "defaults"
-  ]
+  "scripts": {
+    "bundle": "node bundle.js && cp -fv dist/secrets.js* ../static/netbox_secrets/",
+    "bundle:scripts": "node bundle.js --scripts",
+    "bundle:styles": "node bundle.js --styles",
+    "format": "yarn format:scripts && yarn format:styles",
+    "format:scripts": "prettier -w src/**/*.ts",
+    "format:styles": "prettier -w styles/**/*.scss",
+    "validate": "yarn validate:types && yarn validate:lint",
+    "validate:formatting": "yarn validate:formatting:scripts && yarn validate:formatting:styles",
+    "validate:formatting:scripts": "prettier -c src/**/*.ts",
+    "validate:formatting:styles": "prettier -c styles/**/*.scss",
+    "validate:lint": "eslint -c .eslintrc ./src/**/*.ts",
+    "validate:types": "tsc --noEmit"
+  },
+  "version": "0.1.0"
 }

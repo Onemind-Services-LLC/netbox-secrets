@@ -146,7 +146,6 @@ class SecretEditView(generic.ObjectEditView):
         }
 
     def dispatch(self, request, *args, **kwargs):
-
         # Check that the user has a valid UserKey
         try:
             uk = models.UserKey.objects.get(user=request.user)
@@ -287,6 +286,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
+
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
