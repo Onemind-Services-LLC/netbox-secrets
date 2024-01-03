@@ -1,9 +1,5 @@
 #!/bin/bash
 # Runs the NetBox plugin unit tests
-# Usage:
-#   ./test.sh latest
-#   ./test.sh v2.9.7
-#   ./test.sh develop-2.10
 
 # exit when a command exits with an exit code != 0
 set -e
@@ -24,12 +20,10 @@ test_cleanup() {
   docker image rm docker.io/library/netbox-secrets-netbox || echo ''
 }
 
-export NETBOX_VARIANT=${NETBOX_VARIANT}
-
-echo "🐳🐳🐳  Start testing '${NETBOX_VARIANT}'"
+echo "🐳🐳🐳  Start testing"
 
 # Make sure the cleanup script is executed
 trap test_cleanup EXIT ERR
 test_netbox_unit_tests
 
-echo "🐳🐳🐳  Done testing '${NETBOX_VARIANT}'"
+echo "🐳🐳🐳  Done testing"
