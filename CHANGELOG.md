@@ -2,7 +2,21 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.1...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.0...HEAD)
+
+**Closed issues:**
+
+- \[Docs\]: top\_level\_menu is not documented [\#122](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/122)
+- \[Bug\]: ENHANCE YOUR SECRET MANAGEMENT... description is too long and unusable [\#121](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/121)
+- \[Bug\]: Unable to import plugin netbox-secrets: Module not found. [\#120](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/120)
+
+**Merged pull requests:**
+
+- Release v1.10.1 [\#123](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/123) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.10.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.0) (2024-01-01)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.1...v1.10.0)
 
 **Closed issues:**
 
