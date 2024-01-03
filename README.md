@@ -64,6 +64,10 @@ The following options are available in the configuration file:
   - __Description__: Size of the public key
   - __Default__: `2048`
   - __Options__: `2048`, `4096`, `8192`
+- `top_level_menu`
+  - __Type__: `Boolean`
+  - __Description__: Enable top level menu
+  - __Default__: `False`
 
 ## Extra Configuration
 
