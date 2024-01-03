@@ -10,7 +10,7 @@ with open(readme) as fh:
 
 setup(
     name='netbox-secrets',
-    version='1.10.0',
+    version='1.10.1',
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
