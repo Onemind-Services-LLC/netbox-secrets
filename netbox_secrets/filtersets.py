@@ -23,7 +23,7 @@ class SecretRoleFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = SecretRole
-        fields = ['id', 'slug', 'description', 'comments']
+        fields = ['id', 'name', 'slug', 'description', 'comments']
 
     def search(self, queryset, name, value):
         if not value.strip():
@@ -67,6 +67,12 @@ if plugin_settings.get('enable_contacts', False):
             model = Secret
             fields = [
                 'id',
+                'assigned_object_type',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
                 'contact',
                 'description',
                 'comments',
@@ -109,6 +115,12 @@ else:
             model = Secret
             fields = [
                 'id',
+                'assigned_object_type',
+                'assigned_object_type_id',
+                'assigned_object_id',
+                'role_id',
+                'role',
+                'name',
                 '_object_repr',
                 'description',
                 'comments',
