@@ -2,7 +2,24 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.0...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.2...HEAD)
+
+**Merged pull requests:**
+
+- Reverted 8257a03 to fix filtersets [\#129](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/129) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.9.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.2) (2024-01-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.1...v1.9.2)
+
+**Closed issues:**
+
+- \[Feature\]: Disable encryption? [\#126](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/126)
+- Mismatch in PluginConfig Attributes and Update descriptions in setup.py file [\#124](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/124)
+
+## [v1.10.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.1) (2024-01-03)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.0...v1.10.1)
 
 **Closed issues:**
 
