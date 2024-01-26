@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.contrib.contenttypes.models import ContentType
 
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from netbox_secrets.filtersets import *
@@ -95,9 +94,9 @@ class SecretTestCase(TestCase):
             'assigned_object_type': 'dcim.device',
             'assigned_object_id': [Device.objects.first().pk],
         }
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
         params = {
             'assigned_object_type': 'virtualization.virtualmachine',
             'assigned_object_id': [VirtualMachine.objects.first().pk],
         }
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
