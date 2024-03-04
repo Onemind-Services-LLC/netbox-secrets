@@ -9,8 +9,9 @@ import type { APISecret, APIKeyPair } from './types';
 function initGenerateKeyPair() {
   const element = document.getElementById('new_keypair_modal') as HTMLDivElement;
   const accept = document.getElementById('use_new_pubkey') as HTMLButtonElement;
+  const copyBtn = document.getElementById('copy_prikey') as HTMLButtonElement;
   // If the elements are not loaded, stop.
-  if (element === null || accept === null) {
+  if (element === null || accept === null || copyBtn === null) {
     return;
   }
   const publicElem = element.querySelector<HTMLTextAreaElement>('textarea#new_pubkey');
@@ -56,6 +57,7 @@ function initGenerateKeyPair() {
   }
   element.addEventListener('shown.bs.modal', () => handleOpen());
   accept.addEventListener('click', () => handleAccept());
+  copyBtn.addEventListener('click', () => navigator.clipboard.writeText(privateElem?.value || ''));
 }
 
 /**
