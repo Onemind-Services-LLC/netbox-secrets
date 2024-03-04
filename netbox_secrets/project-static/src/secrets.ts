@@ -10,8 +10,9 @@ function initGenerateKeyPair() {
   const element = document.getElementById('new_keypair_modal') as HTMLDivElement;
   const accept = document.getElementById('use_new_pubkey') as HTMLButtonElement;
   const copyBtn = document.getElementById('copy_prikey') as HTMLButtonElement;
+  const exportBtn = document.getElementById('export_key') as HTMLButtonElement;
   // If the elements are not loaded, stop.
-  if (element === null || accept === null || copyBtn === null) {
+  if (element === null || accept === null || copyBtn === null || exportBtn === null) {
     return;
   }
   const publicElem = element.querySelector<HTMLTextAreaElement>('textarea#new_pubkey');
@@ -55,9 +56,31 @@ function initGenerateKeyPair() {
       publicKeyField.innerText = publicElem.value;
     }
   }
+
+  /**
+   * Handles file download functionality.
+   */
+  function handleExport() {
+    const content = `Public Key\n\n${publicElem?.value}\n\nPrivate Key\n\n${privateElem?.value}`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = window.URL.createObjectURL(blob);
+    a.download = 'key.txt';
+    document.body.appendChild(a);
+
+    a.click();
+
+    window.URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+  }
+
   element.addEventListener('shown.bs.modal', () => handleOpen());
   accept.addEventListener('click', () => handleAccept());
   copyBtn.addEventListener('click', () => navigator.clipboard.writeText(privateElem?.value || ''));
+  exportBtn.addEventListener('click', () => handleExport());
 }
 
 /**
