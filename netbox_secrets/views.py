@@ -116,6 +116,8 @@ class SecretListView(generic.ObjectListView):
     table = tables.SecretTable
     actions = {
         "export": {"view"},
+        "bulk_edit": {"change"},
+        "bulk_delete": {"delete"},
     }
 
 
