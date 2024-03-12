@@ -2,7 +2,19 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.2...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.2...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]:  List View action Buttons not Visible [\#132](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/132)
+- \[Feature\]:  Hashicorp Vault integration? [\#125](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/125)
+- \[Bug\]: User Key Add Error: `'str' object has no attribute '_meta'` [\#116](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/116)
+- \[Bug\]: Cannot create more than one un-named secret for an object [\#100](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/100)
+- \[Feature\]: pass session key in GET/POST requests data [\#85](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/85)
+
+## [v1.10.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.2) (2024-01-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.2...v1.10.2)
 
 **Merged pull requests:**
 
