@@ -114,7 +114,11 @@ class SecretListView(generic.ObjectListView):
     filterset = filtersets.SecretFilterSet
     filterset_form = forms.SecretFilterForm
     table = tables.SecretTable
-    actions = ('bulk_delete', 'bulk_edit')
+    actions = {
+        "export": {"view"},
+        "bulk_edit": {"change"},
+        "bulk_delete": {"delete"},
+    }
 
 
 @register_model_view(models.Secret)
