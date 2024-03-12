@@ -11,6 +11,7 @@
 - \[Bug\]: User Key Add Error: `'str' object has no attribute '_meta'` [\#116](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/116)
 - \[Bug\]: Cannot create more than one un-named secret for an object [\#100](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/100)
 - \[Feature\]: pass session key in GET/POST requests data [\#85](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/85)
+- \[Feature\]: Add button to export keys to a file for download and a button to copy the private key [\#16](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/16)
 
 ## [v1.10.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.2) (2024-01-26)
 
