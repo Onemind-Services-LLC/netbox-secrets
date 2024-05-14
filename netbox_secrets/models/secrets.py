@@ -39,7 +39,7 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
     """
 
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name='user_key', editable=False)
+    user = models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False)
     public_key = models.TextField(
         verbose_name='RSA public key',
     )
