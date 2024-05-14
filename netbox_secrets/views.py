@@ -15,7 +15,8 @@ from netbox.views import generic
 from tenancy.views import ObjectContactsView
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
-from utilities.utils import count_related, prepare_cloned_fields
+from utilities.query import count_related
+from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
 
 from . import constants, exceptions, filtersets, forms, models, tables, utils

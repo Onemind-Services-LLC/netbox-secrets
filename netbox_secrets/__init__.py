@@ -1,7 +1,7 @@
 from importlib.metadata import metadata
 
 from django.db.utils import OperationalError, ProgrammingError
-from extras.plugins import PluginConfig
+from netbox.plugins import PluginConfig
 
 metadata = metadata('netbox_secrets')
 
@@ -14,8 +14,8 @@ class NetBoxSecrets(PluginConfig):
     author = metadata.get('Author')
     author_email = metadata.get('Author-email')
     base_url = 'secrets'
-    min_version = '3.7.0'
-    max_version = '3.7.99'
+    min_version = '4.0.0'
+    max_version = '4.0.99'
     required_settings = []
     default_settings = {
         'apps': ['dcim.device', 'virtualization.virtualmachine'],

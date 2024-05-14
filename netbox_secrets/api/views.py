@@ -13,7 +13,7 @@ from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from netbox.api.viewsets import BaseViewSet, mixins, NetBoxModelViewSet
-from utilities.utils import count_related
+from utilities.query import count_related
 from . import serializers
 from .. import constants, exceptions, filtersets, models
 
@@ -141,7 +141,6 @@ class SessionKeyViewSet(
     drf_mixins.ListModelMixin,
     drf_mixins.RetrieveModelMixin,
     drf_mixins.DestroyModelMixin,
-    mixins.BriefModeMixin,
     mixins.BulkDestroyModelMixin,
     mixins.ObjectValidationMixin,
     BaseViewSet,
