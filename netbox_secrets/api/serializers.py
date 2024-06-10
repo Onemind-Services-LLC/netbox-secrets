@@ -52,6 +52,7 @@ class UserKeySerializer(serializers.ModelSerializer):
             'is_active',
             'is_filled',
         ]
+        brief_fields = ('id', 'display', 'url')
 
     @extend_schema_field(serializers.CharField())
     def get_display(self, obj):
@@ -85,6 +86,7 @@ class SessionKeySerializer(serializers.ModelSerializer):
             'session_key',
             'created',
         ]
+        brief_fields = ('id', 'display', 'url')
 
     @extend_schema_field(serializers.CharField())
     def get_display(self, obj):
@@ -108,9 +110,10 @@ class SessionKeyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionKey
         fields = [
-            'private_key',
             'preserve_key',
+            'private_key',
         ]
+        #brief_fields = ('id', 'display', 'url')
 
 
 #
@@ -137,7 +140,7 @@ class SecretRoleSerializer(NetBoxModelSerializer):
             'last_updated',
             'secret_count',
         ]
-
+        brief_fields = ('id', 'name', 'display', 'url', 'secret_count', 'slug')
 
 #
 # Secrets
@@ -172,6 +175,7 @@ class SecretSerializer(NetBoxModelSerializer):
             'last_updated',
         ]
         validators = []
+        brief_fields = ('id', 'display', 'name', 'url')
 
     @extend_schema_field(serializers.DictField())
     def get_assigned_object(self, obj):

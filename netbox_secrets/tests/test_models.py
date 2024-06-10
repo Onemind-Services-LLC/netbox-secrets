@@ -2,7 +2,7 @@ import string
 
 from Crypto.PublicKey import RSA
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
@@ -17,6 +17,7 @@ from netbox_secrets.utils.hashers import SecretValidationHasher
 
 class UserKeyTestCase(TestCase):
     def setUp(self):
+        User = get_user_model()
         self.TEST_KEYS = {}
         key_size = settings.PLUGINS_CONFIG['netbox_secrets'].get('public_key_size')
         for username in ['alice', 'bob']:
@@ -29,6 +30,7 @@ class UserKeyTestCase(TestCase):
         """
         Validate the filling of a UserKey with public key material.
         """
+        User = get_user_model()
         alice_uk = UserKey(user=User.objects.get(username='alice'))
         self.assertFalse(alice_uk.is_filled(), "UserKey with empty public_key is_filled() did not return False")
         alice_uk.public_key = self.TEST_KEYS['alice_public']
@@ -38,6 +40,7 @@ class UserKeyTestCase(TestCase):
         """
         Validate the activation of a UserKey.
         """
+        User = get_user_model()
         master_key = generate_random_key()
         alice_uk = UserKey(user=User.objects.get(username='alice'), public_key=self.TEST_KEYS['alice_public'])
         self.assertFalse(alice_uk.is_active(), "Inactive UserKey is_active() did not return False")
@@ -62,6 +65,7 @@ class UserKeyTestCase(TestCase):
         """
         Test the decryption of a master key using the user's private key.
         """
+        User = get_user_model()
         master_key = generate_random_key()
         alice_uk = UserKey(user=User.objects.get(username='alice'), public_key=self.TEST_KEYS['alice_public'])
         alice_uk.activate(master_key)

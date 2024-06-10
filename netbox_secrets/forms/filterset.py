@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext as _
+from utilities.forms.rendering import FieldSet
 
 from netbox.forms import NetBoxModelFilterSetForm
 from utilities.forms.fields import (
@@ -18,7 +19,10 @@ __all__ = [
 
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole
-    fieldsets = ((None, ('q', 'filter_id', 'tag')), ('Secret Role', ('id',)))
+    fieldsets = (
+        FieldSet('q', 'filter_id', 'tag', name=None),
+        FieldSet('id', name='Secret Role'),
+    )
     id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles Name'))
     tag = TagFilterField(model)
 
@@ -27,9 +31,9 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
     model = Secret
 
     fieldsets = (
-        (None, ('q', 'filter_id', 'tag')),
-        ('Secret', ('id',)),
-        ('Attributes', ('role_id', 'assigned_object_type_id')),
+        FieldSet('q', 'filter_id', 'tag', name=None),     
+        FieldSet('id', name='Secret'),
+        FieldSet('role_id', 'assigned_object_type_id', name="Attributes"),
     )
 
     id = DynamicModelMultipleChoiceField(queryset=Secret.objects.all(), required=False, label=_('Name'))
