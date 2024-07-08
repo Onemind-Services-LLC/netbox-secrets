@@ -1,7 +1,18 @@
 import django_tables2 as tables
-from netbox.tables import NetBoxTable, columns
+from django.utils.translation import gettext as _
 
-from .models import Secret, SecretRole
+from netbox.tables import NetBoxTable, columns
+from .models import Secret, SecretRole, UserKey
+
+ACTIVATE_BUTTON = """
+{% load helpers %}
+{% if not record.is_active %}
+<a href="{% url 'plugins:netbox_secrets:userkey_activate' record.id %}" class="btn btn-sm btn-primary" title="Activate UserKey">
+    <i class="mdi mdi-auto-fix"></i>
+</a>
+{% endif %}
+"""
+
 
 #
 # Secret roles
@@ -74,3 +85,22 @@ class SecretTable(NetBoxTable):
             'role',
             'actions',
         )
+
+
+class UserKeyTable(NetBoxTable):
+    user = tables.Column(linkify=True)
+    is_active = columns.BooleanColumn(
+        verbose_name=_('Is Active'),
+    )
+    tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
+    actions = columns.ActionsColumn(
+        actions=(),
+        extra_buttons=ACTIVATE_BUTTON
+    )
+
+    class Meta(NetBoxTable.Meta):
+        model = UserKey
+        fields = (
+            'pk', 'user', 'is_active', 'created', 'last_updated', 'tags', 'actions',
+        )
+        default_columns = ('pk', 'id', 'user', 'is_active', 'created', 'last_updated',)

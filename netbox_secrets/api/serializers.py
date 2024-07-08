@@ -1,14 +1,14 @@
 from django.contrib.contenttypes.models import ContentType
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
 from netbox.constants import NESTED_SERIALIZER_PREFIX
-from rest_framework import serializers
 from utilities.api import get_serializer_for_model
-
+from .nested_serializers import *
 from ..constants import SECRET_ASSIGNABLE_MODELS
 from ..models import *
-from .nested_serializers import *
 
 __all__ = [
     'SecretRoleSerializer',

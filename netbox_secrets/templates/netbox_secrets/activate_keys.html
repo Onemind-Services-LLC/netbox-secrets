@@ -1,12 +1,65 @@
-{% extends "admin/base_site.html" %}
+{% extends 'generic/_base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Activate User Key" %}
+{% endblock title %}
+
+
+{% block controls %}
+    <div class="btn-list">
+
+        {# Link to model documentation #}
+        {% if settings.DOCS_ROOT and object.docs_url %}
+            <a href="{{ object.docs_url }}" target="_blank" class="btn btn-outline-secondary"
+               title="{% trans "View model documentation" %}">
+                <i class="mdi mdi-help-circle"></i> {% trans "Help" %}
+            </a>
+        {% endif %}
+
+    </div>
+{% endblock controls %}
+
+{% block tabs %}
+    <ul class="nav nav-tabs">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="edit-form-tab" data-bs-toggle="tab" data-bs-target="#edit-form"
+                    type="button" role="tab" aria-controls="edit-form" aria-selected="true">
+                {% trans "Activate" %}
+            </button>
+        </li>
+    </ul>
+{% endblock tabs %}
 
 {% block content %}
+    <div class="tab-pane show active" id="edit-form" role="tabpanel" aria-labelledby="object-list-tab">
 
-<form action="." method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="hidden" name="action" value="activate_selected" />
-    <input type="submit" name="activate" value="Activate User Key(s)" />
-</form>
+        <form action="{% url 'plugins:netbox_secrets:userkey_activate' pk=object.pk %}" method="post"
+              enctype="multipart/form-data" class="object-edit mt-5">
+            {% csrf_token %}
+            <div class="alert alert-info" role="alert">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <i class="mdi mdi-information-outline p-2"></i>
+                        <strong>Note:</strong> This form is for activating the <strong>{{ object }}</strong> User Key.
+                    </div>
+                </div>
+            </div>
+            <div id="form_fields" hx-disinherit="hx-select hx-swap">
+                {% block form %}
+                    {% include 'htmx/form.html' %}
+                {% endblock form %}
+            </div>
 
-{% endblock %}
+            <div class="text-end my-3">
+                {% block buttons %}
+                    <a href="{% url 'plugins:netbox_secrets:userkey_list' %}"
+                       class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                    <button type="submit" name="_update" class="btn btn-primary">
+                        {% trans "Activate" %}
+                    </button>
+                {% endblock buttons %}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

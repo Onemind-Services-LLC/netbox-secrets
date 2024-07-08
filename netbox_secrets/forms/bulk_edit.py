@@ -1,7 +1,7 @@
 from django import forms
+
 from netbox.forms import NetBoxModelBulkEditForm
 from utilities.forms.fields import CommentField
-
 from ..models import Secret, SecretRole
 
 __all__ = [

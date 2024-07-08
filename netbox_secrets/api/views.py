@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
-from netbox.api.viewsets import BaseViewSet, mixins, NetBoxModelViewSet
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from utilities.query import count_related
 from . import serializers
 from .. import constants, exceptions, filtersets, models

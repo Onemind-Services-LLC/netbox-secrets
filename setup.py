@@ -1,4 +1,5 @@
 import os
+
 from setuptools import find_packages, setup
 
 description = "Enhance your secret management with encrypted storage and flexible, user-friendly features."
@@ -17,6 +18,8 @@ setup(
     url='https://github.com/Onemind-Services-LLC/netbox-secrets/',
     author='Abhimanyu Saharan',
     author_email='asaharan@onemindservices.com',
+    maintainer="Prince Kumar",
+    maintainer_email="pkumar@onemindservices.com",
     license='Apache 2.0',
     install_requires=[
         'pycryptodome',

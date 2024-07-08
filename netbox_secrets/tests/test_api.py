@@ -1,14 +1,14 @@
 import base64
 
-from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
+
+from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from users.models import ObjectPermission
 from utilities.testing import APITestCase, APIViewTestCases
-
-from ..models import *
 from .constants import *
+from ..models import *
 
 
 class SecretsTestMixin:

@@ -5,17 +5,15 @@ from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-from netbox.models import PrimaryModel
-from netbox.models.features import ChangeLoggingMixin, EventRulesMixin
-from utilities.querysets import RestrictedQuerySet
 
+from netbox.models import NetBoxModel, PrimaryModel
+from utilities.querysets import RestrictedQuerySet
 from ..exceptions import InvalidKey
 from ..hashers import SecretValidationHasher
 from ..querysets import UserKeyQuerySet
@@ -31,7 +29,7 @@ __all__ = [
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
-class UserKey(ChangeLoggingMixin, EventRulesMixin):
+class UserKey(NetBoxModel):
     """
     A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
@@ -39,7 +37,8 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
     """
 
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False)
+    user = models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key',
+                                editable=False)
     public_key = models.TextField(
         verbose_name='RSA public key',
     )
@@ -59,6 +58,9 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
 
     def __str__(self):
         return self.user.username
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_secrets:userkey', args=[self.pk])
 
     def clean(self):
         super().clean()
@@ -321,7 +323,7 @@ class Secret(PrimaryModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2 : plaintext_length + 2].decode('utf8')
+        return s[2: plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """

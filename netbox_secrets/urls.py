@@ -1,6 +1,6 @@
 from django.urls import include, path
-from utilities.urls import get_model_urls
 
+from utilities.urls import get_model_urls
 from . import views
 
 urlpatterns = [
@@ -18,7 +18,10 @@ urlpatterns = [
     path('secrets/edit/', views.SecretBulkEditView.as_view(), name='secret_bulk_edit'),
     path('secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'secret'))),
     # User
-    path('user-key/', views.UserKeyView.as_view(), name='userkey'),
-    path('user-key/edit/', views.UserKeyEditView.as_view(), name='userkey_edit'),
+    path('user-key/', views.UserKeyListView.as_view(), name='userkey_list'),
+    path('user-key/add/', views.UserKeyEditView.as_view(), name='userkey_add'),
+    path('user-key/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
+    path('user-key/<int:pk>/activate/', views.ActivateUserkeyView.as_view(), name='userkey_activate'),
+
     path('session-key/delete/', views.SessionKeyDeleteView.as_view(), name='sessionkey_delete'),
 ]

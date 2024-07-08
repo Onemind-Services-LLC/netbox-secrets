@@ -1,6 +1,7 @@
 from importlib.metadata import metadata
 
 from django.db.utils import OperationalError, ProgrammingError
+
 from netbox.plugins import PluginConfig
 
 metadata = metadata('netbox_secrets')

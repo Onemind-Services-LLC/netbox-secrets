@@ -1,12 +1,13 @@
 from django.conf import settings
-from netbox.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
+
+from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 plugins_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
 
 menu_buttons = (
     PluginMenuItem(
-        link_text="User Key",
-        link="plugins:netbox_secrets:userkey",
+        link_text="User Keys",
+        link="plugins:netbox_secrets:userkey_list",
         permissions=["netbox_secrets.view_userkey"],
     ),
     PluginMenuItem(

@@ -1,8 +1,6 @@
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from utilities.testing import ViewTestCases
-
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-
+from utilities.testing import ViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 

@@ -1,7 +1,7 @@
-import { createToast } from './bs';
-import { apiGetBase, apiPostForm, isApiError, isInputElement, hasError } from './util';
+import {createToast} from './bs';
+import {apiGetBase, apiPostForm, hasError, isApiError, isInputElement} from './util';
 
-import type { APISecret, APIKeyPair } from './types';
+import type {APIKeyPair, APISecret} from './types';
 
 /**
  * Initialize Generate Private Key Pair Elements.

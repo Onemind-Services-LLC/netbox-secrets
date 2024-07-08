@@ -1,11 +1,10 @@
-import string
-
 from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+import string
 from netbox_secrets.models import Secret, UserKey
 from netbox_secrets.utils.crypto import (
     decrypt_master_key,

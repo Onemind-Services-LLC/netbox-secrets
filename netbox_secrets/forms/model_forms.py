@@ -1,9 +1,9 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
+
 from netbox.forms import NetBoxModelForm
 from utilities.forms.fields import CommentField, DynamicModelChoiceField, SlugField
-
 from ..constants import *
 from ..models import Secret, SecretRole, UserKey
 
@@ -118,7 +118,7 @@ class UserKeyForm(forms.ModelForm):
         ),
         label='Public Key (PEM format)',
         help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please '
-        'note that passphrase-protected keys are not supported.',
+                  'note that passphrase-protected keys are not supported.',
     )
 
     class Meta:
@@ -135,12 +135,7 @@ class UserKeyForm(forms.ModelForm):
 
 
 class ActivateUserKeyForm(forms.Form):
-    _selected_action = forms.ModelMultipleChoiceField(queryset=UserKey.objects.all(), label='User Keys')
     secret_key = forms.CharField(
-        widget=forms.Textarea(
-            attrs={
-                'class': 'vLargeTextField',
-            },
-        ),
-        label='Your private key',
+        widget=forms.Textarea(attrs={'class': 'vLargeTextField'}),
+        label='Your Private Key',
     )
