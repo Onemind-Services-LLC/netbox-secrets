@@ -147,6 +147,7 @@ class SessionKeyViewSet(
 ):
     queryset = models.SessionKey.objects.prefetch_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
+    brief = False
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
