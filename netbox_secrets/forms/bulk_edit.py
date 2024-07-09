@@ -2,6 +2,7 @@ from django import forms
 
 from netbox.forms import NetBoxModelBulkEditForm
 from utilities.forms.fields import CommentField
+from utilities.forms.rendering import FieldSet
 from ..models import Secret, SecretRole
 
 __all__ = [
@@ -17,7 +18,9 @@ class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
 
     model = SecretRole
 
-    fieldsets = ((None, ('description',)),)
+    FieldSets = (
+        FieldSet('description', name=None),
+    )
 
     class Meta:
         nullable_fields = ['description', 'comments']
@@ -30,7 +33,9 @@ class SecretBulkEditForm(NetBoxModelBulkEditForm):
 
     model = Secret
 
-    fieldsets = ((None, ('description',)),)
+    FieldSets = (
+        FieldSet('description', name=None),
+    )
 
     class Meta:
         nullable_fields = ['description', 'comments']

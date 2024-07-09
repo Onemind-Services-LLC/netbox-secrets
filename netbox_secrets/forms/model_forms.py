@@ -4,6 +4,7 @@ from django import forms
 
 from netbox.forms import NetBoxModelForm
 from utilities.forms.fields import CommentField, DynamicModelChoiceField, SlugField
+from utilities.forms.rendering import FieldSet
 from ..constants import *
 from ..models import Secret, SecretRole, UserKey
 
@@ -76,8 +77,8 @@ class SecretForm(NetBoxModelForm):
     comments = CommentField()
 
     fieldsets = (
-        (None, ('name', 'description', 'role', 'tags')),
-        ('Secret Data', ('plaintext', 'plaintext2')),
+        FieldSet('name', 'description', 'role', 'tags', name=None),
+        FieldSet('plaintext', 'plaintext2', name='Secret Data'),
     )
 
     class Meta:
