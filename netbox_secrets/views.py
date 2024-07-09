@@ -387,7 +387,7 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
     def post(self, request, pk):
         if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
-            return redirect('plugins:netbox_secrets:userkey_list')
+            return redirect('plugins:netbox_secrets:userkey_activate', pk=pk)
 
         form = forms.ActivateUserKeyForm(request.POST)
         if form.is_valid():
