@@ -5,21 +5,6 @@
     {% trans "Activate User Key" %}
 {% endblock title %}
 
-
-{% block controls %}
-    <div class="btn-list">
-
-        {# Link to model documentation #}
-        {% if settings.DOCS_ROOT and object.docs_url %}
-            <a href="{{ object.docs_url }}" target="_blank" class="btn btn-outline-secondary"
-               title="{% trans "View model documentation" %}">
-                <i class="mdi mdi-help-circle"></i> {% trans "Help" %}
-            </a>
-        {% endif %}
-
-    </div>
-{% endblock controls %}
-
 {% block tabs %}
     <ul class="nav nav-tabs">
         <li class="nav-item" role="presentation">
