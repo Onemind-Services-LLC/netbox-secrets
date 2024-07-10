@@ -1,4 +1,4 @@
-import {initSecrets} from './secrets';
+import { initSecrets } from './secrets';
 
 if (document.readyState !== 'loading') {
   initSecrets();
