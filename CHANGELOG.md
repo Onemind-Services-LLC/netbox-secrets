@@ -6,6 +6,7 @@
 
 **Closed issues:**
 
+- \[Docs\]: Add help for upgrading from netbox 2.11 to 3.x [\#134](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/134)
 - \[Bug\]:  List View action Buttons not Visible [\#132](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/132)
 - \[Feature\]:  Hashicorp Vault integration? [\#125](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/125)
 - \[Bug\]: User Key Add Error: `'str' object has no attribute '_meta'` [\#116](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/116)
