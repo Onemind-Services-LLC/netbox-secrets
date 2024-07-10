@@ -18,9 +18,9 @@ urlpatterns = [
     path('secrets/edit/', views.SecretBulkEditView.as_view(), name='secret_bulk_edit'),
     path('secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'secret'))),
     # User
-    path('user-key/', views.UserKeyListView.as_view(), name='userkey_list'),
-    path('user-key/add/', views.UserKeyEditView.as_view(), name='userkey_add'),
-    path('user-key/activate/', views.ActivateUserkeyView.as_view(), name='userkey_activate'),
-    path('user-key/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
+    path('user-keys/', views.UserKeyListView.as_view(), name='userkey_list'),
+    path('user-keys/add/', views.UserKeyEditView.as_view(), name='userkey_add'),
+    path('user-keys/activate/', views.ActivateUserkeyView.as_view(), name='userkey_activate'),
+    path('user-keys/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
     path('session-key/delete/', views.SessionKeyDeleteView.as_view(), name='sessionkey_delete'),
 ]
