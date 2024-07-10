@@ -14,6 +14,7 @@ from django.utils.encoding import force_bytes
 
 from netbox.models import NetBoxModel, PrimaryModel
 from utilities.querysets import RestrictedQuerySet
+from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from ..exceptions import InvalidKey
 from ..hashers import SecretValidationHasher
 from ..querysets import UserKeyQuerySet
@@ -120,6 +121,27 @@ class UserKey(NetBoxModel):
             )
 
         super().delete(*args, **kwargs)
+
+    def to_objectchange(self, action):
+        objectchange = super().to_objectchange(action)
+
+        # Censor any backend parameters marked as sensitive in the serialized data
+        pre_change_params = {}
+        post_change_params = {}
+        if objectchange.prechange_data:
+            pre_change_params = objectchange.prechange_data
+        if objectchange.postchange_data:
+            post_change_params = objectchange.postchange_data
+        if post_change_params.get("master_key_cipher"):
+            if post_change_params["master_key_cipher"] != pre_change_params.get("master_key_cipher"):
+                # Set the "changed" master_key_cipher if the parameter's value has been modified
+                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY_CHANGED
+            else:
+                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
+        if pre_change_params.get("master_key_cipher"):
+            pre_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
+
+        return objectchange
 
     def is_filled(self):
         """
@@ -324,7 +346,7 @@ class Secret(PrimaryModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2 : plaintext_length + 2].decode('utf8')
+        return s[2: plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """
