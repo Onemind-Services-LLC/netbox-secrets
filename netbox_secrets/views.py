@@ -280,6 +280,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
+
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -288,6 +289,7 @@ if plugin_settings.get('enable_contacts'):
 #
 # User Key
 #
+
 
 class UserKeyListView(generic.ObjectListView):
     queryset = models.UserKey.objects.all()
@@ -380,10 +382,14 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
     def get(self, request, pk):
         instance = self.get_instance()
         form = forms.ActivateUserKeyForm()
-        return render(request, self.template_name, {
-            'object': instance,
-            'form': form,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                'object': instance,
+                'form': form,
+            },
+        )
 
     def post(self, request, pk):
         if not self.userkey or not self.userkey.is_active():

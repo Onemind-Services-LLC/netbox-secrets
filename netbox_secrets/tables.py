@@ -93,14 +93,24 @@ class UserKeyTable(NetBoxTable):
         verbose_name=_('Is Active'),
     )
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
-    actions = columns.ActionsColumn(
-        actions=(),
-        extra_buttons=ACTIVATE_BUTTON
-    )
+    actions = columns.ActionsColumn(actions=(), extra_buttons=ACTIVATE_BUTTON)
 
     class Meta(NetBoxTable.Meta):
         model = UserKey
         fields = (
-            'pk', 'user', 'is_active', 'created', 'last_updated', 'tags', 'actions',
+            'pk',
+            'user',
+            'is_active',
+            'created',
+            'last_updated',
+            'tags',
+            'actions',
         )
-        default_columns = ('pk', 'id', 'user', 'is_active', 'created', 'last_updated',)
+        default_columns = (
+            'pk',
+            'id',
+            'user',
+            'is_active',
+            'created',
+            'last_updated',
+        )

@@ -18,9 +18,7 @@ class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
 
     model = SecretRole
 
-    FieldSets = (
-        FieldSet('description', name=None),
-    )
+    FieldSets = (FieldSet('description', name=None),)
 
     class Meta:
         nullable_fields = ['description', 'comments']
@@ -33,9 +31,7 @@ class SecretBulkEditForm(NetBoxModelBulkEditForm):
 
     model = Secret
 
-    FieldSets = (
-        FieldSet('description', name=None),
-    )
+    FieldSets = (FieldSet('description', name=None),)
 
     class Meta:
         nullable_fields = ['description', 'comments']

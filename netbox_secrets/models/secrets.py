@@ -37,8 +37,9 @@ class UserKey(NetBoxModel):
     """
 
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key',
-                                editable=False)
+    user = models.OneToOneField(
+        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False
+    )
     public_key = models.TextField(
         verbose_name='RSA public key',
     )
@@ -323,7 +324,7 @@ class Secret(PrimaryModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2: plaintext_length + 2].decode('utf8')
+        return s[2 : plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """

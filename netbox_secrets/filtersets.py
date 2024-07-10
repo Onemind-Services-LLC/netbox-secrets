@@ -33,14 +33,14 @@ class UserKeyFilterSet(NetBoxModelFilterSet):
 
     class Meta:
         model = UserKey
-        fields = ['id',]
+        fields = [
+            'id',
+        ]
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        return queryset.filter(
-            Q(user__username__icontains=value)
-        )
+        return queryset.filter(Q(user__username__icontains=value))
 
 
 class SecretRoleFilterSet(NetBoxModelFilterSet):

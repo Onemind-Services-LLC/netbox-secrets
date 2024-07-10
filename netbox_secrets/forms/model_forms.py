@@ -119,7 +119,7 @@ class UserKeyForm(forms.ModelForm):
         ),
         label='Public Key (PEM format)',
         help_text='Enter your public RSA key. Keep the private one with you; you will need it for decryption. Please '
-                  'note that passphrase-protected keys are not supported.',
+        'note that passphrase-protected keys are not supported.',
     )
 
     class Meta:
