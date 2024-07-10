@@ -346,7 +346,7 @@ class Secret(PrimaryModel):
             plaintext_length = (ord(s[0]) << 8) + ord(s[1])
         else:
             plaintext_length = (s[0] << 8) + s[1]
-        return s[2: plaintext_length + 2].decode('utf8')
+        return s[2 : plaintext_length + 2].decode('utf8')
 
     def encrypt(self, secret_key):
         """
