@@ -11,7 +11,7 @@ type ReqData = URLSearchParams | Dict | undefined | unknown;
  * @returns Type guard for `data`.
  */
 export function isApiError(data: Record<string, unknown>): data is APIError {
-  return 'error' in data && 'exception' in data;
+    return 'error' in data && 'exception' in data;
 }
 
 /**
@@ -21,7 +21,7 @@ export function isApiError(data: Record<string, unknown>): data is APIError {
  * @returns Type guard for `data`.
  */
 export function hasError(data: Record<string, unknown>): data is ErrorBase {
-  return 'error' in data;
+    return 'error' in data;
 }
 
 /**
@@ -30,18 +30,18 @@ export function hasError(data: Record<string, unknown>): data is ErrorBase {
  * @param element HTML Element.
  */
 export function isInputElement(element: HTMLElement): element is HTMLInputElement {
-  return 'value' in element && 'required' in element;
+    return 'value' in element && 'required' in element;
 }
 
 /**
  * Retrieve the CSRF token from cookie storage.
  */
 export function getCsrfToken(): string {
-  const { csrftoken: csrfToken } = Cookie.parse(document.cookie);
-  if (typeof csrfToken === 'undefined') {
-    throw new Error('Invalid or missing CSRF token');
-  }
-  return csrfToken;
+    const {csrftoken: csrfToken} = Cookie.parse(document.cookie);
+    if (typeof csrfToken === 'undefined') {
+        throw new Error('Invalid or missing CSRF token');
+    }
+    return csrfToken;
 }
 
 /**
@@ -53,34 +53,34 @@ export function getCsrfToken(): string {
  * @returns JSON Response
  */
 export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
-  url: string,
-  method: Method,
-  data?: D,
+    url: string,
+    method: Method,
+    data?: D,
 ): Promise<APIRes<R>> {
-  const token = getCsrfToken();
-  const headers = new Headers({ 'X-CSRFToken': token });
+    const token = getCsrfToken();
+    const headers = new Headers({'X-CSRFToken': token});
 
-  let body;
-  if (typeof data !== 'undefined') {
-    body = JSON.stringify(data);
-    headers.set('content-type', 'application/json');
-    headers.set('Accept', 'application/json');
-  }
+    let body;
+    if (typeof data !== 'undefined') {
+        body = JSON.stringify(data);
+        headers.set('content-type', 'application/json');
+        headers.set('Accept', 'application/json');
+    }
 
-  const res = await fetch(url, { method, body, headers, credentials: 'same-origin' });
-  const contentType = res.headers.get('Content-Type');
-  if (typeof contentType === 'string' && contentType.includes('text')) {
-    const error = await res.text();
-    return { error } as ErrorBase;
-  }
-  const json = (await res.json()) as R | APIError;
-  if (!res.ok && Array.isArray(json)) {
-    const error = json.join('\n');
-    return { error } as ErrorBase;
-  } else if (!res.ok && 'detail' in json) {
-    return { error: json.detail } as ErrorBase;
-  }
-  return json;
+    const res = await fetch(url, {method, body, headers, credentials: 'same-origin'});
+    const contentType = res.headers.get('Content-Type');
+    if (typeof contentType === 'string' && contentType.includes('text')) {
+        const error = await res.text();
+        return {error} as ErrorBase;
+    }
+    const json = (await res.json()) as R | APIError;
+    if (!res.ok && Array.isArray(json)) {
+        const error = json.join('\n');
+        return {error} as ErrorBase;
+    } else if (!res.ok && 'detail' in json) {
+        return {error: json.detail} as ErrorBase;
+    }
+    return json;
 }
 
 /**
@@ -91,10 +91,10 @@ export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
  * @returns JSON Response
  */
 export async function apiPostForm<R extends Dict, D extends Dict>(
-  url: string,
-  data: D,
+    url: string,
+    data: D,
 ): Promise<APIRes<R>> {
-  return await apiRequest<R, D>(url, 'POST', data);
+    return await apiRequest<R, D>(url, 'POST', data);
 }
 
 /**
@@ -104,5 +104,5 @@ export async function apiPostForm<R extends Dict, D extends Dict>(
  * @returns JSON Response
  */
 export async function apiGetBase<R extends Dict>(url: string): Promise<APIRes<R>> {
-  return await apiRequest<R>(url, 'GET');
+    return await apiRequest<R>(url, 'GET');
 }

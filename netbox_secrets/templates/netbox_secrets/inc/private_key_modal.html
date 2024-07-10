@@ -29,8 +29,8 @@
 {% load static %}
 {% block javascript %}
     <script
-    type="text/javascript"
-    src="{% static 'netbox_secrets/secrets.js' %}"
-    onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
+            type="text/javascript"
+            src="{% static 'netbox_secrets/secrets.js' %}"
+            onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
     </script>
 {% endblock %}
