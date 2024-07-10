@@ -15,6 +15,7 @@ __all__ = [
 class SecretFilter(BaseFilterMixin):
     pass
 
+
 @strawberry_django.filter(SecretRole, lookups=True)
 @autotype_decorator(SecretRoleFilterSet)
 class SecretRoleFilter(BaseFilterMixin):

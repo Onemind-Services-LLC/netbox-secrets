@@ -1,6 +1,7 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
+from django.utils.translation import gettext as _
 
 from netbox.forms import NetBoxModelForm
 from utilities.forms.fields import CommentField, DynamicModelChoiceField, SlugField
@@ -43,7 +44,7 @@ def validate_rsa_key(key, is_secret=True):
 class SecretRoleForm(NetBoxModelForm):
     slug = SlugField()
 
-    fieldsets = ((None, ('name', 'slug', 'description', 'tags')),)
+    fieldsets = (FieldSet('name', 'slug', 'description', 'tags', name=None),)
 
     class Meta:
         model = SecretRole
@@ -78,7 +79,7 @@ class SecretForm(NetBoxModelForm):
 
     fieldsets = (
         FieldSet('name', 'description', 'role', 'tags', name=None),
-        FieldSet('plaintext', 'plaintext2', name='Secret Data'),
+        FieldSet('plaintext', 'plaintext2', name=_('Secret Data')),
     )
 
     class Meta:
