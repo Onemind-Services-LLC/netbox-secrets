@@ -29,7 +29,7 @@ __all__ = [
 #
 
 
-class UserKeySerializer(serializers.ModelSerializer):
+class UserKeySerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:userkey-detail')
     public_key = serializers.CharField()
     private_key = serializers.CharField(
@@ -57,43 +57,6 @@ class UserKeySerializer(serializers.ModelSerializer):
             'is_filled',
         ]
         brief_fields = ('id', 'display', 'url')
-
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_display(self, obj):
-        return str(obj)
-
-    def __init__(self, *args, nested=False, fields=None, **kwargs):
-        self.nested = nested
-        self._requested_fields = fields
-        if self.nested:
-            self.validators = []
-        if self.nested and not fields:
-            self._requested_fields = getattr(self.Meta, 'brief_fields', None)
-        super().__init__(*args, **kwargs)
-
-    def to_internal_value(self, data):
-        # If initialized as a nested serializer, we should expect to receive the attrs or PK
-        # identifying a related object.
-        if self.nested:
-            queryset = self.Meta.model.objects.all()
-            return get_related_object_by_attrs(queryset, data)
-
-        return super().to_internal_value(data)
-
-    @cached_property
-    def fields(self):
-        """
-        Override the fields property to check for requested fields. If defined,
-        return only the applicable fields.
-        """
-        if not self._requested_fields:
-            return super().fields
-
-        fields = BindingDict(self)
-        for key, value in self.get_fields().items():
-            if key in self._requested_fields:
-                fields[key] = value
-        return fields
 
 
 #
@@ -247,9 +210,11 @@ class SecretSerializer(NetBoxModelSerializer):
         validators = []
         brief_fields = ('id', 'display', 'name', 'url')
 
-    @extend_schema_field(serializers.JSONField(allow_null=True))
+    @extend_schema_field(serializers.JSONField())
     def get_assigned_object(self, obj):
-        serializer = get_serializer_for_model(obj.assigned_object, prefix='')
+        if obj.assigned_object is None:
+            return None
+        serializer = get_serializer_for_model(obj.assigned_object)
         context = {'request': self.context['request']}
         return serializer(obj.assigned_object, nested=True, context=context).data
 
