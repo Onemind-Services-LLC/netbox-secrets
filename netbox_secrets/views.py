@@ -292,6 +292,7 @@ if plugin_settings.get('enable_contacts'):
 class UserKeyListView(generic.ObjectListView):
     queryset = models.UserKey.objects.all()
     table = tables.UserKeyTable
+    filterset = filtersets.UserKeyFilterSet
     template_name = 'netbox_secrets/userkey_list.html'
 
     # def get_queryset(self, request):
