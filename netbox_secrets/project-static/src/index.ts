@@ -1,7 +1,7 @@
-import {initSecrets} from './secrets';
+import { initSecrets } from './secrets';
 
 if (document.readyState !== 'loading') {
-    initSecrets();
+  initSecrets();
 } else {
-    document.addEventListener('DOMContentLoaded', initSecrets);
+  document.addEventListener('DOMContentLoaded', initSecrets);
 }

@@ -1,8 +1,8 @@
 import strawberry_django
-
 from netbox.graphql.filter_mixins import autotype_decorator, BaseFilterMixin
-from ..filtersets import *
+
 from ..models import *
+from ..filtersets import *
 
 __all__ = [
     'SecretFilter',

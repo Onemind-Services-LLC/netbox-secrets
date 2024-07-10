@@ -1,11 +1,11 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import strawberry
 import strawberry_django
 
 from netbox.graphql.types import NetBoxObjectType
-from .filters import *
 from ..models import *
+from .filters import *
 
 __all__ = [
     'SecretRoleType',
@@ -24,4 +24,5 @@ class SecretRoleType(NetBoxObjectType):
 class SecretType(NetBoxObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
     name: str
+    ciphertext: bool
     description: str
