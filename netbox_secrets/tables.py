@@ -4,15 +4,6 @@ from django.utils.translation import gettext as _
 from netbox.tables import NetBoxTable, columns
 from .models import Secret, SecretRole, UserKey
 
-ACTIVATE_BUTTON = """
-{% load helpers %}
-{% if not record.is_active %}
-<a href="{% url 'plugins:netbox_secrets:userkey_activate' record.id %}" class="btn btn-sm btn-primary" title="Activate UserKey">
-    <i class="mdi mdi-auto-fix"></i>
-</a>
-{% endif %}
-"""
-
 
 #
 # Secret roles
@@ -93,7 +84,7 @@ class UserKeyTable(NetBoxTable):
         verbose_name=_('Is Active'),
     )
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
-    actions = columns.ActionsColumn(actions=(), extra_buttons=ACTIVATE_BUTTON)
+    actions = columns.ActionsColumn(actions=())
 
     class Meta(NetBoxTable.Meta):
         model = UserKey

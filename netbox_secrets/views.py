@@ -280,7 +280,6 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
-
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -376,42 +375,36 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         except models.UserKey.DoesNotExist:
             self.userkey = models.UserKey(user=request.user)
 
-        self.instance_id = kwargs.get('pk')
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self, request, pk):
-        instance = self.get_instance()
+    def get(self, request):
         form = forms.ActivateUserKeyForm()
         return render(
             request,
             self.template_name,
             {
-                'object': instance,
                 'form': form,
             },
         )
 
-    def post(self, request, pk):
+    def post(self, request):
         if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
-            return redirect('plugins:netbox_secrets:userkey_activate', pk=pk)
+            return redirect('plugins:netbox_secrets:userkey_activate')
 
         form = forms.ActivateUserKeyForm(request.POST)
         if form.is_valid():
             master_key = self.userkey.get_master_key(form.cleaned_data['secret_key'])
+            user_keys = form.cleaned_data['user_keys']
             if master_key:
-                instance = self.get_instance()
-                instance.activate(master_key)
-                messages.success(request, f"Successfully activated {instance} user keys.")
-                return redirect("plugins:netbox_secrets:userkey_list")
+                for user_key in user_keys:
+                    user_key.activate(master_key)
+                    messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
+                    return redirect("plugins:netbox_secrets:userkey_list")
             else:
                 messages.error(request, "Invalid Private Key.")
 
-        instance = self.get_instance()
-        return render(request, self.template_name, {'form': form, 'object': instance})
-
-    def get_instance(self):
-        return models.UserKey.objects.get(id=self.instance_id)
+        return render(request, self.template_name, {'form': form})
 
 
 class SessionKeyDeleteView(generic.ObjectDeleteView):

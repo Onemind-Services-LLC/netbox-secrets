@@ -137,6 +137,9 @@ class UserKeyForm(forms.ModelForm):
 
 
 class ActivateUserKeyForm(forms.Form):
+    user_keys = forms.ModelMultipleChoiceField(
+        queryset=UserKey.objects.filter(master_key_cipher__isnull=True), label='User Keys'
+    )
     secret_key = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'vLargeTextField'}),
         label='Your Private Key',

@@ -34,7 +34,7 @@
 {% block content %}
     <div class="tab-pane show active" id="edit-form" role="tabpanel" aria-labelledby="object-list-tab">
 
-        <form action="{% url 'plugins:netbox_secrets:userkey_activate' pk=object.pk %}" method="post"
+        <form action="{% url 'plugins:netbox_secrets:userkey_activate' %}" method="post"
               enctype="multipart/form-data" class="object-edit mt-5">
             {% csrf_token %}
             <div class="alert alert-info" role="alert">

@@ -20,7 +20,7 @@ urlpatterns = [
     # User
     path('user-key/', views.UserKeyListView.as_view(), name='userkey_list'),
     path('user-key/add/', views.UserKeyEditView.as_view(), name='userkey_add'),
+    path('user-key/activate/', views.ActivateUserkeyView.as_view(), name='userkey_activate'),
     path('user-key/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
-    path('user-key/<int:pk>/activate/', views.ActivateUserkeyView.as_view(), name='userkey_activate'),
     path('session-key/delete/', views.SessionKeyDeleteView.as_view(), name='sessionkey_delete'),
 ]
