@@ -24,5 +24,4 @@ class SecretRoleType(NetBoxObjectType):
 class SecretType(NetBoxObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
     name: str
-    ciphertext: bool
     description: str
