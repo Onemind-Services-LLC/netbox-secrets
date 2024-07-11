@@ -102,6 +102,4 @@ class UserKeyTable(NetBoxTable):
             'id',
             'user',
             'is_active',
-            'created',
-            'last_updated',
         )
