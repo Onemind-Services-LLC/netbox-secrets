@@ -234,3 +234,8 @@ class SecretSerializer(NetBoxModelSerializer):
 class RSAKeyPairSerializer(serializers.Serializer):
     public_key = serializers.CharField()
     private_key = serializers.CharField()
+
+
+class ActivateUserKeySerializer(serializers.Serializer):
+    private_key = serializers.CharField()
+    user_keys = serializers.ListField()
