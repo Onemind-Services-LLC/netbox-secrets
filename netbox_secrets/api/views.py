@@ -10,7 +10,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
 
 from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from utilities.query import count_related
@@ -38,12 +38,10 @@ class SecretsRootView(APIRootView):
 #
 # User Key
 #
-class UserKeyViewSet(ModelViewSet):
+class UserKeyViewSet(ReadOnlyModelViewSet):
     queryset = models.UserKey.objects.all()
     serializer_class = serializers.UserKeySerializer
-
-    def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+    filterset_class = filtersets.UserKeyFilterSet
 
 
 #

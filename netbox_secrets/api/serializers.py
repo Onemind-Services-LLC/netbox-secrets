@@ -8,6 +8,7 @@ from rest_framework.utils.serializer_helpers import BindingDict
 
 from netbox.api.fields import ContentTypeField
 from netbox.api.serializers import NetBoxModelSerializer
+from users.api.serializers import UserSerializer
 from utilities.api import get_related_object_by_attrs, get_serializer_for_model
 from ..constants import SECRET_ASSIGNABLE_MODELS
 from ..models import *
@@ -31,6 +32,9 @@ __all__ = [
 
 class UserKeySerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:userkey-detail')
+    user = UserSerializer(
+        nested=True,
+    )
     public_key = serializers.CharField()
     private_key = serializers.CharField(
         write_only=True,
@@ -49,6 +53,7 @@ class UserKeySerializer(NetBoxModelSerializer):
             'id',
             'url',
             'display',
+            'user',
             'public_key',
             'private_key',
             'created',
