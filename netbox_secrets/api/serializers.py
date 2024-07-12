@@ -13,7 +13,6 @@ from utilities.api import get_related_object_by_attrs, get_serializer_for_model
 from ..constants import SECRET_ASSIGNABLE_MODELS
 from ..models import *
 
-# from .nested_serializers import *
 
 __all__ = [
     'SecretRoleSerializer',

@@ -296,9 +296,6 @@ class UserKeyListView(generic.ObjectListView):
     filterset = filtersets.UserKeyFilterSet
     template_name = 'netbox_secrets/userkey_list.html'
 
-    # def get_queryset(self, request):
-    #     return UserKey.objects.filter(user=request.user)
-
     def get_extra_context(self, request):
         user_key = UserKey.objects.filter(user=request.user).first()
         return {
