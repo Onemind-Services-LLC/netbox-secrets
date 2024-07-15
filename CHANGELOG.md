@@ -17,7 +17,11 @@
 
 **Merged pull requests:**
 
+- Release v2.0.0 [\#141](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/141) ([abhi1693](https://github.com/abhi1693))
 - Bump braces from 3.0.2 to 3.0.3 in /netbox\_secrets/project-static in the npm\_and\_yarn group across 1 directory [\#140](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/140) ([dependabot[bot]](https://github.com/apps/dependabot))
+- NB-12 Add support for NetBox v4 [\#139](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/139) ([kprince28](https://github.com/kprince28))
+- Fixes List View action Buttons not Visible [\#133](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/133) ([yash-pal1](https://github.com/yash-pal1))
+- Add button to export keys to a file for download and a button to copy the private key [\#131](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/131) ([VKumar786](https://github.com/VKumar786))
 
 ## [v1.10.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.2) (2024-01-26)
 
