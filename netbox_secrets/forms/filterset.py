@@ -7,6 +7,7 @@ from utilities.forms.fields import (
     DynamicModelMultipleChoiceField,
     TagFilterField,
 )
+from utilities.forms.rendering import FieldSet
 from ..constants import *
 from ..models import Secret, SecretRole
 
@@ -18,7 +19,10 @@ __all__ = [
 
 class SecretRoleFilterForm(NetBoxModelFilterSetForm):
     model = SecretRole
-    fieldsets = ((None, ('q', 'filter_id', 'tag')), ('Secret Role', ('id',)))
+    fieldsets = (
+        FieldSet('q', 'filter_id', 'tag', name=None),
+        FieldSet('id', name=_('Secret Role')),
+    )
     id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles Name'))
     tag = TagFilterField(model)
 
@@ -27,9 +31,9 @@ class SecretFilterForm(NetBoxModelFilterSetForm):
     model = Secret
 
     fieldsets = (
-        (None, ('q', 'filter_id', 'tag')),
-        ('Secret', ('id',)),
-        ('Attributes', ('role_id', 'assigned_object_type_id')),
+        FieldSet('q', 'filter_id', 'tag', name=None),
+        FieldSet('id', name=_('Secret')),
+        FieldSet('role_id', 'assigned_object_type_id', name=_("Attributes")),
     )
 
     id = DynamicModelMultipleChoiceField(queryset=Secret.objects.all(), required=False, label=_('Name'))

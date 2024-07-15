@@ -1,0 +1,22 @@
+{% extends 'generic/object_list.html' %}
+{% load i18n %}
+
+{% block controls %}
+    <div class="btn-list">
+        {% block extra_controls %}{% endblock %}
+        {% if 'add' in actions %}
+            <a href="{% url 'plugins:netbox_secrets:userkey_add' %}" type="button"
+               class="btn {% if user_key %}btn-warning{% else %}btn-primary{% endif %}">
+                <i class="mdi {% if user_key %}mdi-pencil{% else %}mdi-plus-thick{% endif %}"></i>
+                {% if user_key %}
+                    {% trans "Edit User Key" %}
+                {% else %}
+                    {% trans "Add User Key" %}
+                {% endif %}
+            </a>
+        {% endif %}
+        <a href="{% url 'plugins:netbox_secrets:userkey_activate'%}" type="button" class="btn btn-primary">
+            <i class="mdi mdi-auto-fix"></i> Activate User Key
+        </a>
+    </div>
+{% endblock controls %}

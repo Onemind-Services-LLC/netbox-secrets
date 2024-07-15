@@ -14,6 +14,10 @@ for app_model in plugin_settings.get('apps'):
 
 SECRET_PLAINTEXT_MAX_LENGTH = 65535
 
+# General-purpose tokens
+CENSOR_MASTER_KEY = '********'
+CENSOR_MASTER_KEY_CHANGED = '***CHANGED***'
+
 
 #
 # Session Keys

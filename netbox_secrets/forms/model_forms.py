@@ -1,9 +1,11 @@
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from django import forms
+from django.utils.translation import gettext as _
+
 from netbox.forms import NetBoxModelForm
 from utilities.forms.fields import CommentField, DynamicModelChoiceField, SlugField
-
+from utilities.forms.rendering import FieldSet
 from ..constants import *
 from ..models import Secret, SecretRole, UserKey
 
@@ -42,7 +44,7 @@ def validate_rsa_key(key, is_secret=True):
 class SecretRoleForm(NetBoxModelForm):
     slug = SlugField()
 
-    fieldsets = ((None, ('name', 'slug', 'description', 'tags')),)
+    fieldsets = (FieldSet('name', 'slug', 'description', 'tags', name=None),)
 
     class Meta:
         model = SecretRole
@@ -76,8 +78,8 @@ class SecretForm(NetBoxModelForm):
     comments = CommentField()
 
     fieldsets = (
-        (None, ('name', 'description', 'role', 'tags')),
-        ('Secret Data', ('plaintext', 'plaintext2')),
+        FieldSet('name', 'description', 'role', 'tags', name=None),
+        FieldSet('plaintext', 'plaintext2', name=_('Secret Data')),
     )
 
     class Meta:
@@ -135,12 +137,10 @@ class UserKeyForm(forms.ModelForm):
 
 
 class ActivateUserKeyForm(forms.Form):
-    _selected_action = forms.ModelMultipleChoiceField(queryset=UserKey.objects.all(), label='User Keys')
+    user_keys = forms.ModelMultipleChoiceField(
+        queryset=UserKey.objects.filter(master_key_cipher__isnull=True), label='User Keys'
+    )
     secret_key = forms.CharField(
-        widget=forms.Textarea(
-            attrs={
-                'class': 'vLargeTextField',
-            },
-        ),
-        label='Your private key',
+        widget=forms.Textarea(attrs={'class': 'vLargeTextField'}),
+        label='Your Private Key',
     )

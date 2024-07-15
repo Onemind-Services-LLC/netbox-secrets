@@ -1,5 +1,6 @@
 import django_filters
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.translation import gettext as _
@@ -8,7 +9,7 @@ from netbox.filtersets import NetBoxModelFilterSet
 from tenancy.models import Contact
 from utilities.filters import ContentTypeFilter, MultiValueCharFilter
 from .constants import SECRET_ASSIGNABLE_MODELS
-from .models import Secret, SecretRole
+from .models import Secret, SecretRole, UserKey
 
 __all__ = [
     'SecretFilterSet',
@@ -16,6 +17,30 @@ __all__ = [
 ]
 
 plugin_settings = settings.PLUGINS_CONFIG['netbox_secrets']
+
+
+class UserKeyFilterSet(NetBoxModelFilterSet):
+    user_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=get_user_model().objects.all(),
+        label=_('User (ID)'),
+    )
+    user = django_filters.ModelMultipleChoiceFilter(
+        field_name='user__username',
+        queryset=get_user_model().objects.all(),
+        to_field_name='username',
+        label=_('User (name)'),
+    )
+
+    class Meta:
+        model = UserKey
+        fields = [
+            'id',
+        ]
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(Q(user__username__icontains=value))
 
 
 class SecretRoleFilterSet(NetBoxModelFilterSet):

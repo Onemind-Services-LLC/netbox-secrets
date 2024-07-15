@@ -1,13 +1,13 @@
 from django.conf import settings
-from extras.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
-from utilities.choices import ButtonColorChoices
+
+from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 plugins_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
 
 menu_buttons = (
     PluginMenuItem(
-        link_text="User Key",
-        link="plugins:netbox_secrets:userkey",
+        link_text="User Keys",
+        link="plugins:netbox_secrets:userkey_list",
         permissions=["netbox_secrets.view_userkey"],
     ),
     PluginMenuItem(
@@ -19,14 +19,12 @@ menu_buttons = (
                 link="plugins:netbox_secrets:secretrole_add",
                 title="Add Secret Role",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
                 permissions=["netbox_secrets.add_secretrole"],
             ),
             PluginMenuButton(
                 link="plugins:netbox_secrets:secretrole_import",
                 title="Import Secret Role",
                 icon_class="mdi mdi-upload",
-                color=ButtonColorChoices.CYAN,
                 permissions=["netbox_secrets.add_secretrole"],
             ),
         ),

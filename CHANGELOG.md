@@ -2,7 +2,43 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.0...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.2...HEAD)
+
+**Closed issues:**
+
+- Netbox 4.0 Support [\#136](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/136)
+- \[Docs\]: Add help for upgrading from netbox 2.11 to 3.x [\#134](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/134)
+- \[Bug\]:  List View action Buttons not Visible [\#132](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/132)
+- \[Feature\]:  Hashicorp Vault integration? [\#125](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/125)
+- \[Bug\]: User Key Add Error: `'str' object has no attribute '_meta'` [\#116](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/116)
+- \[Bug\]: Cannot create more than one un-named secret for an object [\#100](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/100)
+- \[Feature\]: pass session key in GET/POST requests data [\#85](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/85)
+- \[Feature\]: Add button to export keys to a file for download and a button to copy the private key [\#16](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/16)
+
+**Merged pull requests:**
+
+- Bump braces from 3.0.2 to 3.0.3 in /netbox\_secrets/project-static in the npm\_and\_yarn group across 1 directory [\#140](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/140) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v1.10.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.2) (2024-01-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.9.2...v1.10.2)
+
+**Merged pull requests:**
+
+- Reverted 8257a03 to fix filtersets [\#129](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/129) ([abhi1693](https://github.com/abhi1693))
+
+## [v1.9.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.9.2) (2024-01-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.1...v1.9.2)
+
+**Closed issues:**
+
+- \[Feature\]: Disable encryption? [\#126](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/126)
+- Mismatch in PluginConfig Attributes and Update descriptions in setup.py file [\#124](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/124)
+
+## [v1.10.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v1.10.1) (2024-01-03)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.0...v1.10.1)
 
 **Closed issues:**
 
