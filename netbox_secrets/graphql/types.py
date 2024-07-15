@@ -1,6 +1,11 @@
-from netbox.graphql.types import NetBoxObjectType, ObjectType
+from typing import Annotated
 
-from netbox_secrets import filtersets, models
+import strawberry
+import strawberry_django
+
+from netbox.graphql.types import NetBoxObjectType
+from .filters import *
+from ..models import *
 
 __all__ = [
     'SecretRoleType',
@@ -8,26 +13,15 @@ __all__ = [
 ]
 
 
-class SecretRoleType(ObjectType):
-    class Meta:
-        model = models.SecretRole
-        fields = '__all__'
-        filterset_class = filtersets.SecretRoleFilterSet
+@strawberry_django.type(SecretRole, fields="__all__", filters=SecretRoleFilter)
+class SecretRoleType(NetBoxObjectType):
+    name: str
+    slug: str
+    description: str
 
 
+@strawberry_django.type(Secret, exclude=('ciphertext', 'hash', 'plaintext'), filters=SecretFilter)
 class SecretType(NetBoxObjectType):
-    class Meta:
-        model = models.Secret
-        fields = [
-            'id',
-            'name',
-            'description',
-            'role',
-            'assigned_object_type',
-            'assigned_object_id',
-            'comments',
-            'tags',
-            'created',
-            'last_updated',
-        ]
-        filterset_class = filtersets.SecretFilterSet
+    role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
+    name: str
+    description: str

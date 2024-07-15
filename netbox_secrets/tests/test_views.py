@@ -1,8 +1,6 @@
 from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from utilities.testing import ViewTestCases
-
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-
+from utilities.testing import ViewTestCases
 from .constants import PRIVATE_KEY, PUBLIC_KEY
 
 
@@ -73,9 +71,9 @@ class SecretTestCase(
         devicerole = DeviceRole.objects.create(name='Device Role 1', slug='device-role-1')
 
         devices = (
-            Device(name='Device 1', site=site, device_type=devicetype, device_role=devicerole),
-            Device(name='Device 2', site=site, device_type=devicetype, device_role=devicerole),
-            Device(name='Device 3', site=site, device_type=devicetype, device_role=devicerole),
+            Device(name='Device 1', site=site, device_type=devicetype, role=devicerole),
+            Device(name='Device 2', site=site, device_type=devicetype, role=devicerole),
+            Device(name='Device 3', site=site, device_type=devicetype, role=devicerole),
         )
         Device.objects.bulk_create(devices)
 

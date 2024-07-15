@@ -1,1 +1,3 @@
-from .types import *  # noqa
+from .schema import NetboxSecretsQuery
+
+schema = [NetboxSecretsQuery]

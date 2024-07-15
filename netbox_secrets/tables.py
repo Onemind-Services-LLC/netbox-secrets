@@ -1,7 +1,9 @@
 import django_tables2 as tables
-from netbox.tables import NetBoxTable, columns
+from django.utils.translation import gettext as _
 
-from .models import Secret, SecretRole
+from netbox.tables import NetBoxTable, columns
+from .models import Secret, SecretRole, UserKey
+
 
 #
 # Secret roles
@@ -73,4 +75,31 @@ class SecretTable(NetBoxTable):
             'assigned_object',
             'role',
             'actions',
+        )
+
+
+class UserKeyTable(NetBoxTable):
+    user = tables.Column(linkify=True)
+    is_active = columns.BooleanColumn(
+        verbose_name=_('Is Active'),
+    )
+    tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
+    actions = columns.ActionsColumn(actions=())
+
+    class Meta(NetBoxTable.Meta):
+        model = UserKey
+        fields = (
+            'pk',
+            'user',
+            'is_active',
+            'created',
+            'last_updated',
+            'tags',
+            'actions',
+        )
+        default_columns = (
+            'pk',
+            'id',
+            'user',
+            'is_active',
         )

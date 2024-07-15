@@ -5,17 +5,16 @@ from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import force_bytes
-from netbox.models import PrimaryModel
-from netbox.models.features import ChangeLoggingMixin, EventRulesMixin
-from utilities.querysets import RestrictedQuerySet
 
+from netbox.models import NetBoxModel, PrimaryModel
+from utilities.querysets import RestrictedQuerySet
+from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from ..exceptions import InvalidKey
 from ..hashers import SecretValidationHasher
 from ..querysets import UserKeyQuerySet
@@ -31,7 +30,7 @@ __all__ = [
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
-class UserKey(ChangeLoggingMixin, EventRulesMixin):
+class UserKey(NetBoxModel):
     """
     A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
@@ -39,7 +38,9 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
     """
 
     id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name='user_key', editable=False)
+    user = models.OneToOneField(
+        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False
+    )
     public_key = models.TextField(
         verbose_name='RSA public key',
     )
@@ -59,6 +60,9 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
 
     def __str__(self):
         return self.user.username
+
+    def get_absolute_url(self):
+        return reverse('plugins:netbox_secrets:userkey', args=[self.pk])
 
     def clean(self):
         super().clean()
@@ -117,6 +121,27 @@ class UserKey(ChangeLoggingMixin, EventRulesMixin):
             )
 
         super().delete(*args, **kwargs)
+
+    def to_objectchange(self, action):
+        objectchange = super().to_objectchange(action)
+
+        # Censor any backend parameters marked as sensitive in the serialized data
+        pre_change_params = {}
+        post_change_params = {}
+        if objectchange.prechange_data:
+            pre_change_params = objectchange.prechange_data
+        if objectchange.postchange_data:
+            post_change_params = objectchange.postchange_data
+        if post_change_params.get("master_key_cipher"):
+            if post_change_params["master_key_cipher"] != pre_change_params.get("master_key_cipher"):
+                # Set the "changed" master_key_cipher if the parameter's value has been modified
+                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY_CHANGED
+            else:
+                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
+        if pre_change_params.get("master_key_cipher"):
+            pre_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
+
+        return objectchange
 
     def is_filled(self):
         """

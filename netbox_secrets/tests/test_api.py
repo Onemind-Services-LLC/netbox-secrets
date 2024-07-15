@@ -1,14 +1,14 @@
 import base64
 
-from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
+
+from core.models import ObjectType
+from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
 from users.models import ObjectPermission
 from utilities.testing import APITestCase, APIViewTestCases
-
-from ..models import *
 from .constants import *
+from ..models import *
 
 
 class SecretsTestMixin:
@@ -97,7 +97,7 @@ class SecretTest(
         manufacturer = Manufacturer.objects.create(name='Manufacturer 1', slug='manufacturer-1')
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model='Device Type 1')
         devicerole = DeviceRole.objects.create(name='Device Role 1', slug='device-role-1')
-        device = Device.objects.create(name='Device 1', site=site, device_type=devicetype, device_role=devicerole)
+        device = Device.objects.create(name='Device 1', site=site, device_type=devicetype, role=devicerole)
 
         secret_roles = (
             SecretRole(name='Secret Role 1', slug='secret-role-1'),
@@ -182,7 +182,7 @@ class SessionKeyTest(
         obj_perm = ObjectPermission(name='Test permission', actions=['add'])
         obj_perm.save()
         obj_perm.users.add(self.user)
-        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        obj_perm.object_types.add(ObjectType.objects.get_for_model(self.model))
         initial_count = self._get_queryset().count()
         response = self.client.post(self._get_list_url(), self.create_data[0], format='json', **self.header)
 
@@ -199,7 +199,7 @@ class SessionKeyTest(
         obj_perm = ObjectPermission(name='Test permission', actions=['add'])
         obj_perm.save()
         obj_perm.users.add(self.user)
-        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        obj_perm.object_types.add(ObjectType.objects.get_for_model(self.model))
         initial_count = self._get_queryset().count()
         response = self.client.post(self._get_list_url(), self.create_data[1], format='json', **self.header)
 
@@ -216,7 +216,7 @@ class SessionKeyTest(
         obj_perm = ObjectPermission(name='Test permission', constraints={'pk': instance.pk}, actions=['view'])
         obj_perm.save()
         obj_perm.users.add(self.user)
-        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        obj_perm.object_types.add(ObjectType.objects.get_for_model(self.model))
 
         # Try GET to permitted object
         url = self._get_detail_url(instance)
@@ -229,7 +229,7 @@ class SessionKeyTest(
         obj_perm = ObjectPermission(name='Test permission', constraints={'pk__in': [instance.pk]}, actions=['view'])
         obj_perm.save()
         obj_perm.users.add(self.user)
-        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        obj_perm.object_types.add(ObjectType.objects.get_for_model(self.model))
 
         # Try GET to permitted objects
         response = self.client.get(self._get_list_url(), **self.header)
@@ -241,7 +241,7 @@ class SessionKeyTest(
         obj_perm = ObjectPermission(name='Test permission', actions=['delete'])
         obj_perm.save()
         obj_perm.users.add(self.user)
-        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+        obj_perm.object_types.add(ObjectType.objects.get_for_model(self.model))
 
         # Target the three most recently created objects to avoid triggering recursive deletions
         # (e.g. with MPTT objects)

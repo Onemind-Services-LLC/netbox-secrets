@@ -1,7 +1,7 @@
-from django.db.models import QuerySet
+from utilities.querysets import RestrictedQuerySet
 
 
-class UserKeyQuerySet(QuerySet):
+class UserKeyQuerySet(RestrictedQuerySet):
     def active(self):
         return self.filter(master_key_cipher__isnull=False)
 

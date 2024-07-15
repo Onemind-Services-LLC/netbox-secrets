@@ -10,28 +10,19 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
+
 from extras.signals import clear_events
 from netbox.views import generic
+from netbox_secrets.models import UserKey
 from tenancy.views import ObjectContactsView
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
-from utilities.utils import count_related, prepare_cloned_fields
+from utilities.query import count_related
+from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
-
 from . import constants, exceptions, filtersets, forms, models, tables, utils
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
-
-#
-# Mixins
-#
-
-
-class ObjectChildrenViewMixin(generic.ObjectChildrenView):
-    def get_extra_context(self, request, instance):
-        return {
-            'table_config': f'{self.table.__name__}_config',
-        }
 
 
 #
@@ -54,12 +45,11 @@ class SecretRoleView(generic.ObjectView):
 
 
 @register_model_view(models.SecretRole, 'secret')
-class SecretRoleSecretView(ObjectChildrenViewMixin):
+class SecretRoleSecretView(generic.ObjectChildrenView):
     queryset = models.SecretRole.objects.all()
     child_model = models.Secret
     table = tables.SecretTable
     filterset = filtersets.SecretFilterSet
-    template_name = 'netbox_secrets/inc/view_tab.html'
     tab = ViewTab(
         label=_('Secrets'),
         badge=lambda obj: models.Secret.objects.filter(role=obj).count(),
@@ -155,10 +145,10 @@ class SecretEditView(generic.ObjectEditView):
             uk = models.UserKey.objects.get(user=request.user)
         except models.UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
-            return redirect('plugins:netbox_secrets:userkey')
+            return redirect('plugins:netbox_secrets:userkey_add')
         if not uk.is_active():
             messages.warning(request, "This operation is not available. Your user key has not been activated.")
-            return redirect('plugins:netbox_secrets:userkey')
+            return redirect('plugins:netbox_secrets:userkey', pk=uk.pk)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -290,32 +280,44 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
-
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
-class UserKeyView(LoginRequiredMixin, View):
+#
+# User Key
+#
+
+
+class UserKeyListView(generic.ObjectListView):
+    queryset = models.UserKey.objects.all()
+    table = tables.UserKeyTable
+    filterset = filtersets.UserKeyFilterSet
+    template_name = 'netbox_secrets/userkey_list.html'
+
+    def get_extra_context(self, request):
+        user_key = UserKey.objects.filter(user=request.user).first()
+        return {
+            'user_key': user_key,
+        }
+
+
+@register_model_view(models.UserKey)
+class UserKeyView(generic.ObjectView):
+    queryset = models.UserKey.objects.all()
     template_name = 'netbox_secrets/userkey.html'
 
-    def get(self, request):
-        try:
-            userkey = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
-            userkey = None
 
-        return render(
-            request,
-            self.template_name,
-            {
-                'object': userkey,
-            },
-        )
+@register_model_view(models.UserKey, 'delete')
+class UserKeyDeleteView(generic.ObjectDeleteView):
+    queryset = UserKey.objects.all()
 
 
+@register_model_view(models.UserKey, 'edit')
 class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
-    queryset = models.SessionKey.objects.all()
+    queryset = models.UserKey.objects.all()
+    form = forms.UserKeyForm
     template_name = 'netbox_secrets/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -327,13 +329,12 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        form = forms.UserKeyForm(instance=self.userkey)
         return render(
             request,
             self.template_name,
             {
                 'object': self.userkey,
-                'form': form,
+                'form': self.form,
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )
@@ -346,7 +347,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             uk.user = request.user
             uk.save()
             messages.success(request, "Your user key has been saved.")
-            return redirect('plugins:netbox_secrets:userkey')
+            return redirect('plugins:netbox_secrets:userkey', pk=uk.pk)
         else:
             logger.debug("Form validation failed")
             messages.error(request, "Unable to save your user key.")
@@ -361,7 +362,48 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         )
 
 
-@register_model_view(models.SessionKey, 'delete')
+class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
+    queryset = models.UserKey.objects.all()
+    template_name = 'netbox_secrets/activate_keys.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.userkey = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
+            self.userkey = models.UserKey(user=request.user)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        form = forms.ActivateUserKeyForm()
+        return render(
+            request,
+            self.template_name,
+            {
+                'form': form,
+            },
+        )
+
+    def post(self, request):
+        if not self.userkey or not self.userkey.is_active():
+            messages.error(request, "You do not have an active User Key.")
+            return redirect('plugins:netbox_secrets:userkey_activate')
+
+        form = forms.ActivateUserKeyForm(request.POST)
+        if form.is_valid():
+            master_key = self.userkey.get_master_key(form.cleaned_data['secret_key'])
+            user_keys = form.cleaned_data['user_keys']
+            if master_key:
+                for user_key in user_keys:
+                    user_key.activate(master_key)
+                    messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
+                    return redirect("plugins:netbox_secrets:userkey_list")
+            else:
+                messages.error(request, "Invalid Private Key.")
+
+        return render(request, self.template_name, {'form': form})
+
+
 class SessionKeyDeleteView(generic.ObjectDeleteView):
     queryset = models.SessionKey.objects.all()
 

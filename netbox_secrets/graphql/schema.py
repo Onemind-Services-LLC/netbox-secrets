@@ -1,12 +1,22 @@
-import graphene
-from netbox.graphql.fields import ObjectField, ObjectListField
+from typing import List
 
+import strawberry
+import strawberry_django
+
+from ..models import *
 from .types import *
 
 
-class SecretsQuery(graphene.ObjectType):
-    secret = ObjectField(SecretType)
-    secret_list = ObjectListField(SecretType)
+@strawberry.type
+class NetboxSecretsQuery:
+    @strawberry.field
+    def secret_roles(self, id: int) -> List[SecretRoleType]:
+        return SecretRole.objects.get(pk=id)
 
-    secretrole = ObjectField(SecretRoleType)
-    secretrole_list = ObjectListField(SecretRoleType)
+    secret_roles_list: List[SecretRoleType] = strawberry_django.field()
+
+    @strawberry.field
+    def secrets(self, id: int) -> List[SecretType]:
+        return Secret.objects.get(pk=id)
+
+    secrets_list: List[SecretType] = strawberry_django.field()

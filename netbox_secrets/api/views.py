@@ -4,16 +4,16 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from rest_framework import mixins as drf_mixins
+from rest_framework import mixins as drf_mixins, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
 
-from netbox.api.viewsets import BaseViewSet, mixins, NetBoxModelViewSet
-from utilities.utils import count_related
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
+from utilities.query import count_related
 from . import serializers
 from .. import constants, exceptions, filtersets, models
 
@@ -38,12 +38,10 @@ class SecretsRootView(APIRootView):
 #
 # User Key
 #
-class UserKeyViewSet(ModelViewSet):
+class UserKeyViewSet(ReadOnlyModelViewSet):
     queryset = models.UserKey.objects.all()
     serializer_class = serializers.UserKeySerializer
-
-    def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+    filterset_class = filtersets.UserKeyFilterSet
 
 
 #
@@ -141,7 +139,6 @@ class SessionKeyViewSet(
     drf_mixins.ListModelMixin,
     drf_mixins.RetrieveModelMixin,
     drf_mixins.DestroyModelMixin,
-    mixins.BriefModeMixin,
     mixins.BulkDestroyModelMixin,
     mixins.ObjectValidationMixin,
     BaseViewSet,
@@ -346,3 +343,48 @@ class GetSessionKeyViewSet(ViewSet):
             response.set_cookie('session_key', value=encoded_key)
 
         return response
+
+
+class ActivateUserKeyViewSet(ViewSet):
+    """
+        This endpoint expects a private key and a list of user keys to be activated.
+        The private key is used to derive a master key, which is then used to activate
+        each user key provided.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.ActivateUserKeySerializer
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        private_key = serializer.validated_data['private_key']
+        user_keys = serializer.validated_data['user_keys']
+
+        # Validate user key
+        try:
+            user_key = models.UserKey.objects.get(user=request.user)
+        except models.UserKey.DoesNotExist:
+            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+
+        if not user_key.is_active():
+            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+
+        # Validate private key
+        master_key = user_key.get_master_key(private_key)
+        if master_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+
+        activated_keys = 0
+        for key_data in user_keys:
+            try:
+                user_key = models.UserKey.objects.get(pk=key_data)
+                user_key.activate(master_key)
+                activated_keys += 1
+            except models.UserKey.DoesNotExist:
+                return HttpResponseBadRequest(f"User key with id {key_data} does not exist.")
+
+        return Response(f"Successfully activated {activated_keys} user keys.", status=status.HTTP_200_OK)

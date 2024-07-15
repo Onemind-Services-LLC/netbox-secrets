@@ -3,10 +3,10 @@ import logging
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.utils import OperationalError
-from extras.plugins import PluginTemplateExtension
+
+from netbox.plugins import PluginTemplateExtension
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
-
 from .filtersets import SecretFilterSet
 from .models import Secret
 from .tables import SecretTable

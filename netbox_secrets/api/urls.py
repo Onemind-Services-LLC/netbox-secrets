@@ -13,5 +13,6 @@ router.register('secrets', views.SecretViewSet)
 # Miscellaneous
 router.register('get-session-key', views.GetSessionKeyViewSet, basename='get-session-key')
 router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairViewSet, basename='generate-rsa-key-pair')
+router.register('activate-user-key', views.ActivateUserKeyViewSet, basename='activate-user-keys')
 
 urlpatterns = router.urls

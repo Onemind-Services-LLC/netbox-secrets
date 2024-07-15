@@ -41,9 +41,9 @@ class SecretTestCase(TestCase):
         device_role = DeviceRole.objects.create(name='Device Role 1', slug='device-role-1')
 
         devices = (
-            Device(device_type=device_type, name='Device 1', site=site, device_role=device_role),
-            Device(device_type=device_type, name='Device 2', site=site, device_role=device_role),
-            Device(device_type=device_type, name='Device 3', site=site, device_role=device_role),
+            Device(device_type=device_type, name='Device 1', site=site, role=device_role),
+            Device(device_type=device_type, name='Device 2', site=site, role=device_role),
+            Device(device_type=device_type, name='Device 3', site=site, role=device_role),
         )
         Device.objects.bulk_create(devices)
 
