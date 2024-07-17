@@ -205,6 +205,7 @@ function requestSessionKey(privateKey: string) {
       } else {
         // If the response received was not an error, show the user a success message.
         const toast = createToast('success', 'Session Key Received', 'You may now unlock secrets.');
+        window.location.reload();
         toast.show();
       }
     } else {
