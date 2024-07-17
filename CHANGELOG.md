@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.2...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.0...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Page Does Not Refresh Automatically on Session Key Activation [\#142](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/142)
+
+## [v2.0.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.0) (2024-07-15)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v1.10.2...v2.0.0)
 
 **Closed issues:**
 
