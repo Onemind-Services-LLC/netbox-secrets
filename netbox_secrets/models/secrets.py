@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes
 
 from netbox.models import NetBoxModel, PrimaryModel
+from netbox.models.features import ContactsMixin
 from utilities.querysets import RestrictedQuerySet
 from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from ..exceptions import InvalidKey
@@ -259,7 +260,7 @@ class SecretRole(PrimaryModel):
         return reverse('plugins:netbox_secrets:secretrole', args=[self.pk])
 
 
-class Secret(PrimaryModel):
+class Secret(PrimaryModel, ContactsMixin):
     """
     A Secret stores an AES256-encrypted copy of sensitive data, such as passwords or secret keys. An irreversible
     SHA-256 hash is stored along with the ciphertext for validation upon decryption. Each Secret is assigned to exactly
@@ -406,5 +407,7 @@ class Secret(PrimaryModel):
 if plugin_settings.get('enable_contacts', False):
     GenericRelation(
         to='tenancy.ContactAssignment',
+        content_type_field='object_type',
+        object_id_field='object_id',
         related_query_name='secret',
     ).contribute_to_class(Secret, 'contacts')
