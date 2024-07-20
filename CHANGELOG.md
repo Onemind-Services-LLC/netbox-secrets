@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.1...HEAD)
+
+**Merged pull requests:**
+
+- Release v2.0.2 [\#147](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/147) ([abhi1693](https://github.com/abhi1693))
+- NB-60 Fixed field error cannot resolve keyword `content_type` into field [\#146](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/146) ([abhi1693](https://github.com/abhi1693))
+
 ## [v2.0.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.1) (2024-07-17)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.0...v2.0.1)
