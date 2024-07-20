@@ -1,12 +1,17 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v2.0.1](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.1) (2024-07-17)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.0...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.0...v2.0.1)
 
 **Closed issues:**
 
 - \[Bug\]: Page Does Not Refresh Automatically on Session Key Activation [\#142](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/142)
+
+**Merged pull requests:**
+
+- Release v2.0.1 [\#144](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/144) ([abhi1693](https://github.com/abhi1693))
+- NB-57 Refresh the page when session key is activated [\#143](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/143) ([kprince28](https://github.com/kprince28))
 
 ## [v2.0.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.0) (2024-07-15)
 
