@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+## [v2.0.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.2) (2024-07-20)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.1...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.1...v2.0.2)
 
 **Merged pull requests:**
 
