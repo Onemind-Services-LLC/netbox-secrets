@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.2...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: Unable to access netbox api schema with plugin enabled [\#148](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/148)
+
+**Merged pull requests:**
+
+- Release v2.0.3 [\#150](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/150) ([abhi1693](https://github.com/abhi1693))
+- Fixed failing schema [\#149](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/149) ([abhi1693](https://github.com/abhi1693))
+
 ## [v2.0.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.2) (2024-07-20)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.1...v2.0.2)
