@@ -356,6 +356,29 @@ class ActivateUserKeyViewSet(ViewSet):
     serializer_class = serializers.ActivateUserKeySerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
+    @drf_utils.extend_schema(
+        request=serializers.ActivateUserKeySerializer,
+        responses={
+            200: drf_utils.OpenApiResponse(
+                description="User keys activated successfully.",
+                response={
+                    'type': 'string',
+                },
+            ),
+            400: drf_utils.OpenApiResponse(
+                description="User key activation failed.",
+                response={
+                    'type': 'string',
+                },
+                examples=[
+                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
+                    drf_utils.OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
+                    drf_utils.OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
+                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
+                ],
+            ),
+        },
+    )
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
