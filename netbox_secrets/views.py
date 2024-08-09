@@ -385,6 +385,7 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         )
 
     def post(self, request):
+        # Check if the user has an active User Key
         if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
             return redirect('plugins:netbox_secrets:userkey_activate')
@@ -393,11 +394,20 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         if form.is_valid():
             master_key = self.userkey.get_master_key(form.cleaned_data['secret_key'])
             user_keys = form.cleaned_data['user_keys']
+
             if master_key:
                 for user_key in user_keys:
-                    user_key.activate(master_key)
-                    messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
-                    return redirect("plugins:netbox_secrets:userkey_list")
+                    target_user = user_key.user
+                    if target_user == request.user:
+                        user_key.activate(master_key)
+                    elif not target_user.has_perm('netbox_secrets.change_userkey'):
+                        messages.error(request, f"{target_user} do not have permission")
+                        return redirect("plugins:netbox_secrets:userkey_list")
+                    else:
+                        user_key.activate(master_key)
+
+                messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
+                return redirect("plugins:netbox_secrets:userkey_list")
             else:
                 messages.error(request, "Invalid Private Key.")
 
