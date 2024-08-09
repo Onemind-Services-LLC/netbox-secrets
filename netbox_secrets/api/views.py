@@ -7,7 +7,7 @@ from drf_spectacular import utils as drf_utils
 from rest_framework import mixins as drf_mixins, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
@@ -347,14 +347,19 @@ class GetSessionKeyViewSet(ViewSet):
 
 class ActivateUserKeyViewSet(ViewSet):
     """
-        This endpoint expects a private key and a list of user keys to be activated.
-        The private key is used to derive a master key, which is then used to activate
-        each user key provided.
+    This endpoint expects a private key and a list of user keys to be activated.
+    The private key is used to derive a master key, which is then used to activate
+    each user key provided.
     """
 
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ActivateUserKeySerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUser()]
+        return super().get_permissions()
 
     @drf_utils.extend_schema(
         request=serializers.ActivateUserKeySerializer,

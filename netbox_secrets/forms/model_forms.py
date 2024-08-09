@@ -144,3 +144,18 @@ class ActivateUserKeyForm(forms.Form):
         widget=forms.Textarea(attrs={'class': 'vLargeTextField'}),
         label='Your Private Key',
     )
+
+    # def get_permissions(self):
+    #     "if user not have can change and can delete permission then do not activate user key"
+    #     return self.user_keys.has_perm('users.change_user') and self.user.has_perm('users.delete_user')
+
+    # def get_permissions(self):
+    #     for user_key in self.user_keys:
+    #         if not user_key.user.has_perm('users.change_user') and not user_key.user.has_perm('users.delete_user'):
+    #             return "User does not have permission to activate user key"
+    #     return "User have permission to activate user key"
+
+    def get_permissions(self):
+        for user_key in self.user_keys:
+            if not user_key.user.has_perm('users.change_user') and not user_key.user.has_perm('users.delete_user'):
+                return "User does not have permission to activate user key"
