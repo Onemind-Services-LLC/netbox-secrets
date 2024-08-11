@@ -347,9 +347,9 @@ class GetSessionKeyViewSet(ViewSet):
 
 class ActivateUserKeyViewSet(ViewSet):
     """
-        This endpoint expects a private key and a list of user keys to be activated.
-        The private key is used to derive a master key, which is then used to activate
-        each user key provided.
+    This endpoint expects a private key and a list of user keys to be activated.
+    The private key is used to derive a master key, which is then used to activate
+    each user key provided.
     """
 
     permission_classes = [IsAuthenticated]
@@ -405,7 +405,14 @@ class ActivateUserKeyViewSet(ViewSet):
         for key_data in user_keys:
             try:
                 user_key = models.UserKey.objects.get(pk=key_data)
-                user_key.activate(master_key)
+                target_user = user_key.user
+                if target_user == request.user:
+                    user_key.activate(master_key)
+                elif not target_user.has_perm('netbox_secrets.change_userkey'):
+                    return HttpResponseBadRequest(f"{target_user} do not have permission")
+                else:
+                    user_key.activate(master_key)
+
                 activated_keys += 1
             except models.UserKey.DoesNotExist:
                 return HttpResponseBadRequest(f"User key with id {key_data} does not exist.")
