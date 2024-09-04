@@ -347,9 +347,9 @@ class GetSessionKeyViewSet(ViewSet):
 
 class ActivateUserKeyViewSet(ViewSet):
     """
-        This endpoint expects a private key and a list of user keys to be activated.
-        The private key is used to derive a master key, which is then used to activate
-        each user key provided.
+    This endpoint expects a private key and a list of user keys to be activated.
+    The private key is used to derive a master key, which is then used to activate
+    each user key provided.
     """
 
     permission_classes = [IsAuthenticated]

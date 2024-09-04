@@ -7,16 +7,10 @@ from ..models import *
 from .types import *
 
 
-@strawberry.type
+@strawberry.type(name='Query')
 class NetboxSecretsQuery:
-    @strawberry.field
-    def secret_roles(self, id: int) -> List[SecretRoleType]:
-        return SecretRole.objects.get(pk=id)
-
+    secret_roles: List[SecretRoleType] = strawberry_django.field()
     secret_roles_list: List[SecretRoleType] = strawberry_django.field()
 
-    @strawberry.field
-    def secrets(self, id: int) -> List[SecretType]:
-        return Secret.objects.get(pk=id)
-
+    secrets: List[SecretType] = strawberry_django.field()
     secrets_list: List[SecretType] = strawberry_django.field()
