@@ -2,7 +2,15 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.2...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.3...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: error deleting users [\#151](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/151)
+
+## [v2.0.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.3) (2024-07-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.2...v2.0.3)
 
 **Closed issues:**
 
