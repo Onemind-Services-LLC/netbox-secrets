@@ -11,7 +11,7 @@ with open(readme) as fh:
 
 setup(
     name='netbox-secrets',
-    version='2.0.3',
+    version='3.0.0',
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
