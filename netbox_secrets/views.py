@@ -4,13 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
-
 from extras.signals import clear_events
 from netbox.views import generic
 from netbox_secrets.models import UserKey
@@ -20,6 +20,7 @@ from utilities.forms import restrict_form_fields
 from utilities.query import count_related
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
+
 from . import constants, exceptions, filtersets, forms, models, tables, utils
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
@@ -280,7 +281,6 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
-
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -386,6 +386,9 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         )
 
     def post(self, request):
+        if not request.user.has_perm('netbox_secrets.change_userkey'):
+            raise PermissionDenied("You do not have permission to activate User Keys.")
+
         if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
             return redirect('plugins:netbox_secrets:userkey_activate')
