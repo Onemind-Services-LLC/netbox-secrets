@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 from django.views.generic.base import View
 from netbox_secrets.models import UserKey
 
-from extras.signals import clear_events
+from core.signals import clear_events
 from netbox.views import generic
 from tenancy.views import ObjectContactsView
 from utilities.exceptions import AbortRequest, PermissionsViolation
