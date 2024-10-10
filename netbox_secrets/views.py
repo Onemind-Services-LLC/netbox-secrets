@@ -11,6 +11,8 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
+
+from core.signals import clear_events
 from extras.signals import clear_events
 from netbox.views import generic
 from netbox_secrets.models import UserKey
@@ -281,6 +283,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
+
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -386,9 +389,6 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         )
 
     def post(self, request):
-        if not request.user.has_perm('netbox_secrets.change_userkey'):
-            raise PermissionDenied("You do not have permission to activate User Keys.")
-
         if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
             return redirect('plugins:netbox_secrets:userkey_activate')
