@@ -1,73 +1,48 @@
-<!--
-#########################################################################
 
-Thank you for sharing your work and for opening a PR.
+### Description
 
-(!) IMPORTANT (!):
-First make sure that you point your PR to the `dev` branch!
+<!-- Please provide a brief description of the changes included in this pull request. -->
 
-Now please read the comments carefully and try to provide information
-on all relevant titles.
+### Jira Issue
 
-#########################################################################
--->
-# Pull Request
+<!-- If this pull request is associated with a Jira issue, please link it here (e.g., `OMS-123`). -->
 
-## Related Issue
+- Jira Ticket: [OMS-XXXX](https://onemindservices.atlassian.net/browse/OMS-XXXX)
 
-<!--
-Add the related issue in the form of #issue-number (Example #100)
--->
+### Is this PR for Development?
 
-## New Behavior
+- [ ] Yes, this PR is for the development branch.
+- [ ] No, this PR targets a different branch (please specify):
 
-<!--
-Please describe in a few words the intentions of your PR.
--->
+### Type of Change
 
----
+<!-- Please select the type of change that applies to this pull request. -->
 
-## Contrast to Current Behavior
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Other (please describe):
 
-<!--
-Please describe in a few words how the new behavior is different
-from the current behavior.
--->
+### Test Cases
 
----
+- [ ] Test cases are covered for this PR.
+- [ ] This PR does not require test cases (please explain):
 
-## Discussion: Benefits and Drawbacks
+### Checklist
 
-<!--
-Please make your case here:
+<!-- Please check off the items as they are completed. -->
 
-- Why do you think this project and the community will benefit from your
-  proposed change?
-- What are the drawbacks of this change?
-- Is it backwards-compatible?
-- Anything else that you think is relevant to the discussion of this PR.
+- [ ] I have performed a self-review of my own code.
+- [ ] I have linked all related Jira issues.
+- [ ] I have added tests that prove my fix is effective or that my feature works.
+- [ ] I have added necessary documentation (if applicable).
+- [ ] Any dependent changes have been merged and published in downstream modules.
 
-(No need to write a huge article here. Just a few sentences that give some
-additional context about the motivations for the change.)
--->
+### Screenshots (if applicable)
 
----
+<!-- If your PR includes visual changes, please include screenshots or GIFs to illustrate them. -->
 
-## Changes to the Documentation
+### Additional Information
 
-<!--
-If the docs must be updated, please include the changes in the PR.
-If the Wiki must be updated, please make a suggestion below.
--->
-
----
-
-## Double Check
-
-<!--
-Please put an x into the brackets (like `[x]`) if you've completed that task.
--->
-
-* [ ] I have explained my PR according to the information in the comments
- or in a linked issue.
-* [ ] My PR targets the `dev` branch.
+<!-- If there's anything else you want to share about your pull request, please add it here. -->
