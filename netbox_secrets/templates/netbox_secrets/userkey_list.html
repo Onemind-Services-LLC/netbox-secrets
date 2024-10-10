@@ -15,8 +15,10 @@
                 {% endif %}
             </a>
         {% endif %}
-        <a href="{% url 'plugins:netbox_secrets:userkey_activate'%}" type="button" class="btn btn-primary">
-            <i class="mdi mdi-auto-fix"></i> Activate User Key
-        </a>
+        {% if perms.netbox_secrets.change_userkey %}
+            <a href="{% url 'plugins:netbox_secrets:userkey_activate' %}" type="button" class="btn btn-primary">
+                <i class="mdi mdi-auto-fix"></i> Activate User Key
+            </a>
+        {% endif %}
     </div>
 {% endblock controls %}

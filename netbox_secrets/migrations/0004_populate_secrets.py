@@ -50,7 +50,7 @@ def update_objectchanges(apps, schema_editor):
     """
     Update the ObjectChange records to reflect the new model name.
     """
-    ObjectChange = apps.get_model('extras', 'ObjectChange')
+    ObjectChange = apps.get_model('core', 'ObjectChange')
     ContentType = apps.get_model('contenttypes', 'ContentType')
 
     try:

@@ -1,5 +1,33 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.3...HEAD)
+
+**Closed issues:**
+
+- \[Bug\]: ImproperlyConfigured: Application labels aren't unique, duplicates [\#160](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/160)
+- \[maintenance\]: NetBox Community v4.1.0 [\#159](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/159)
+- \[Bug\]: error deleting users [\#151](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/151)
+- \[Bug\]: Cannot post on '/api/plugins/secrets/user-keys/' endpoint [\#89](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/89)
+
+**Merged pull requests:**
+
+- Bump micromatch from 4.0.5 to 4.0.8 in /netbox\_secrets/project-static in the npm\_and\_yarn group across 1 directory [\#155](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/155) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v2.0.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.3) (2024-07-26)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.2...v2.0.3)
+
+**Closed issues:**
+
+- \[Bug\]: Unable to access netbox api schema with plugin enabled [\#148](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/148)
+
+**Merged pull requests:**
+
+- Release v2.0.3 [\#150](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/150) ([abhi1693](https://github.com/abhi1693))
+- Fixed failing schema [\#149](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/149) ([abhi1693](https://github.com/abhi1693))
+
 ## [v2.0.2](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.2) (2024-07-20)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.1...v2.0.2)
@@ -69,7 +97,6 @@
 **Closed issues:**
 
 - \[Docs\]: top\_level\_menu is not documented [\#122](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/122)
-- \[Bug\]: ENHANCE YOUR SECRET MANAGEMENT... description is too long and unusable [\#121](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/121)
 - \[Bug\]: Unable to import plugin netbox-secrets: Module not found. [\#120](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/120)
 
 **Merged pull requests:**
