@@ -8,6 +8,7 @@
 
 - \[Bug\]: ImproperlyConfigured: Application labels aren't unique, duplicates [\#160](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/160)
 - \[Bug\]: error deleting users [\#151](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/151)
+- \[Bug\]: Cannot post on '/api/plugins/secrets/user-keys/' endpoint [\#89](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/89)
 
 **Merged pull requests:**
 
