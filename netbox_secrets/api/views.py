@@ -4,16 +4,16 @@ from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from rest_framework import mixins as drf_mixins, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
-
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from utilities.query import count_related
+
 from . import serializers
 from .. import constants, exceptions, filtersets, models
 
@@ -347,9 +347,9 @@ class GetSessionKeyViewSet(ViewSet):
 
 class ActivateUserKeyViewSet(ViewSet):
     """
-        This endpoint expects a private key and a list of user keys to be activated.
-        The private key is used to derive a master key, which is then used to activate
-        each user key provided.
+    This endpoint expects a private key and a list of user keys to be activated.
+    The private key is used to derive a master key, which is then used to activate
+    each user key provided.
     """
 
     permission_classes = [IsAuthenticated]
@@ -380,6 +380,10 @@ class ActivateUserKeyViewSet(ViewSet):
         },
     )
     def create(self, request):
+        # Check if the user has the permission to change UserKey
+        if not request.user.has_perm('netbox_secrets.change_userkey'):
+            raise PermissionDenied("You do not have permission to active User Keys.")
+
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
