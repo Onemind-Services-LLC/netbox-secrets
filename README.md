@@ -5,7 +5,7 @@ is minimally maintained and has a lot of issues. This plugin is a complete rewri
 and flexible than the original plugin. It is also regularly tested with the latest NetBox releases to ensure compatibility
 and stability.
 
-# Features
+## Features
 
 * Store secrets in the database encrypted with a public key (RSA)
 * More generic and flexible than the original plugin (e.g. secrets can be assigned to any object in NetBox)
@@ -13,7 +13,7 @@ and stability.
 * Updated user interface to make it easier to use and more intuitive to navigate
 * Regularly tested with the latest NetBox releases to ensure compatibility and stability
 
-# Compatibility
+## Compatibility
 
 | NetBox Version | Plugin Version |
 |----------------|----------------|
@@ -25,7 +25,7 @@ and stability.
 | 4.0.x          | 2.0.x          |
 | 4.1.x          | 2.1.x          |
 
-# Installation
+## Installation
 
 * Install NetBox as per NetBox documentation
 * Add to local_requirements.txt:
@@ -36,54 +36,53 @@ and stability.
 * Run migration: `./venv/bin/python netbox/manage.py migrate`
 * Run collectstatic: `./venv/bin/python netbox/manage.py collectstatic --no-input`
 
-You can view releases at: https://github.com/Onemind-Services-LLC/netbox-secrets/releases
+You can view releases at: [releases](https://github.com/Onemind-Services-LLC/netbox-secrets/releases)
 
-# Configuration
+## Configuration
 
 The following options are available in the configuration file:
 
-- `apps`
-  - __Type__: `List`
-  - __Description__: List of apps to enable
-  - __Default__: `['dcim.device', 'virtualization.virtualmachine']`
-- `display_default`
-  - __Type__: `String`
-  - __Description__: Where to display the secret on the detail page of the defined apps
-  - __Default__: `left_page`
-  - __Options__: `left_page`, `right_page`, `full_width_page`, `tab_view`
-- `display_setting`
-  - __Type__: `Dict`
-  - __Description__: Set display setting for concrete model
-  - __Default__: `{}`
-  - __Options__: `{'app.model': 'display_default'}`
-  - __Example__: `{'dcim.device': 'full_width_page', 'virtualization.virtualmachine': 'right_page'}`
-- `enable_contacts`
-  - __Type__: `Boolean`
-  - __Description__: Enable contacts for secret
-  - __Default__: `False`
-- `public_key_size`
-  - __Type__: `Integer`
-  - __Description__: Size of the public key
-  - __Default__: `2048`
-  - __Options__: `2048`, `4096`, `8192`
-- `top_level_menu`
-  - __Type__: `Boolean`
-  - __Description__: Enable top level menu
-  - __Default__: `False`
+* `apps`
+  * __Type__: `List`
+  * __Description__: List of apps to enable
+  * __Default__: `['dcim.device', 'virtualization.virtualmachine']`
+* `display_default`
+  * __Type__: `String`
+  * __Description__: Where to display the secret on the detail page of the defined apps
+  * __Default__: `left_page`
+  * __Options__: `left_page`, `right_page`, `full_width_page`, `tab_view`
+* `display_setting`
+  * __Type__: `Dict`
+  * __Description__: Set display setting for concrete model
+  * __Default__: `{}`
+  * __Options__: `{'app.model': 'display_default'}`
+  * __Example__: `{'dcim.device': 'full_width_page', 'virtualization.virtualmachine': 'right_page'}`
+* `enable_contacts`
+  * __Type__: `Boolean`
+  * __Description__: Enable contacts for secret
+  * __Default__: `False`
+* `public_key_size`
+  * __Type__: `Integer`
+  * __Description__: Size of the public key
+  * __Default__: `2048`
+  * __Options__: `2048`, `4096`, `8192`
+* `top_level_menu`
+  * __Type__: `Boolean`
+  * __Description__: Enable top level menu
+  * __Default__: `False`
 
 ## Extra Configuration
 
 The following options are inherited from NetBox to configure the cookies:
 
-- `SESSION_COOKIE_SECURE`
-  - __Type__: `Boolean`
-  - __Description__: [Session Cookie Secure](https://docs.netbox.dev/en/stable/configuration/security/#session_cookie_secure)
-- `LOGIN_TIMEOUT`
-  - __Type__: `Integer`
-  - __Description__: [Login Timeout](https://docs.netbox.dev/en/stable/configuration/security/#login_timeout)
+* `SESSION_COOKIE_SECURE`
+  * __Type__: `Boolean`
+  * __Description__: [Session Cookie Secure](https://docs.netbox.dev/en/stable/configuration/security/#session_cookie_secure)
+* `LOGIN_TIMEOUT`
+  * __Type__: `Integer`
+  * __Description__: [Login Timeout](https://docs.netbox.dev/en/stable/configuration/security/#login_timeout)
 
 __Note: These options should be set in the NetBox configuration file.__
-
 
 ## Screenshots
 
