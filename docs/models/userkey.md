@@ -19,14 +19,16 @@ Private key formats supported (unencrypted)
 - PKCS#1 RSAPrivateKey** (PEM header: BEGIN RSA PRIVATE KEY)
 - PKCS#8 PrivateKeyInfo* (PEM header: BEGIN PRIVATE KEY)
 
-
 ## Creating the First User Key
 
 When NetBox is first installed, it contains no encryption keys. Before it can store secrets, a user
 (typically the superuser) must create a user key. This can be done by navigating to Netbox Secrets > User Key.
 
 To create a user key, you can either generate a new RSA key pair, or upload the public key belonging to a pair you
-already have. If generating a new key pair, **you must save the private key** locally before saving your new user key.
+already have. If generating a new key pair, **you must click on the `I Saved My New Private Key` button** to properly save it.
+
+![first-user-key.png](../../assets/first-user-key.png)
+
 Once your user key has been created, its public key will be displayed under your User Key page.
 
 When the first user key is created in NetBox, a random master encryption key is generated automatically. This key is
