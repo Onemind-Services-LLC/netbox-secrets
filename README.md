@@ -5,6 +5,17 @@ is minimally maintained and has a lot of issues. This plugin is a complete rewri
 and flexible than the original plugin. It is also regularly tested with the latest NetBox releases to ensure compatibility
 and stability.
 
+## Doc Summary
+
+* [Features](#features)
+* [Compatibility](#compatibility)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Extra Configuration](#extra-configuration)
+* [User Keys](#user-keys)
+* [Screenshots](#screenshots)
+* [FAQ](#faq)
+
 ## Features
 
 * Store secrets in the database encrypted with a public key (RSA)
@@ -83,6 +94,14 @@ The following options are inherited from NetBox to configure the cookies:
   * __Description__: [Login Timeout](https://docs.netbox.dev/en/stable/configuration/security/#login_timeout)
 
 __Note: These options should be set in the NetBox configuration file.__
+
+## User Keys
+
+Each user within NetBox can associate his or her account with an RSA public key. If activated by an administrator, this user key will contain a unique, encrypted copy of the AES master key needed to retrieve secret data.
+
+User keys may be created by users individually, however they are of no use until they have been activated by a user who already possesses an active user key.
+
+For more information on user keys, please refer to the [User Key](./docs/models/userkey.md) documentation.
 
 ## Screenshots
 
