@@ -13,8 +13,8 @@ def configure_generic_relations():
 
     from .constants import SECRET_ASSIGNABLE_MODELS
 
-    for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
-        try:
+    try:
+        for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
             GenericRelation(
                 to='netbox_secrets.Secret',
                 content_type_field='assigned_object_type',
@@ -24,8 +24,8 @@ def configure_generic_relations():
                 content_type.model_class(),
                 'secrets',
             )
-        except (OperationalError, ProgrammingError):
-            pass
+    except (OperationalError, ProgrammingError):
+        pass
 
 
 class NetBoxSecrets(PluginConfig):
