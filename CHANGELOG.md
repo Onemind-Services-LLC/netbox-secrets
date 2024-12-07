@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.1.0...HEAD)
+
+**Closed issues:**
+
+- \[Feature\]: Enable usage of session key list and secrets list endpoints using pynetbox [\#172](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/172)
+- \[Bug\]: Plugin netbox\_secrets requires NetBox minimum version 4.1.0 \(current: 4.0.11\) [\#167](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/167)
+
 ## [v2.1.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.1.0) (2024-10-18)
 
 [Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.3...v2.1.0)
