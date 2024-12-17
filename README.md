@@ -437,19 +437,310 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 
 The `pynetbox` library can be used to interact with the NetBox API as well. Here are some examples of how to use `pynetbox` to interact with the NetBox Secrets plugin.
 
+For more information on `pynetbox`, please refer to the [pynetbox documentation](https://pynetbox.readthedocs.io/en/latest/).
+
 ### Generating RSA Key Pair
+
+You can use the `<netbox_url>/api/plugins/secrets/generate-rsa-key-pair/` endpoint to generate a new RSA key pair. The keys are returned in PEM format.
+
+```json
+{
+    "public_key": "<public key>",
+    "private_key": "<private key>"
+}
+```
+
+To generate a new RSA key pair, using `pynetbox`, you can use the following code:
+
+```python
+import pynetbox
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+key_pair = nb.plugins.secrets.generate_rsa_key_pair.create()
+```
+
+The `key_pair` variable will contain the public and private keys in PEM format.
 
 ### Activating User Key
 
+To activate a user key, you can use the `<netbox_url>/api/plugins/secrets/activate-user-key/` endpoint. The endpoint requires the private key in PEM format.
+
+```json
+{
+    "private_key": "<private key>"
+}
+```
+
+To activate a user key, using `pynetbox`, you can use the following code:
+
+```python
+import pynetbox
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+nb.plugins.secrets.activate_user_key.create(private_key="<private_key>")
+```
+
+The user key will be activated and can now be used to encrypt and decrypt secrets.
+
 ### Generating Session Key
 
-### Retrieving Session Key
+To generate a session key, you can use the `<netbox_url>/api/plugins/secrets/session-keys/` endpoint. The endpoint requires the private key in PEM format.
+
+```json
+{
+    "private_key": "<private key>"
+}
+```
+
+To generate a session key, using `pynetbox`, you can use the following code:
+
+```python
+import pynetbox
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+session_key = nb.plugins.secrets.session_keys.create(private_key="<private_key>")
+```
+
+The `session_key` variable will contain the session key. The session key can now be used to encrypt and decrypt secrets.
 
 ### Creating Secrets
 
+To create a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/` endpoint. The endpoint requires the session key in the `X-Session-Key` header. The data sent needs to be in the following format:
+
+```json
+{
+  "assigned_object_type": "string",
+  "assigned_object_id": 2147483647,
+  "role": {
+    "name": "string",
+    "slug": "8M0SQnM8j0Y3Bto4c7SEs3w_2bvxF1SK9UFFRVSUfzW5CdD12Ro3o-ecA7yJP3OkHgvSy1zlsV84DgKNh2J02-578Q4Tvg0KsOe"
+  },
+  "name": "string",
+  "plaintext": "string",
+  "description": "string",
+  "comments": "string",
+  "tags": [
+    {
+      "name": "string",
+      "slug": "3iRRVSvfqln",
+      "color": "392511"
+    }
+  ],
+  "custom_fields": {
+    "additionalProp1": "string",
+    "additionalProp2": "string",
+    "additionalProp3": "string"
+  }
+}
+```
+
+To create a secret, using `pynetbox`, you can use the following code:
+
+```python
+import pynetbox
+import requests
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+# retrieving the session key
+session_key = nb.plugins.secrets.session_keys.create(private_key="<private_key>")
+session_key = dict(session_key)["session_key"]
+
+# updating the session key in the headers
+session = requests.Session()
+session.headers.update({"X-Session-Key": session_key})
+nb.http_session = session
+
+# creating the secret
+secret = {
+    "assigned_object_type": "dcim.device",
+    "assigned_object_id": 2147483647,
+    "role": {
+        "name": "Login Credentials",
+        "slug": "login-creds"
+    },
+    "name": "admin",
+    "plaintext": "foobar",
+    "description": "Secret description",
+    "comments": "Secret comments",
+    "tags": [
+        {
+            "name": "tag1",
+            "slug": "tag1",
+            "color": "392511"
+        }
+    ],
+    "custom_fields": {
+        "additionalProp1": "string",
+        "additionalProp2": "string",
+        "additionalProp3": "string"
+    }
+}
+
+nb.plugins.secrets.secrets.create(data=secret, session=session)
+```
+
+The secret will be created and stored in the database.
+
 ### Retrieving Secrets
 
+To retrieve a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/` endpoint. The endpoint requires the session key in the `X-Session-Key` header. The request response will be in the following format:
+
+```json
+{
+  "count": 123,
+  "next": "http://api.example.org/accounts/?offset=400&limit=100",
+  "previous": "http://api.example.org/accounts/?offset=200&limit=100",
+  "results": [
+    {
+      "id": 0,
+      "url": "string",
+      "display": "string",
+      "assigned_object_type": "string",
+      "assigned_object_id": 2147483647,
+      "assigned_object": "string",
+      "role": {
+        "id": 0,
+        "url": "string",
+        "display": "string",
+        "name": "string",
+        "slug": "-1I3G456vZL6V-BMG9h6xUQnn0VvDnJurSIlXQUtrmOe_boEVC3ukZ6aTHG2paF3edk2",
+        "secret_count": 0
+      },
+      "name": "string",
+      "plaintext": "string",
+      "hash": "string",
+      "description": "string",
+      "comments": "string",
+      "tags": [
+        {
+          "id": 0,
+          "url": "string",
+          "display_url": "string",
+          "display": "string",
+          "name": "string",
+          "slug": "grVx7xdVuWSpKEKQYHori6vnZfbkKqyHm-yi",
+          "color": "26c174"
+        }
+      ],
+      "custom_fields": {
+        "additionalProp1": "string",
+        "additionalProp2": "string",
+        "additionalProp3": "string"
+      },
+      "created": "2024-12-17T16:49:28.698Z",
+      "last_updated": "2024-12-17T16:49:28.698Z"
+    }
+  ]
+}
+```
+
+To retrieve a secret, using `pynetbox`, you can use the following code:
+
+```python
+import pynetbox
+import requests
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+# retrieving the session key
+session_key = nb.plugins.secrets.session_keys.create(private_key="<private_key>")
+session_key = dict(session_key)["session_key"]
+
+# updating the session key in the headers
+session = requests.Session()
+session.headers.update({"X-Session-Key": session_key})
+nb.http_session = session
+
+# retrieving the secret
+secrets = nb.plugins.secrets.secrets.all(session=session)
+```
+
+The `secrets` variable will contain a list of secrets.
+
 ### Updating Secrets
+
+To update a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/<id>/` endpoint where the `<id>` is the . The endpoint requires the session key in the `X-Session-Key` header. The data sent needs to be in the following format:
+
+```json
+{
+  "assigned_object_type": "string",
+  "assigned_object_id": 2147483647,
+  "role": {
+    "name": "string",
+    "slug": "8M0SQnM8j0Y3Bto4c7SEs3w_2bvxF1SK9UFFRVSUfzW5CdD12Ro3o-ecA7yJP3OkHgvSy1zlsV84DgKNh2J02-578Q4Tvg0KsOe"
+  },
+  "name": "string",
+  "plaintext": "string",
+  "description": "string",
+  "comments": "string",
+  "tags": [
+    {
+      "name": "string",
+      "slug": "3iRRVSvfqln",
+      "color": "392511"
+    }
+  ],
+  "custom_fields": {
+    "additionalProp1": "string",
+    "additionalProp2": "string",
+    "additionalProp3": "string"
+  }
+}
+```
+
+To update a secret, using `pynetbox`, you can use the following code:
+
+```python
+
+import pynetbox
+import requests
+
+nb = pynetbox.api("netbox_url", token="your_netbox_token")
+
+# retrieving the session key
+
+session_key = nb.plugins.secrets.session_keys.create(private_key="<private_key>")
+session_key = dict(session_key)["session_key"]
+
+# updating the session key in the headers
+session = requests.Session()
+session.headers.update({"X-Session-Key": session_key})
+nb.http_session = session
+
+# updating the secret
+secret = {
+    "assigned_object_type": "dcim.device",
+    "assigned_object_id": 2147483647,
+    "role": {
+        "name": "Login Credentials",
+        "slug": "login-creds"
+    },
+    "name": "admin",
+    "plaintext": "foobar",
+    "description": "Secret description",
+    "comments": "Secret comments",
+    "tags": [
+        {
+            "name": "tag1",
+            "slug": "tag1",
+            "color": "392511"
+        }
+    ],
+    "custom_fields": {
+        "additionalProp1": "string",
+        "additionalProp2": "string",
+        "additionalProp3": "string"
+    }
+}
+
+nb.plugins.secrets.secrets.update(id=1, data=secret, session=session)
+```
+
+The secret will be updated in the database.
 
 ## Screenshots
 
