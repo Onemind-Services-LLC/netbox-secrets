@@ -157,7 +157,7 @@ to encrypt and decrypt secrets.
 Any user can create their user key by generating or uploading a public RSA key. However, a user key cannot be used
 to encrypt or decrypt secrets until it has been activated with an encrypted copy of the master key.
 
-Only an administrator with an __active user key__ can activate other user keys. To do so, navigate to Plugins > Secrets > User Keys. Select the user key(s) to be activated, and select
+Only an administrator with an __active user key__ can activate other user keys. To do so, navigate to `Plugins > Secrets > User Keys`. Select the user key(s) to be activated, and select
 `activate selected user keys` at the top right corner. You will need to provide your private key in order to decrypt
 the master key. A copy of the master key is then encrypted using the public key associated with the user key being activated and associated with the selected key(s).
 
