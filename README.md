@@ -118,9 +118,7 @@ __Note: These options should be set in the NetBox configuration file, not in the
 
 ### User Keys
 
-Each user within NetBox can associate their account with an RSA public key. If activated by an administrator, this user key will contain a unique, encrypted, copy of the AES master key needed to retrieve secret data. Have in mind that the key activation by an administrator is a __one-time operation__.
-
-User keys may be created by users individually, however they are of no use until they have been activated by a user who already possesses an active user key.
+Each user within NetBox can associate their account with an RSA public key. After activated by an administrator, this user key will contain a unique, encrypted, copy of the AES master key needed to retrieve secret data. Have in mind that the key activation by an administrator is a __one-time operation__.
 
 #### Supported Key Format
 
