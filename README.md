@@ -12,7 +12,7 @@ and stability.
 * [Installation](#installation)
 * [Configuration](#configuration)
 * [Extra Configuration](#extra-configuration)
-* [Usage](#usage)
+* [GUI Usage](#gui-usage)
   * [User Keys](#user-keys)
     * [Supported Key Format](#supported-key-format)
     * [Creating the First User Key](#creating-the-first-user-key)
@@ -25,13 +25,12 @@ and stability.
   * [Retrieving Secrets](#retrieving-secrets)
   * [Creating and Updating Secrets](#creating-and-updating-secrets)
 * [Pynetbox](#pynetbox)
-  * [Generating RSA Key Pair](#generating-rsa-key-pair)
-  * [Activating User Key](#activating-user-key)
-  * [Generating Session Key](#generating-session-key)
-  * [Retrieving Session Key](#retrieving-session-key)
-  * [Creating Secrets](#creating-secrets)
-  * [Retrieving Secrets](#retrieving-secrets)
-  * [Updating Secrets](#updating-secrets)
+  * [Generating RSA Key Pair using Pynetbox](#generating-rsa-key-pair-using-pynetbox)
+  * [Activating User Key using Pynetbox](#activating-user-key-using-pynetbox)
+  * [Generating Session Key using Pynetbox](#generating-session-key-using-pynetbox)
+  * [Creating Secrets using Pynetbox](#creating-secrets-using-pynetbox)
+  * [Retrieving Secrets using Pynetbox](#retrieving-secrets-using-pynetbox)
+  * [Updating Secrets using Pynetbox](#updating-secrets-using-pynetbox)
 * [User Keys](#user-keys)
 * [Screenshots](#screenshots)
 * [FAQ](#faq)
@@ -113,17 +112,15 @@ The following options are inherited from NetBox to configure the cookies:
   * __Type__: `Integer`
   * __Description__: [Login Timeout](https://docs.netbox.dev/en/stable/configuration/security/#login_timeout)
 
-__Note: These options should be set in the NetBox configuration file.__
+__Note: These options should be set in the NetBox configuration file, not in the `netbox-secrets` plugin configuration.__
 
-## Usage
+## GUI Usage
 
 ### User Keys
 
-Each user within NetBox can associate their account with an RSA public key. If activated by an administrator, this user key will contain a unique, encrypted copy of the AES master key needed to retrieve secret data.
+Each user within NetBox can associate their account with an RSA public key. If activated by an administrator, this user key will contain a unique, encrypted, copy of the AES master key needed to retrieve secret data. Have in mind that the key activation by an administrator is a __one-time operation__.
 
 User keys may be created by users individually, however they are of no use until they have been activated by a user who already possesses an active user key.
-
-For more information on user keys, please refer to the [User Key](./docs/models/userkey.md) documentation.
 
 #### Supported Key Format
 
@@ -141,16 +138,16 @@ Private key formats supported (unencrypted)
 #### Creating the First User Key
 
 When NetBox is first installed, it contains no encryption keys. Before it can store secrets, a user
-(typically the superuser) must create a user key. This can be done by navigating to Netbox Secrets > User Key.
+(typically the superuser) must create a user key. This can be done by navigating to `Plugins > Secrets > User Keys`.
 
-To create a user key, you can either generate a new RSA key pair, or upload the public key belonging to a pair you
-already have. If generating a new key pair, __you must click on the `I Saved My New Private Key` button__ to properly save it.
+To create a user key, you can either generate a new RSA key pair using the GUI, or upload the public key belonging to a pair you
+already have. If generating a new key pair, through the GUI, __you must click on the `I Saved My New Private Key` button__ to properly save it!
 
-![first-user-key.png](../../assets/first-user-key.png)
+![first-user-key.png](./assets/first-user-key.png)
 
-Once your user key has been created, its public key will be displayed under your User Key page.
+Once your key pair has been created, its public key will be displayed under your `User Keys` page.
 
-When the first user key is created in NetBox, a random master encryption key is generated automatically. This key is
+When the __first user key__ is created in NetBox, a random master encryption key is generated automatically. This key is
 then encrypted using the public key provided and stored as part of your user key. __The master key cannot be recovered__
 without your private key.
 
@@ -159,17 +156,16 @@ to encrypt and decrypt secrets.
 
 #### Creating Additional User Keys
 
-Any user can create his or her user key by generating or uploading a public RSA key. However, a user key cannot be used
+Any user can create their user key by generating or uploading a public RSA key. However, a user key cannot be used
 to encrypt or decrypt secrets until it has been activated with an encrypted copy of the master key.
 
-Only an administrator with an active user key can activate other user keys. To do so, access the NetBox admin UI and
-navigate to Admin > NetBox Secrets > User Keys. Select the user key(s) to be activated, and select
-"activate selected user keys" from the action dropdown. You will need to provide your private key in order to decrypt
-the master key. A copy of the master key is then encrypted using the public key associated with the user key being activated.
+Only an administrator with an __active user key__ can activate other user keys. To do so, navigate to Plugins > Secrets > User Keys. Select the user key(s) to be activated, and select
+`activate selected user keys` at the top right corner. You will need to provide your private key in order to decrypt
+the master key. A copy of the master key is then encrypted using the public key associated with the user key being activated and associated with the selected key(s).
 
 ### Secret Roles
 
-Each secret is assigned a functional role which indicates what it is used for. Secret roles are customizable.
+Each secret is, necessarily, assigned a functional `role` which indicates what it is used for. `Secret roles` are customizable.
 
 Typical roles might include:
 
@@ -182,7 +178,7 @@ Typical roles might include:
 ### Secrets
 
 A secret represents a single credential or other sensitive string of characters which must be stored securely. Each
-secret is assigned to a device within NetBox. The plaintext value of a secret is encrypted to a ciphertext
+secret __must be__ assigned to a `device` within `NetBox`. The plaintext value of a secret is encrypted to a ciphertext
 immediately prior to storage within the database using a 256-bit AES master key. A SHA256 hash of the plaintext is also
 stored along with each ciphertext to validate the decrypted plaintext.
 
@@ -197,7 +193,7 @@ steps are needed to encrypt or decrypt secret data.
 
 In order to encrypt or decrypt secret data, a session key must be attached to the API request. To generate a session key,
 send an authenticated request to the `/api/plugins/secrets/session-keys/` endpoint with the private RSA key which
-matches your [UserKey](../models/userkey.md). Place the private RSA key in a json file.
+matches your [UserKey](#user-keys). Place the private RSA key in a json file.
 
 ```no-highlight
 $ curl -X POST http://netbox/api/plugins/secrets/session-keys/ \
@@ -257,7 +253,7 @@ curl -X POST https://netbox-test.tugraz.at/api/plugins/secrets/get-session-key/ 
 ### Retrieving Secrets
 
 A session key is not needed to retrieve unencrypted secrets: The secret is returned like any normal object with its
-`plaintext` field set to null.
+`plaintext` field set to `null`.
 
 ```no-highlight
 $ curl http://netbox/api/plugins/secrets/secrets/2587/ \
@@ -435,11 +431,11 @@ $ curl -X POST http://netbox/api/secrets/secrets/ \
 
 ## Pynetbox
 
-The `pynetbox` library can be used to interact with the NetBox API as well. Here are some examples of how to use `pynetbox` to interact with the NetBox Secrets plugin.
+The `pynetbox` Python lib can be used to interact with the NetBox API as well. Here are some examples of how to use `pynetbox` to interact with the NetBox Secrets plugin.
 
 For more information on `pynetbox`, please refer to the [pynetbox documentation](https://pynetbox.readthedocs.io/en/latest/).
 
-### Generating RSA Key Pair
+### Generating RSA Key Pair using Pynetbox
 
 You can use the `<netbox_url>/api/plugins/secrets/generate-rsa-key-pair/` endpoint to generate a new RSA key pair. The keys are returned in PEM format.
 
@@ -462,7 +458,7 @@ key_pair = nb.plugins.secrets.generate_rsa_key_pair.create()
 
 The `key_pair` variable will contain the public and private keys in PEM format.
 
-### Activating User Key
+### Activating User Key using Pynetbox
 
 To activate a user key, you can use the `<netbox_url>/api/plugins/secrets/activate-user-key/` endpoint. The endpoint requires the private key in PEM format.
 
@@ -484,7 +480,7 @@ nb.plugins.secrets.activate_user_key.create(private_key="<private_key>")
 
 The user key will be activated and can now be used to encrypt and decrypt secrets.
 
-### Generating Session Key
+### Generating Session Key using Pynetbox
 
 To generate a session key, you can use the `<netbox_url>/api/plugins/secrets/session-keys/` endpoint. The endpoint requires the private key in PEM format.
 
@@ -506,7 +502,7 @@ session_key = nb.plugins.secrets.session_keys.create(private_key="<private_key>"
 
 The `session_key` variable will contain the session key. The session key can now be used to encrypt and decrypt secrets.
 
-### Creating Secrets
+### Creating Secrets using Pynetbox
 
 To create a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/` endpoint. The endpoint requires the session key in the `X-Session-Key` header. The data sent needs to be in the following format:
 
@@ -514,26 +510,9 @@ To create a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/` 
 {
   "assigned_object_type": "string",
   "assigned_object_id": 2147483647,
-  "role": {
-    "name": "string",
-    "slug": "8M0SQnM8j0Y3Bto4c7SEs3w_2bvxF1SK9UFFRVSUfzW5CdD12Ro3o-ecA7yJP3OkHgvSy1zlsV84DgKNh2J02-578Q4Tvg0KsOe"
-  },
+  "role": 1, // Role ID
   "name": "string",
   "plaintext": "string",
-  "description": "string",
-  "comments": "string",
-  "tags": [
-    {
-      "name": "string",
-      "slug": "3iRRVSvfqln",
-      "color": "392511"
-    }
-  ],
-  "custom_fields": {
-    "additionalProp1": "string",
-    "additionalProp2": "string",
-    "additionalProp3": "string"
-  }
 }
 ```
 
@@ -558,26 +537,9 @@ nb.http_session = session
 secret = {
     "assigned_object_type": "dcim.device",
     "assigned_object_id": 2147483647,
-    "role": {
-        "name": "Login Credentials",
-        "slug": "login-creds"
-    },
+    "role": 1,
     "name": "admin",
     "plaintext": "foobar",
-    "description": "Secret description",
-    "comments": "Secret comments",
-    "tags": [
-        {
-            "name": "tag1",
-            "slug": "tag1",
-            "color": "392511"
-        }
-    ],
-    "custom_fields": {
-        "additionalProp1": "string",
-        "additionalProp2": "string",
-        "additionalProp3": "string"
-    }
 }
 
 nb.plugins.secrets.secrets.create(data=secret, session=session)
@@ -585,7 +547,7 @@ nb.plugins.secrets.secrets.create(data=secret, session=session)
 
 The secret will be created and stored in the database.
 
-### Retrieving Secrets
+### Retrieving Secrets using Pynetbox
 
 To retrieve a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/` endpoint. The endpoint requires the session key in the `X-Session-Key` header. The request response will be in the following format:
 
@@ -661,7 +623,7 @@ secrets = nb.plugins.secrets.secrets.all(session=session)
 
 The `secrets` variable will contain a list of secrets.
 
-### Updating Secrets
+### Updating Secrets using Pynetbox
 
 To update a secret, you can use the `<netbox_url>/api/plugins/secrets/secrets/<id>/` endpoint where the `<id>` is the . The endpoint requires the session key in the `X-Session-Key` header. The data sent needs to be in the following format:
 
@@ -715,26 +677,9 @@ nb.http_session = session
 secret = {
     "assigned_object_type": "dcim.device",
     "assigned_object_id": 2147483647,
-    "role": {
-        "name": "Login Credentials",
-        "slug": "login-creds"
-    },
+    "role": 1,
     "name": "admin",
     "plaintext": "foobar",
-    "description": "Secret description",
-    "comments": "Secret comments",
-    "tags": [
-        {
-            "name": "tag1",
-            "slug": "tag1",
-            "color": "392511"
-        }
-    ],
-    "custom_fields": {
-        "additionalProp1": "string",
-        "additionalProp2": "string",
-        "additionalProp3": "string"
-    }
 }
 
 nb.plugins.secrets.secrets.update(id=1, data=secret, session=session)
