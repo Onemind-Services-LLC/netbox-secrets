@@ -11,7 +11,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
-from netbox_secrets.models import UserKey
+from netbox_secrets.models import SecretRole, UserKey
 
 from core.signals import clear_events
 from netbox.views import generic
@@ -31,6 +31,7 @@ plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
 #
 
 
+@register_model_view(models.SecretRole, 'list', path='', detail=False)
 class SecretRoleListView(generic.ObjectListView):
     queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
         'tags',
@@ -62,6 +63,7 @@ class SecretRoleSecretView(generic.ObjectChildrenView):
         return models.Secret.objects.filter(role=parent)
 
 
+@register_model_view(models.SecretRole, 'add', detail=False)
 @register_model_view(models.SecretRole, 'edit')
 class SecretRoleEditView(generic.ObjectEditView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
@@ -73,12 +75,14 @@ class SecretRoleDeleteView(generic.ObjectDeleteView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
 
 
+@register_model_view(models.SecretRole, 'bulk_import', detail=False)
 class SecretRoleBulkImportView(generic.BulkImportView):
     queryset = models.SecretRole.objects.prefetch_related('tags')
     model_form = forms.SecretRoleImportForm
     table = tables.SecretRoleTable
 
 
+@register_model_view(models.SecretRole, 'bulk_edit', path='edit', detail=False)
 class SecretRoleBulkEditView(generic.BulkEditView):
     queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
         'tags',
@@ -88,6 +92,7 @@ class SecretRoleBulkEditView(generic.BulkEditView):
     form = forms.SecretRoleBulkEditForm
 
 
+@register_model_view(models.SecretRole, 'bulk_edit', path='edit', detail=False)
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
         'tags',
@@ -100,6 +105,7 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 #
 
 
+@register_model_view(models.Secret, 'list', path='', detail=False)
 class SecretListView(generic.ObjectListView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
@@ -117,6 +123,7 @@ class SecretView(generic.ObjectView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
+@register_model_view(models.Secret, 'add', detail=False)
 @register_model_view(models.Secret, 'edit')
 class SecretEditView(generic.ObjectEditView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
@@ -267,6 +274,7 @@ class SecretDeleteView(generic.ObjectDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
+@register_model_view(models.Secret, 'bulk_edit', path='edit', detail=False)
 class SecretBulkEditView(generic.BulkEditView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
@@ -274,6 +282,7 @@ class SecretBulkEditView(generic.BulkEditView):
     form = forms.SecretBulkEditForm
 
 
+@register_model_view(models.Secret, 'bulk_delete', path='delete', detail=False)
 class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
@@ -292,6 +301,7 @@ if plugin_settings.get('enable_contacts'):
 #
 
 
+@register_model_view(models.UserKey, 'list', path='', detail=False)
 class UserKeyListView(generic.ObjectListView):
     queryset = models.UserKey.objects.all()
     table = tables.UserKeyTable
@@ -316,6 +326,7 @@ class UserKeyDeleteView(generic.ObjectDeleteView):
     queryset = UserKey.objects.all()
 
 
+@register_model_view(models.UserKey, 'add', detail=False)
 @register_model_view(models.UserKey, 'edit')
 class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
     queryset = models.UserKey.objects.all()
@@ -364,6 +375,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         )
 
 
+@register_model_view(models.UserKey, 'activate', path='userkey_activate', detail=False)
 class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
     queryset = models.UserKey.objects.all()
     template_name = 'netbox_secrets/activate_keys.html'
