@@ -41,8 +41,8 @@ class NetBoxSecrets(PluginConfig):
     required_settings = []
     default_settings = {
         'apps': ['dcim.device', 'virtualization.virtualmachine'],
-        # 'display_default': 'left_page',
-        # 'display_setting': {},
+        'display_default': 'left_page',
+        'display_setting': {},
         'enable_contacts': False,
         'public_key_size': 2048,
     }
