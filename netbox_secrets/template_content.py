@@ -8,6 +8,7 @@ from netbox.plugins import PluginTemplateExtension
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 from .filtersets import SecretFilterSet
+from .forms import SecretFilterForm
 from .models import Secret
 from .tables import SecretTable
 
@@ -30,8 +31,11 @@ def secrets_panel(self):
 
 
 def get_display_on(app_model):
-    """Get preferred display location for app_model"""
-    display_on = plugin_settings.get('display_default')
+    """Get preferred display location for app_model."""
+    display_on = 'tab_view'  # Default fallback
+
+    if display_default := plugin_settings.get('display_default'):
+        display_on = display_default
 
     if display_setting := plugin_settings.get('display_setting'):
         display_on = display_setting.get(app_model, display_on)
@@ -45,7 +49,7 @@ def tab_view(_model):
         child_model = Secret
         table = SecretTable
         filterset = SecretFilterSet
-        template_name = 'netbox_secrets/inc/view_tab.html'
+        filterset_form = SecretFilterForm
         tab = ViewTab(
             label='Secrets',
             badge=lambda obj: obj.secrets.count(),
