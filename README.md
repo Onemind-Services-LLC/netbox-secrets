@@ -24,6 +24,7 @@ and stability.
 | 3.7.x          | 1.10.x         |
 | 4.0.x          | 2.0.x          |
 | 4.1.x          | 2.1.x          |
+| 4.2.x          | 2.2.x          |
 
 # Installation
 
