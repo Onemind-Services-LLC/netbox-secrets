@@ -92,7 +92,7 @@ class SecretRoleBulkEditView(generic.BulkEditView):
     form = forms.SecretRoleBulkEditForm
 
 
-@register_model_view(models.SecretRole, 'bulk_edit', path='edit', detail=False)
+@register_model_view(models.SecretRole, 'bulk_delete', path='delete', detail=False)
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
         'tags',
