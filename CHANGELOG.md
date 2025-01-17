@@ -2,7 +2,21 @@
 
 ## [Unreleased](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/HEAD)
 
-[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.3...HEAD)
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.1.0...HEAD)
+
+**Closed issues:**
+
+- \[Feature\]: Enable usage of session key list and secrets list endpoints using pynetbox [\#172](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/172)
+- \[Bug\]: Plugin netbox\_secrets requires NetBox minimum version 4.1.0 \(current: 4.0.11\) [\#167](https://github.com/Onemind-Services-LLC/netbox-secrets/issues/167)
+
+**Merged pull requests:**
+
+- Release v2.1.1 [\#173](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/173) ([abhi1693](https://github.com/abhi1693))
+- OMS-419 fixed runtime warning [\#169](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/169) ([abhi1693](https://github.com/abhi1693))
+
+## [v2.1.0](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.1.0) (2024-10-18)
+
+[Full Changelog](https://github.com/Onemind-Services-LLC/netbox-secrets/compare/v2.0.3...v2.1.0)
 
 **Closed issues:**
 
@@ -13,6 +27,11 @@
 
 **Merged pull requests:**
 
+- Bump cookie from 0.5.0 to 0.7.0 in /netbox\_secrets/project-static in the npm\_and\_yarn group across 1 directory [\#164](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/164) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Release v2.1.0 [\#163](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/163) ([yash-pal1](https://github.com/yash-pal1))
+- OMS-376 Fix permissions while activating user key [\#162](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/162) ([kprince28](https://github.com/kprince28))
+- OMS-351 Support Added for NetBox v4.1 [\#161](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/161) ([yash-pal1](https://github.com/yash-pal1))
+- OMS-258 Schema Fix [\#157](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/157) ([yash-pal1](https://github.com/yash-pal1))
 - Bump micromatch from 4.0.5 to 4.0.8 in /netbox\_secrets/project-static in the npm\_and\_yarn group across 1 directory [\#155](https://github.com/Onemind-Services-LLC/netbox-secrets/pull/155) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v2.0.3](https://github.com/Onemind-Services-LLC/netbox-secrets/tree/v2.0.3) (2024-07-26)

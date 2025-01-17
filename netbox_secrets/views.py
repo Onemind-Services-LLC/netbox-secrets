@@ -281,6 +281,7 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 
 
 if plugin_settings.get('enable_contacts'):
+
     @register_model_view(models.Secret, 'contacts')
     class SecretContactsView(ObjectContactsView):
         queryset = models.Secret.objects.prefetch_related('role', 'tags')
