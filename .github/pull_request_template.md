@@ -1,48 +1,58 @@
 
-### Description
+### 🎟️ Jira Issue
 
-<!-- Please provide a brief description of the changes included in this pull request. -->
-
-### Jira Issue
-
-<!-- If this pull request is associated with a Jira issue, please link it here (e.g., `OMS-123`). -->
-
+<!-- Replace `OMS-XXXX` with the actual Jira ticket number. -->
 - Jira Ticket: [OMS-XXXX](https://onemindservices.atlassian.net/browse/OMS-XXXX)
 
-### Is this PR for Development?
+### 🛠️ Type of Change
 
-- [ ] Yes, this PR is for the development branch.
-- [ ] No, this PR targets a different branch (please specify):
+<!-- Select all applicable types of changes. -->
+- [ ] Bug fix (a non-breaking change that fixes an issue)
+- [ ] New feature (a non-breaking change that adds functionality)
+- [ ] Improvement (enhancements or optimizations to existing functionality)
+- [ ] Documentation update (changes or additions to documentation)
+- [ ] Release (preparing or deploying a new release)
+- [ ] Other (please specify):
 
-### Type of Change
+### 🎯 Targeted Branch
 
-<!-- Please select the type of change that applies to this pull request. -->
+<!-- Specify the target branch, e.g., `main`, `development`, `release-v1.2`. -->
+- [ ] I have confirmed that this PR targets the correct branch.
+- **Target Branch:** `main` <!-- Replace with the appropriate branch name -->
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Other (please describe):
+### 🧪 Testing
 
-### Test Cases
+#### ✅ Test Coverage
 
-- [ ] Test cases are covered for this PR.
-- [ ] This PR does not require test cases (please explain):
+- [ ] I have added/updated tests that cover my changes.
+- [ ] This PR does not require tests (please explain):
 
-### Checklist
+### 📋 Checklist
 
-<!-- Please check off the items as they are completed. -->
-
+<!-- Ensure all items are completed before requesting a review. -->
+- [ ] My code follows the project's coding standards.
 - [ ] I have performed a self-review of my own code.
+- [ ] I have commented my code where necessary.
 - [ ] I have linked all related Jira issues.
-- [ ] I have added tests that prove my fix is effective or that my feature works.
 - [ ] I have added necessary documentation (if applicable).
+- [ ] I have added or updated tests to cover my changes.
 - [ ] Any dependent changes have been merged and published in downstream modules.
+- [ ] I have reviewed the changes for security implications.
+- [ ] I have ensured that no sensitive information or secrets are exposed in this PR.
 
-### Screenshots (if applicable)
+### 📸 Screenshots (if applicable)
 
-<!-- If your PR includes visual changes, please include screenshots or GIFs to illustrate them. -->
+<!-- Include screenshots or GIFs to demonstrate visual changes or new features. -->
+<!-- Example:
+![Feature Screenshot](https://link-to-screenshot.com)
+-->
 
-### Additional Information
+### 🔗 Related PRs
 
-<!-- If there's anything else you want to share about your pull request, please add it here. -->
+<!-- List any related pull requests, especially those that need to be merged before this one. -->
+- Related PR: [#123](https://github.com/your-repo/your-project/pull/123)
+
+### 🧩 Additional Information
+
+<!-- Add any other relevant information or context about the PR that might be helpful for reviewers. -->
+
