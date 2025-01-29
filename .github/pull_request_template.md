@@ -18,7 +18,7 @@
 
 <!-- Specify the target branch, e.g., `main`, `development`, `release-v1.2`. -->
 - [ ] I have confirmed that this PR targets the correct branch.
-- **Target Branch:** `main` <!-- Replace with the appropriate branch name -->
+- **Target Branch:** `master` <!-- Replace with the appropriate branch name -->
 
 ### 🧪 Testing
 
@@ -50,9 +50,9 @@
 ### 🔗 Related PRs
 
 <!-- List any related pull requests, especially those that need to be merged before this one. -->
-- Related PR: [#123](https://github.com/your-repo/your-project/pull/123)
 
 ### 🧩 Additional Information
 
 <!-- Add any other relevant information or context about the PR that might be helpful for reviewers. -->
+
 
