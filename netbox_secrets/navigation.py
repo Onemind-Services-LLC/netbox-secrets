@@ -22,7 +22,7 @@ menu_buttons = (
                 permissions=["netbox_secrets.add_secretrole"],
             ),
             PluginMenuButton(
-                link="plugins:netbox_secrets:secretrole_import",
+                link="plugins:netbox_secrets:secretrole_bulk_import",
                 title="Import Secret Role",
                 icon_class="mdi mdi-upload",
                 permissions=["netbox_secrets.add_secretrole"],
