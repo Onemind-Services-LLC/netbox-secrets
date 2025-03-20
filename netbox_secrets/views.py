@@ -324,6 +324,17 @@ class UserKeyView(generic.ObjectView):
 @register_model_view(models.UserKey, 'delete')
 class UserKeyDeleteView(generic.ObjectDeleteView):
     queryset = UserKey.objects.all()
+    #
+    # def delete(self, request, *args, **kwargs):
+    #     obj = self.get_object()
+    #
+    #     # If Secrets exist and this is the last active UserKey, prevent deletion
+    #     if obj.secret_set.exists() and UserKey.objects.active().count() == 1 and UserKey.objects.active().first().pk == obj.pk:
+    #         messages.error(request,
+    #                        "Cannot delete the last active UserKey when Secrets exist! This would render all secrets inaccessible.")
+    #         return self.get(request, *args, **kwargs)
+    #
+    #     return super().delete(request, *args, **kwargs)
 
 
 @register_model_view(models.UserKey, 'add', detail=False)

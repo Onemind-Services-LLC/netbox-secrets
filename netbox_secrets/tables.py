@@ -84,7 +84,7 @@ class UserKeyTable(NetBoxTable):
         verbose_name=_('Is Active'),
     )
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
-    actions = columns.ActionsColumn(actions=())
+    actions = columns.ActionsColumn(actions=('delete',))
 
     class Meta(NetBoxTable.Meta):
         model = UserKey

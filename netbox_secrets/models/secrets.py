@@ -1,5 +1,6 @@
 import os
-
+from django.utils.translation import gettext_lazy as _
+from django.db.models import F, ProtectedError
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
@@ -116,12 +117,13 @@ class UserKey(NetBoxModel):
         # If Secrets exist and this is the last active UserKey, prevent its deletion. Deleting the last UserKey will
         # result in the master key being destroyed and rendering all Secrets inaccessible.
         if Secret.objects.count() and [uk.pk for uk in UserKey.objects.active()] == [self.pk]:
-            raise Exception(
+            raise ProtectedError(
                 "Cannot delete the last active UserKey when Secrets exist! This would render all secrets "
                 "inaccessible.",
+                [secret for secret in Secret.objects.all()],
             )
 
-        super().delete(*args, **kwargs)
+        return super().delete(*args, **kwargs)
 
     def to_objectchange(self, action):
         objectchange = super().to_objectchange(action)
