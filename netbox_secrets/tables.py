@@ -82,6 +82,7 @@ class UserKeyTable(NetBoxTable):
     user = tables.Column(linkify=True)
     is_active = columns.BooleanColumn(
         verbose_name=_('Is Active'),
+        orderable=False,
     )
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
     actions = columns.ActionsColumn(actions=())
