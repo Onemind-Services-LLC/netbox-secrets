@@ -42,9 +42,9 @@ class UserKeyTestCase(TestCase):
         User = get_user_model()
         master_key = generate_random_key()
         alice_uk = UserKey(user=User.objects.get(username='alice'), public_key=self.TEST_KEYS['alice_public'])
-        self.assertFalse(alice_uk.is_active(), "Inactive UserKey is_active() did not return False")
+        self.assertFalse(alice_uk.is_active, "Inactive UserKey is_active did not return False")
         alice_uk.activate(master_key)
-        self.assertTrue(alice_uk.is_active(), "ActiveUserKey is_active() did not return True")
+        self.assertTrue(alice_uk.is_active, "ActiveUserKey is_active did not return True")
 
     def test_03_key_sizes(self):
         """
