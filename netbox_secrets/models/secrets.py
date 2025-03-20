@@ -46,6 +46,7 @@ class UserKey(NetBoxModel):
         verbose_name='RSA public key',
     )
     master_key_cipher = models.BinaryField(max_length=512, blank=True, null=True, editable=False)
+    is_active = models.BooleanField(default=False, editable=False)
 
     objects = UserKeyQuerySet.as_manager()
 
@@ -104,11 +105,13 @@ class UserKey(NetBoxModel):
         # Check whether public_key has been modified. If so, nullify the initial master_key_cipher.
         if self.__initial_master_key_cipher and self.public_key != self.__initial_public_key:
             self.master_key_cipher = None
+            self.is_active = False
 
         # If no other active UserKeys exist, generate a new master key and use it to activate this UserKey.
-        if self.is_filled() and not self.is_active() and not UserKey.objects.active().count():
+        if self.is_filled() and not self.is_active and not UserKey.objects.active().count():
             master_key = generate_random_key()
             self.master_key_cipher = encrypt_master_key(master_key, self.public_key)
+            self.is_active = True
 
         super().save(*args, **kwargs)
 
@@ -151,14 +154,6 @@ class UserKey(NetBoxModel):
         return bool(self.public_key)
 
     is_filled.boolean = True
-
-    def is_active(self):
-        """
-        Returns True if the UserKey has been populated with an encrypted copy of the master key.
-        """
-        return self.master_key_cipher is not None
-
-    is_active.boolean = True
 
     def get_master_key(self, private_key):
         """
