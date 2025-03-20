@@ -154,7 +154,7 @@ class SecretEditView(generic.ObjectEditView):
         except models.UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
             return redirect('plugins:netbox_secrets:userkey_add')
-        if not uk.is_active:
+        if not uk.is_active():
             messages.warning(request, "This operation is not available. Your user key has not been activated.")
             return redirect('plugins:netbox_secrets:userkey', pk=uk.pk)
 
@@ -402,7 +402,7 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
         if not request.user.has_perm('netbox_secrets.change_userkey'):
             raise PermissionDenied("You do not have permission to activate User Keys.")
 
-        if not self.userkey or not self.userkey.is_active:
+        if not self.userkey or not self.userkey.is_active():
             messages.error(request, "You do not have an active User Key.")
             return redirect('plugins:netbox_secrets:userkey_activate')
 
@@ -413,8 +413,6 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
             if master_key:
                 for user_key in user_keys:
                     user_key.activate(master_key)
-                    user_key.is_active = True
-                    user_key.save()
                     messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
                     return redirect("plugins:netbox_secrets:userkey_list")
             else:

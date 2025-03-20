@@ -191,7 +191,7 @@ class SessionKeyViewSet(
             user_key = models.UserKey.objects.get(user=request.user)
         except models.UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
-        if not user_key.is_active:
+        if not user_key.is_active():
             return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
 
         # Validate private key
@@ -304,7 +304,7 @@ class GetSessionKeyViewSet(ViewSet):
             user_key = models.UserKey.objects.get(user=request.user)
         except models.UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
-        if not user_key.is_active:
+        if not user_key.is_active():
             return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
 
         # Validate private key
@@ -397,7 +397,7 @@ class ActivateUserKeyViewSet(ViewSet):
         except models.UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
 
-        if not user_key.is_active:
+        if not user_key.is_active():
             return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
 
         # Validate private key
@@ -410,8 +410,6 @@ class ActivateUserKeyViewSet(ViewSet):
             try:
                 user_key = models.UserKey.objects.get(pk=key_data)
                 user_key.activate(master_key)
-                user_key.is_active = True
-                user_key.save()
                 activated_keys += 1
             except models.UserKey.DoesNotExist:
                 return HttpResponseBadRequest(f"User key with id {key_data} does not exist.")
