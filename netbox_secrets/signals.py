@@ -1,3 +1,4 @@
+import sys
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +10,10 @@ from django.dispatch import receiver
 
 @receiver(connection_created, sender=DatabaseWrapper)
 def configure_generic_relations(sender, **kwargs):
+    if 'test' in sys.argv:
+        # Skip this signal during tests to avoid issues with test database destruction
+        return
+
     from .constants import SECRET_ASSIGNABLE_MODELS
     from .models import Secret
 
