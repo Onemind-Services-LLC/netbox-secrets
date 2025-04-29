@@ -12,12 +12,12 @@ services:
 
   # postgres
   postgres:
-    image: postgres:16-alpine
+    image: registry.onemindservices.com/docker.io/library/postgres:14-alpine
     env_file: env/postgres.env
 
   # redis
   redis:
-    image: redis:6-alpine
+    image: registry.onemindservices.com/docker.io/library/redis:6-alpine
     command:
     - sh
     - -c # this is to evaluate the $REDIS_PASSWORD from the env
