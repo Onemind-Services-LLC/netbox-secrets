@@ -404,12 +404,3 @@ class Secret(PrimaryModel, ContactsMixin):
     @property
     def enable_contacts(self):
         return plugin_settings.get('enable_contacts', False)
-
-
-if plugin_settings.get('enable_contacts', False):
-    GenericRelation(
-        to='tenancy.ContactAssignment',
-        content_type_field='object_type',
-        object_id_field='object_id',
-        related_query_name='secret',
-    ).contribute_to_class(Secret, 'contacts')
