@@ -46,9 +46,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
       - run: yarn --cwd netbox_secrets/project-static
 
       - name: Check UI ESLint, TypeScript, and Prettier Compliance
