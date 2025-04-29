@@ -5,8 +5,6 @@ from netbox.plugins import PluginConfig
 metadata = metadata('netbox_secrets')
 
 
-
-
 class NetBoxSecrets(PluginConfig):
     name = metadata.get('Name').replace('-', '_')
     verbose_name = metadata.get('Name')
