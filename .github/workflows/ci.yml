@@ -1,53 +1,55 @@
 name: CI
 
 on:
+  release:
+    types:
+      - published
+  workflow_dispatch: { }
   push:
+    branches:
+      - '*'
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+(-[a-zA-Z]+[0-9]+)?
   pull_request:
-
-# This ensures that previous jobs for the workflow are canceled when the ref is
-# updated.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    types:
+      - opened
+      - synchronize
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    name: Checks syntax
+  pre_commit:
+    name: Run lint rules
+    runs-on: ubuntu-22.04-sh
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
-          fetch-depth: 0
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.12
-      - name: Lint Code Base
-        uses: github/super-linter/slim@v4
-        env:
-          DEFAULT_BRANCH: dev
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SUPPRESS_POSSUM: true
-          LINTER_RULES_PATH: /
-          VALIDATE_ALL_CODEBASE: false
-          VALIDATE_DOCKERFILE: false
-          VALIDATE_JSCPD: true
-          FILTER_REGEX_EXCLUDE: (.*/)?(configuration/.*)
-          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
-          PYTHON_FLAKE8_CONFIG_FILE: pyproject.toml
-          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+          python-version: '3.11'
+
+      - uses: pre-commit/action@v3.0.1
+
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-sh
     name: Runs plugin tests
+
     steps:
-      - id: git-checkout
-        name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
+      - run: npm install -g yarn
       - run: yarn --cwd netbox_secrets/project-static
 
       - name: Check UI ESLint, TypeScript, and Prettier Compliance
@@ -56,6 +58,5 @@ jobs:
       - name: Validate Static Asset Integrity
         run: bash .github/verify-bundles.sh
 
-      - id: docker-test
-        name: Test the image
+      - name: Test the image
         run: ./test.sh
