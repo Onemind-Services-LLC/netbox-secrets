@@ -1,9 +1,12 @@
 ARG NETBOX_VARIANT=v4.2
 
-FROM netboxcommunity/netbox:${NETBOX_VARIANT}
+FROM registry.onemindservices.com/netbox/tests:${NETBOX_VARIANT}
+
+USER root
 
 RUN mkdir -pv /plugins/netbox-secrets
 COPY . /plugins/netbox-secrets
 
-RUN /opt/netbox/venv/bin/python3 /plugins/netbox-secrets/setup.py develop
-RUN cp -rf /plugins/netbox-secrets/netbox_secrets/ /opt/netbox/venv/lib/python3.12/site-packages/netbox_secrets
+RUN pip install -e /plugins/netbox-secrets/
+
+USER $USER
