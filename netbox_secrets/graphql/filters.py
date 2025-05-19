@@ -12,10 +12,10 @@ if TYPE_CHECKING:
     from core.graphql.filters import ContentTypeFilter
 
 
-# __all__ = [
-#     'SecretFilter',
-#     'SecretRoleFilter',
-# ]
+__all__ = [
+    'SecretFilter',
+    'SecretRoleFilter',
+]
 
 
 @strawberry_django.filter_type(SecretRole, lookups=True)
