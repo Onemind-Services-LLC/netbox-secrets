@@ -1,4 +1,4 @@
-ARG NETBOX_VARIANT=v4.2
+ARG NETBOX_VARIANT=v4.3
 
 FROM registry.onemindservices.com/netbox/tests:${NETBOX_VARIANT}
 
