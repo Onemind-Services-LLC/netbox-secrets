@@ -1,22 +1,36 @@
-import strawberry_django
+from typing import Annotated, TYPE_CHECKING
 
-from netbox.graphql.filter_mixins import BaseFilterMixin, autotype_decorator
-from ..filtersets import *
+import strawberry
+import strawberry_django
+from strawberry.scalars import ID
+from strawberry_django import FilterLookup
+
+from netbox.graphql.filter_mixins import BaseObjectTypeFilterMixin, OrganizationalModelFilterMixin
 from ..models import *
 
-__all__ = [
-    'SecretFilter',
-    'SecretRoleFilter',
-]
+if TYPE_CHECKING:
+    from core.graphql.filters import ContentTypeFilter
 
 
-@strawberry_django.filter(Secret, lookups=True)
-@autotype_decorator(SecretFilterSet)
-class SecretFilter(BaseFilterMixin):
+# __all__ = [
+#     'SecretFilter',
+#     'SecretRoleFilter',
+# ]
+
+
+@strawberry_django.filter_type(SecretRole, lookups=True)
+class SecretRoleFilter(OrganizationalModelFilterMixin):
     pass
 
 
-@strawberry_django.filter(SecretRole, lookups=True)
-@autotype_decorator(SecretRoleFilterSet)
-class SecretRoleFilter(BaseFilterMixin):
-    pass
+@strawberry_django.filter_type(Secret, lookups=True)
+class SecretFilter(BaseObjectTypeFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    role: Annotated[
+        'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
+    ] | None = strawberry_django.filter_field()
+    role_id: ID | None = strawberry_django.filter_field()
+    assigned_object_type: Annotated[
+        'ContentTypeFilter', strawberry.lazy('core.graphql.filters')
+    ] | None = strawberry_django.filter_field()
+    assigned_object_id: ID | None = strawberry_django.filter_field()

@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
@@ -11,19 +10,16 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View
-from netbox_secrets.models import SecretRole, UserKey
 
 from core.signals import clear_events
 from netbox.views import generic
-from tenancy.views import ObjectContactsView
+from netbox_secrets.models import UserKey
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.query import count_related
 from utilities.querydict import prepare_cloned_fields
-from utilities.views import GetReturnURLMixin, ViewTab, register_model_view
+from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
 from . import constants, exceptions, filtersets, forms, models, tables, utils
-
-plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
 
 
 #
@@ -119,7 +115,7 @@ class SecretListView(generic.ObjectListView):
 
 
 @register_model_view(models.Secret)
-class SecretView(generic.ObjectView):
+class SecretView(GetRelatedModelsMixin, generic.ObjectView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
@@ -287,13 +283,6 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
     queryset = models.Secret.objects.prefetch_related('role', 'tags')
     filterset = filtersets.SecretFilterSet
     table = tables.SecretTable
-
-
-if plugin_settings.get('enable_contacts'):
-
-    @register_model_view(models.Secret, 'contacts')
-    class SecretContactsView(ObjectContactsView):
-        queryset = models.Secret.objects.prefetch_related('role', 'tags')
 
 
 #
