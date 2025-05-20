@@ -5,7 +5,27 @@ on:
   - pull_request
 
 jobs:
+  pre-test:
+    runs-on: ubuntu-22.04-sh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g yarn
+      - run: yarn --cwd netbox_secrets/project-static
+
+      - name: Check UI ESLint, TypeScript, and Prettier Compliance
+        run: yarn --cwd netbox_secrets/project-static validate
+
+      - name: Validate Static Asset Integrity
+        run: bash .github/verify-bundles.sh
+
   test:
+    needs: pre-test
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
       plugin_name: 'netbox_secrets'
