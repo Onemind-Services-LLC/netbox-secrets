@@ -121,8 +121,9 @@ jobs:
           pip install -r ./netbox/requirements.txt
 
       - name: Configure NetBox
+        working-directory: netbox
         run: |
-          ln -sf $(pwd)/${{ env.PLUGIN_NAME }}/testing_configuration/configuration.py netbox/netbox/configuration.py
+          ln -sf $(pwd)/../${{ inputs.plugin_name }}/testing_configuration/configuration.py netbox/netbox/configuration.py
 
       - name: Validate Database Migrations
         working-directory: netbox
