@@ -55,7 +55,7 @@ jobs:
         run: yarn --cwd ${{ env.PLUGIN_NAME }}/project-static validate
 
       - name: Validate Static Asset Integrity
-        run: bash ${{ env.PLUGIN_NAME }}/.github/verify-bundles.sh
+        run: bash .github/verify-bundles.sh
 
   test:
     name: Run Tests
