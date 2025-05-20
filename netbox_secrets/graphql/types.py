@@ -21,7 +21,7 @@ class SecretRoleType(OrganizationalObjectType):
     pass
 
 
-@strawberry_django.type(Secret, exclude=('ciphertext', 'hash', 'plaintext'), filters=SecretFilter, pagination=True)
+@strawberry_django.type(Secret, exclude=['ciphertext', 'hash', 'plaintext'], filters=SecretFilter, pagination=True)
 class SecretType(NetBoxObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
     name: str

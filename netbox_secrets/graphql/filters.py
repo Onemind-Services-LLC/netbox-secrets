@@ -5,12 +5,14 @@ import strawberry_django
 from strawberry.scalars import ID
 from strawberry_django import FilterLookup
 
-from netbox.graphql.filter_mixins import BaseObjectTypeFilterMixin, OrganizationalModelFilterMixin
+from netbox.graphql.filter_mixins import (
+    OrganizationalModelFilterMixin,
+    PrimaryModelFilterMixin,
+)
 from ..models import *
 
 if TYPE_CHECKING:
     from core.graphql.filters import ContentTypeFilter
-
 
 __all__ = [
     'SecretFilter',
@@ -24,7 +26,7 @@ class SecretRoleFilter(OrganizationalModelFilterMixin):
 
 
 @strawberry_django.filter_type(Secret, lookups=True)
-class SecretFilter(BaseObjectTypeFilterMixin):
+class SecretFilter(PrimaryModelFilterMixin):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     role: Annotated[
         'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
