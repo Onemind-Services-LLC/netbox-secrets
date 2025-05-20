@@ -1,4 +1,10 @@
+from typing import Annotated, TYPE_CHECKING
+
+import strawberry
+import strawberry_django
+
 from netbox.graphql.types import NetBoxObjectType, OrganizationalObjectType
+from netbox_secrets.models import Secret, SecretRole
 from .filters import *
 
 if TYPE_CHECKING:
