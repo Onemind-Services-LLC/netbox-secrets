@@ -64,7 +64,6 @@ jobs:
         run: bash .github/verify-bundles.sh
 
   test:
-    name: Run Tests
     needs:
       - pre_commit
       - lint_frontend
