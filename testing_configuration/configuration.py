@@ -45,7 +45,4 @@ DEFAULT_PERMISSIONS = {}
 
 ALLOW_TOKEN_RETRIEVAL = True
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': True
-}
+LOGGING = {'version': 1, 'disable_existing_loggers': True}
