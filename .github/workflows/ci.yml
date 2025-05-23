@@ -46,6 +46,9 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: 'netbox_secrets/project-static/yarn.lock'
 
+      - name: Install yarn
+        run: npm install --global yarn
+
       - name: Install Node.js dependencies
         run: yarn --cwd netbox_secrets/project-static install --frozen-lockfile
 
