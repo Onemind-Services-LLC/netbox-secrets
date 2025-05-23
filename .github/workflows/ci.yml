@@ -43,11 +43,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: 'netbox_secrets/project-static/yarn.lock'
 
       - name: Install yarn
         run: npm install --global yarn
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: 'netbox_secrets/project-static/yarn.lock'
 
       - name: Install Node.js dependencies
         run: yarn --cwd netbox_secrets/project-static install --frozen-lockfile
