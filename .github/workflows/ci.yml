@@ -54,3 +54,16 @@ jobs:
 
       - name: Validate Static Asset Integrity
         run: bash .github/verify-bundles.sh
+
+  test:
+    name: Run Tests
+    needs:
+      - pre_commit
+      - lint_frontend
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
+    with:
+      plugin_name: 'netbox_secrets'
+      python_version: '3.12'
+      netbox_version: 'v4.3.1'
+    secrets:
+      git_token: ${{ secrets.GIT_TOKEN }}
