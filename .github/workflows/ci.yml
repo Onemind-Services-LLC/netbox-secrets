@@ -49,7 +49,7 @@ jobs:
     needs: [ lint_frontend, lint ]
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
-      plugin-name: 'netbox_portal'
+      plugin-name: 'netbox_secrets'
       netbox-version: 'v4.3.1'
       python-version: '3.12'
     secrets:
