@@ -4,33 +4,10 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+(-[a-zA-Z]+[0-9]+)?
-  pull_request:
-    types:
-      - opened
-      - synchronize
+  - push
+  - pull_request
 
 jobs:
-  pre_commit:
-    name: Run pre-commit hooks
-    runs-on: ubuntu-22.04-sh
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - uses: pre-commit/action@v3.0.1
-
   lint_frontend:
     name: Lint Frontend
     runs-on: ubuntu-22.04-sh
@@ -63,14 +40,17 @@ jobs:
       - name: Validate Static Asset Integrity
         run: bash .github/verify-bundles.sh
 
+  lint:
+    uses: Onemind-Services-LLC/actions/.github/workflows/pre-commit.yml@master
+    with:
+      python-version: '3.12'
+
   test:
-    needs:
-      - pre_commit
-      - lint_frontend
+    needs: [ lint_frontend, lint ]
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
-      plugin_name: 'netbox_secrets'
-      python_version: '3.12'
-      netbox_version: 'v4.3.1'
+      plugin-name: 'netbox_portal'
+      netbox-version: 'v4.3.1'
+      python-version: '3.12'
     secrets:
-      git_token: ${{ secrets.GIT_TOKEN }}
+      git-token: ${{ secrets.GIT_TOKEN }}
