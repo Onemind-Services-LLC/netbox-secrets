@@ -1,56 +1,38 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
-  release:
-    types:
-      - published
-  workflow_dispatch: { }
-  push:
-    branches:
-      - '*'
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+(-[a-zA-Z]+[0-9]+)?
-  pull_request:
-    types:
-      - opened
-      - synchronize
+  - push
+  - pull_request
 
 jobs:
-  pre_commit:
-    name: Run lint rules
+  lint_frontend:
+    name: Lint Frontend
     runs-on: ubuntu-22.04-sh
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - uses: pre-commit/action@v3.0.1
-
-  test:
-    runs-on: ubuntu-22.04-sh
-    name: Runs plugin tests
 
     steps:
-      - name: Checkout
+      - name: Checkout Plugin Repository
         uses: actions/checkout@v4
 
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ vars.DOCKER_REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Use Node.js
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install -g yarn
-      - run: yarn --cwd netbox_secrets/project-static
+          node-version: '20'
+
+      - name: Install yarn
+        run: npm install --global yarn
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: 'netbox_secrets/project-static/yarn.lock'
+
+      - name: Install Node.js dependencies
+        run: yarn --cwd netbox_secrets/project-static install --frozen-lockfile
 
       - name: Check UI ESLint, TypeScript, and Prettier Compliance
         run: yarn --cwd netbox_secrets/project-static validate
@@ -58,5 +40,17 @@ jobs:
       - name: Validate Static Asset Integrity
         run: bash .github/verify-bundles.sh
 
-      - name: Test the image
-        run: ./test.sh
+  lint:
+    uses: Onemind-Services-LLC/actions/.github/workflows/pre-commit.yml@master
+    with:
+      python-version: '3.12'
+
+  test:
+    needs: [ lint_frontend, lint ]
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
+    with:
+      plugin-name: 'netbox_secrets'
+      netbox-version: 'v4.3.1'
+      python-version: '3.12'
+    secrets:
+      git-token: ${{ secrets.GIT_TOKEN }}

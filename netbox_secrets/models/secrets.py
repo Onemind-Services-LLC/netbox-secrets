@@ -296,8 +296,6 @@ class Secret(PrimaryModel, ContactsMixin):
 
     clone_fields = ('role', 'assigned_object_id', 'assigned_object_type', 'tags')
 
-    prerequisite_models = ('netbox_secrets.SecretRole', *plugin_settings.get('apps'))
-
     class Meta:
         ordering = ('role', 'name', 'pk')
         unique_together = ('assigned_object_type', 'assigned_object_id', 'role', 'name')
@@ -400,7 +398,3 @@ class Secret(PrimaryModel, ContactsMixin):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
-
-    @property
-    def enable_contacts(self):
-        return plugin_settings.get('enable_contacts', False)

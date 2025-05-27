@@ -31,13 +31,7 @@ class AppTest(APITestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class SecretRoleTest(
-    APIViewTestCases.GetObjectViewTestCase,
-    APIViewTestCases.ListObjectsViewTestCase,
-    APIViewTestCases.CreateObjectViewTestCase,
-    APIViewTestCases.UpdateObjectViewTestCase,
-    APIViewTestCases.DeleteObjectViewTestCase,
-):
+class SecretRoleTest(APIViewTestCases.APIViewTestCase):
     model = SecretRole
     view_namespace = 'plugins-api:netbox_secrets'
     brief_fields = ['display', 'id', 'name', 'secret_count', 'slug', 'url']
@@ -67,13 +61,7 @@ class SecretRoleTest(
         ]
 
 
-class SecretTest(
-    APIViewTestCases.GetObjectViewTestCase,
-    APIViewTestCases.ListObjectsViewTestCase,
-    APIViewTestCases.CreateObjectViewTestCase,
-    APIViewTestCases.UpdateObjectViewTestCase,
-    APIViewTestCases.DeleteObjectViewTestCase,
-):
+class SecretTest(APIViewTestCases.APIViewTestCase):
     model = Secret
     view_namespace = 'plugins-api:netbox_secrets'
     brief_fields = ['display', 'id', 'name', 'url']

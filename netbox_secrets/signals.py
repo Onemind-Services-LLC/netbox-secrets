@@ -15,9 +15,6 @@ def configure_generic_relations(sender, **kwargs):
         return
 
     from .constants import SECRET_ASSIGNABLE_MODELS
-    from .models import Secret
-
-    plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
     try:
         for content_type in ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS):
@@ -34,15 +31,6 @@ def configure_generic_relations(sender, **kwargs):
                     model_class,
                     'secrets',
                 )
-
-        if plugin_settings.get('enable_contacts', False):
-            if not hasattr(Secret, 'contacts'):
-                GenericRelation(
-                    to='tenancy.ContactAssignment',
-                    content_type_field='object_type',
-                    object_id_field='object_id',
-                    related_query_name='secret',
-                ).contribute_to_class(Secret, 'contacts')
 
     except ProgrammingError:
         # DB may still not be ready during very early migrations
