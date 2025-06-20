@@ -19,15 +19,17 @@ template_extensions = []
 
 def secrets_panel(self):
     obj = self.context['object']
-    app_label, model = self.model.split('.')
-    assigned_object_type = ContentType.objects.get(app_label=app_label, model=model).id
+    for model in self.models:
+        app_label, model = model.split('.')
+        assigned_object_type = ContentType.objects.get(app_label=app_label, model=model).id
 
-    return self.render(
-        'netbox_secrets/inc/secrets_panel.html',
-        extra_context={
-            'secrets': Secret.objects.filter(assigned_object_type=assigned_object_type, assigned_object_id=obj.id),
-        },
-    )
+        return self.render(
+            'netbox_secrets/inc/secrets_panel.html',
+            extra_context={
+                'secrets': Secret.objects.filter(assigned_object_type=assigned_object_type, assigned_object_id=obj.id),
+            },
+        )
+    return None
 
 
 def get_display_on(app_model):
@@ -67,7 +69,7 @@ def tab_view(_model):
 
 def secret_add_button(_app_model):
     class Button(PluginTemplateExtension):
-        model = _app_model
+        models = [_app_model]
 
         def buttons(self):
             return self.render(
@@ -92,7 +94,7 @@ try:
             dynamic_klass = type(
                 klass_name,
                 (PluginTemplateExtension,),
-                {'model': app_model, get_display_on(app_model): secrets_panel},
+                {'models': [app_model], get_display_on(app_model): secrets_panel},
             )
             template_extensions.append(dynamic_klass)
 except OperationalError as e:

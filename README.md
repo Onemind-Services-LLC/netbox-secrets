@@ -25,6 +25,7 @@ and stability.
 | 4.0.x          | 2.0.x          |
 | 4.1.x          | 2.1.x          |
 | 4.2.x          | 2.2.x          |
+| 4.3.x          | 2.3.x          |
 
 # Installation
 
@@ -58,10 +59,6 @@ The following options are available in the configuration file:
   - __Default__: `{}`
   - __Options__: `{'app.model': 'display_default'}`
   - __Example__: `{'dcim.device': 'full_width_page', 'virtualization.virtualmachine': 'right_page'}`
-- `enable_contacts`
-  - __Type__: `Boolean`
-  - __Description__: Enable contacts for secret
-  - __Default__: `False`
 - `public_key_size`
   - __Type__: `Integer`
   - __Description__: Size of the public key
