@@ -4,7 +4,7 @@
   ],
   "dependencies": {
     "cookie": "^0.7.0",
-    "esbuild": "^0.17.18"
+    "esbuild": "^0.25.0"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
