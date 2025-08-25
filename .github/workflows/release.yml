@@ -4,6 +4,8 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
 jobs:
   publish:
     uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@master
