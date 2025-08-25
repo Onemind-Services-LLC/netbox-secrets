@@ -9,7 +9,7 @@
 
 ## Build, Test, and Development Commands
 - Install (editable): `pip install -e .`
-- Python formatting/lint (pre-commit): `pre-commit run -a`
+- Python formatting/lint (pre-commit): `pre-commit run -a`.
 - Frontend install: `yarn --cwd netbox_secrets/project-static install --frozen-lockfile`
 - Frontend validate: `yarn --cwd netbox_secrets/project-static validate`
 - Frontend bundle: `yarn --cwd netbox_secrets/project-static bundle`
