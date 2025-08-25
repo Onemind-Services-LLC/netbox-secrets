@@ -19,6 +19,7 @@ jobs:
     with:
       working-directory: 'netbox_secrets/project-static'
       bundle-dist-path: 'netbox_secrets/project-static/dist'
+      eslint-args: './src/**/*.ts'
       run-bundle-check: true
       run-typescript: true
 
