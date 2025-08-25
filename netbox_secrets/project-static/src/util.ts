@@ -37,11 +37,19 @@ export function isInputElement(element: HTMLElement): element is HTMLInputElemen
  * Retrieve the CSRF token from cookie storage.
  */
 export function getCsrfToken(): string {
-  const { csrftoken: csrfToken } = Cookie.parse(document.cookie);
-  if (typeof csrfToken === 'undefined') {
-    throw new Error('Invalid or missing CSRF token');
+  // Try cookie named 'csrftoken' (Django default)
+  const cookies = Cookie.parse(document.cookie || '');
+  if (typeof cookies.csrftoken === 'string' && cookies.csrftoken.length > 0) {
+    return cookies.csrftoken;
   }
-  return csrfToken;
+
+  // Fallback: read hidden input rendered by `{% csrf_token %}` if present
+  const input = document.querySelector<HTMLInputElement>('input[name="csrfmiddlewaretoken"]');
+  if (input && typeof input.value === 'string' && input.value.length > 0) {
+    return input.value;
+  }
+
+  throw new Error('Invalid or missing CSRF token');
 }
 
 /**

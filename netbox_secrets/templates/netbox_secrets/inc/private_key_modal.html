@@ -27,6 +27,11 @@
 </div>
 
 {% load static %}
+{# Provide a CSRF token in the DOM for JS to consume when a custom CSRF cookie name is used #}
+<form id="netbox_secrets_csrf_helper" style="display: none !important;" aria-hidden="true">
+    {% csrf_token %}
+    <input type="hidden" />
+</form>
 {% block javascript %}
     <script
     type="text/javascript"
