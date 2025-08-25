@@ -106,3 +106,18 @@ export async function apiPostForm<R extends Dict, D extends Dict>(
 export async function apiGetBase<R extends Dict>(url: string): Promise<APIRes<R>> {
   return await apiRequest<R>(url, 'GET');
 }
+
+/**
+ * Prefix a NetBox-relative path with the configured BASE_PATH derived from the current location.
+ *
+ * Example: with BASE_PATH 'netbox/', window.location.pathname might be '/netbox/plugins/...'.
+ * This derives '/netbox' and prefixes it to the provided path (e.g., '/api/...').
+ */
+export function withBasePath(path: string): string {
+  const pathname = window.location.pathname || '';
+  const pluginsIdx = pathname.indexOf('/plugins/');
+  const apiIdx = pathname.indexOf('/api/');
+  const cutIdx = pluginsIdx >= 0 ? pluginsIdx : apiIdx;
+  const base = cutIdx >= 0 ? pathname.slice(0, cutIdx) : '';
+  return `${base}${path}`;
+}
