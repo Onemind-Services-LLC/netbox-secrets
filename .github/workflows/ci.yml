@@ -1,8 +1,5 @@
 name: CI
 
-permissions:
-  contents: read
-
 on:
   - push
   - pull_request
@@ -11,6 +8,11 @@ on:
 concurrency:
   group: ${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
   cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
 
 jobs:
   js_quality:
