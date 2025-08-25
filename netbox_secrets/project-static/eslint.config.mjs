@@ -7,7 +7,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["dist", "node_modules", ".cache"],
+    ignores: ["dist", "node_modules", ".cache", "bundle.js"],
 
     plugins: {
       import: importPlugin,
