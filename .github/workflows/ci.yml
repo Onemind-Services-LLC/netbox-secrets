@@ -7,50 +7,31 @@ on:
   - push
   - pull_request
 
+# Add concurrency group to control job running
+concurrency:
+  group: ${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
+
 jobs:
-  lint_frontend:
-    name: Lint Frontend
-    runs-on: ubuntu-22.04-sh
-
-    steps:
-      - name: Checkout Plugin Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install yarn
-        run: npm install --global yarn
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: 'netbox_secrets/project-static/yarn.lock'
-
-      - name: Install Node.js dependencies
-        run: yarn --cwd netbox_secrets/project-static install --frozen-lockfile
-
-      - name: Check UI ESLint, TypeScript, and Prettier Compliance
-        run: yarn --cwd netbox_secrets/project-static validate
-
-      - name: Validate Static Asset Integrity
-        run: bash .github/verify-bundles.sh
+  js_quality:
+    name: JavaScript Quality
+    uses: Onemind-Services-LLC/actions/.github/workflows/js-quality-checks.yml@master
+    with:
+      node-version: '20.x'
+      working-directory: 'netbox_secrets/project-static'
+      run-bundle-check: true
+      bundle-working-directory: 'netbox_secrets/project-static'
+      bundle-dist-path: 'netbox_secrets/project-static/dist'
+      run-typescript: true
 
   lint:
     uses: Onemind-Services-LLC/actions/.github/workflows/pre-commit.yml@master
-    with:
-      python-version: '3.12'
 
   test:
-    needs: [ lint_frontend, lint ]
+    name: Run Tests
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
+      app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
-      netbox-version: 'v4.3.1'
-      python-version: '3.12'
     secrets:
-      git-token: ${{ secrets.GIT_TOKEN }}
+      private-key: ${{ secrets.APP_PRIVATE_KEY }}

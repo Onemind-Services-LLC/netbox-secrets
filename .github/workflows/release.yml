@@ -1,0 +1,11 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@master
+    secrets:
+      pypi-token: ${{ secrets.PYPI_API_TOKEN }}
