@@ -1,5 +1,12 @@
 import { createToast } from './bs';
-import { apiGetBase, apiPostForm, hasError, isApiError, isInputElement, withBasePath } from './util';
+import {
+  apiGetBase,
+  apiPostForm,
+  hasError,
+  isApiError,
+  isInputElement,
+  withBasePath,
+} from './util';
 
 import type { APIKeyPair, APISecret } from './types';
 
@@ -29,21 +36,23 @@ function initGenerateKeyPair() {
       }
     }
     // Fetch the key pair from the API.
-    apiGetBase<APIKeyPair>(withBasePath('/api/plugins/secrets/generate-rsa-key-pair/')).then(data => {
-      if (!hasError(data)) {
-        // If key pair generation was successful, set the textarea elements' value to the generated
-        // values.
-        const { private_key: priv, public_key: pub } = data;
-        if (publicElem !== null && privateElem !== null) {
-          publicElem.value = pub;
-          privateElem.value = priv;
+    apiGetBase<APIKeyPair>(withBasePath('/api/plugins/secrets/generate-rsa-key-pair/')).then(
+      data => {
+        if (!hasError(data)) {
+          // If key pair generation was successful, set the textarea elements' value to the generated
+          // values.
+          const { private_key: priv, public_key: pub } = data;
+          if (publicElem !== null && privateElem !== null) {
+            publicElem.value = pub;
+            privateElem.value = priv;
+          }
+        } else {
+          // Otherwise, show an error.
+          const toast = createToast('danger', 'Error', data.error);
+          toast.show();
         }
-      } else {
-        // Otherwise, show an error.
-        const toast = createToast('danger', 'Error', data.error);
-        toast.show();
-      }
-    });
+      },
+    );
   }
 
   /**
