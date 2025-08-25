@@ -15,6 +15,13 @@
     "strict": true,
     "target": "esnext"
   },
-  "exclude": ["./node_modules", "esm", "./src/**/*.test.ts"],
-  "include": ["./src/**/*.ts", "./src/global.d.ts"]
+  "exclude": [
+    "./node_modules",
+    "esm",
+    "./src/**/*.test.ts"
+  ],
+  "include": [
+    "./src/**/*.ts",
+    "./src/global.d.ts"
+  ]
 }
