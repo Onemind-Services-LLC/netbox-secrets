@@ -2,39 +2,24 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "dev" ]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "dev" ]
   schedule:
     - cron: '24 4 * * 5'
 
-jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
+# Add concurrency group to control job running
+concurrency:
+  group: ${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
 
+jobs:
+  codeql:
+    name: CodeQL
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: python
-
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      matrix:
+        language: [ 'javascript-typescript', 'python' ]
+    uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@master
+    with:
+      languages: ${{ matrix.language }}

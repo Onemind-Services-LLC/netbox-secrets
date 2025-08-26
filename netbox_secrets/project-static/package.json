@@ -3,22 +3,22 @@
     "defaults"
   ],
   "dependencies": {
-    "cookie": "^0.7.0",
-    "esbuild": "^0.25.0"
+    "@eslint/js": "^9.34.0",
+    "cookie": "^1.0.2",
+    "esbuild": "^0.25.9",
+    "typescript-eslint": "^8.40.0"
   },
   "devDependencies": {
-    "@types/bootstrap": "^5.2.6",
-    "@types/cookie": "^0.5.1",
-    "@typescript-eslint/eslint-plugin": "^5.59.2",
-    "@typescript-eslint/parser": "^5.59.2",
-    "eslint": "^8.40.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-import-resolver-typescript": "^3.5.5",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.8",
-    "prettier-eslint": "^15.0.1",
-    "typescript": "^5.0.4"
+    "@types/bootstrap": "^5.2.10",
+    "@types/cookie": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.34.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "prettier": "^3.6.2",
+    "prettier-eslint": "^16.4.2",
+    "typescript": "^5.9.2"
   },
   "license": "Apache-2.0",
   "main": "dist/secrets.js",
@@ -38,15 +38,11 @@
     "bundle": "node bundle.js && cp -fv dist/secrets.js* ../static/netbox_secrets/",
     "bundle:scripts": "node bundle.js --scripts",
     "bundle:styles": "node bundle.js --styles",
-    "format": "yarn format:scripts && yarn format:styles",
-    "format:scripts": "prettier -w src/**/*.ts",
-    "format:styles": "prettier -w styles/**/*.scss",
+    "format": "prettier -w src/**/*.ts",
     "validate": "yarn validate:types && yarn validate:lint",
-    "validate:formatting": "yarn validate:formatting:scripts && yarn validate:formatting:styles",
-    "validate:formatting:scripts": "prettier -c src/**/*.ts",
-    "validate:formatting:styles": "prettier -c styles/**/*.scss",
-    "validate:lint": "eslint -c .eslintrc ./src/**/*.ts",
+    "validate:formatting": "prettier -c src/**/*.ts",
+    "validate:lint": "eslint ./src/**/*.ts",
     "validate:types": "tsc --noEmit"
   },
-  "version": "0.1.0"
+  "version": "2.3.1"
 }

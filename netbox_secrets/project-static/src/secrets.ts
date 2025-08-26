@@ -1,5 +1,12 @@
 import { createToast } from './bs';
-import { apiGetBase, apiPostForm, hasError, isApiError, isInputElement } from './util';
+import {
+  apiGetBase,
+  apiPostForm,
+  hasError,
+  isApiError,
+  isInputElement,
+  withBasePath,
+} from './util';
 
 import type { APIKeyPair, APISecret } from './types';
 
@@ -29,21 +36,23 @@ function initGenerateKeyPair() {
       }
     }
     // Fetch the key pair from the API.
-    apiGetBase<APIKeyPair>('/api/plugins/secrets/generate-rsa-key-pair/').then(data => {
-      if (!hasError(data)) {
-        // If key pair generation was successful, set the textarea elements' value to the generated
-        // values.
-        const { private_key: priv, public_key: pub } = data;
-        if (publicElem !== null && privateElem !== null) {
-          publicElem.value = pub;
-          privateElem.value = priv;
+    apiGetBase<APIKeyPair>(withBasePath('/api/plugins/secrets/generate-rsa-key-pair/')).then(
+      data => {
+        if (!hasError(data)) {
+          // If key pair generation was successful, set the textarea elements' value to the generated
+          // values.
+          const { private_key: priv, public_key: pub } = data;
+          if (publicElem !== null && privateElem !== null) {
+            publicElem.value = pub;
+            privateElem.value = priv;
+          }
+        } else {
+          // Otherwise, show an error.
+          const toast = createToast('danger', 'Error', data.error);
+          toast.show();
         }
-      } else {
-        // Otherwise, show an error.
-        const toast = createToast('danger', 'Error', data.error);
-        toast.show();
-      }
-    });
+      },
+    );
   }
 
   /**
@@ -123,7 +132,7 @@ function initLockUnlock() {
   function unlock(id: string | null) {
     const target = document.getElementById(`secret_${id}`) as HTMLDivElement | HTMLInputElement;
     if (typeof id === 'string' && id !== '') {
-      apiGetBase<APISecret>(`/api/plugins/secrets/secrets/${id}/`).then(data => {
+      apiGetBase<APISecret>(withBasePath(`/api/plugins/secrets/secrets/${id}/`)).then(data => {
         if (!hasError(data)) {
           const { plaintext } = data;
           // `plaintext` is the plain text value of the secret. If it is null, it has not been
@@ -194,13 +203,13 @@ function initLockUnlock() {
  * @param privateKey RSA Private Key (valid JSON string)
  */
 function requestSessionKey(privateKey: string) {
-  apiPostForm('/api/plugins/secrets/session-keys/', {
+  apiPostForm(withBasePath('/api/plugins/secrets/session-keys/'), {
     private_key: privateKey,
     preserve_key: true,
   }).then(res => {
     if (!hasError(res)) {
       // If the session key has been added from the user key page, reload the page.
-      if (window.location.pathname === '/plugins/secrets/user-key/') {
+      if (window.location.pathname === withBasePath('/plugins/secrets/user-key/')) {
         window.location.reload();
       } else {
         // If the response received was not an error, show the user a success message.
