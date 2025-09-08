@@ -18,7 +18,8 @@ from . import serializers
 from .. import constants, exceptions, filtersets, models
 
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
-public_key_size = plugin_settings.get('public_key_size')
+# Fallback to a sane default if not explicitly configured
+public_key_size = plugin_settings.get('public_key_size', 2048)
 
 ERR_USERKEY_MISSING = "No UserKey found for the current user."
 ERR_USERKEY_INACTIVE = "UserKey has not been activated for decryption."
@@ -259,18 +260,25 @@ class GenerateRSAKeyPairViewSet(ViewSet):
     def list(self, request):
         # Determine what size key to generate
         try:
-            key_size = request.GET.get('key_size', public_key_size)
-            key_size = int(key_size)
-        except ValueError:
-            key_size = public_key_size
+            key_size_param = request.GET.get('key_size', None)
+            if key_size_param is None:
+                key_size = int(public_key_size)
+            else:
+                key_size = int(key_size_param)
+        except (TypeError, ValueError):
+            # Fall back to configured default or 2048
+            try:
+                key_size = int(public_key_size)
+            except (TypeError, ValueError):
+                key_size = 2048
 
         if key_size not in range(2048, 8193, 256):
-            key_size = public_key_size
+            key_size = 2048
 
-        # Export RSA private and public keys in PEM format
+        # Export RSA private and public keys in PEM format (as strings)
         key = RSA.generate(key_size)
-        private_key = key.exportKey('PEM')
-        public_key = key.publickey().exportKey('PEM')
+        private_key = key.exportKey('PEM').decode()
+        public_key = key.publickey().exportKey('PEM').decode()
 
         return Response(
             {

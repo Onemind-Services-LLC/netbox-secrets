@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="modal-footer float-end">
-                <button id="request_session_key" class="btn btn-primary" data-bs-dismiss="modal">
+                <button type="button" id="request_session_key" class="btn btn-primary" data-bs-dismiss="modal">
                     <i class="mdi mdi-key"></i> Request Session Key
                 </button>
             </div>
@@ -26,11 +26,179 @@
     </div>
 </div>
 
-{% load static %}
 {% block javascript %}
-    <script
-    type="text/javascript"
-    src="{% static 'netbox_secrets/secrets.js' %}"
-    onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
-    </script>
+<script type="text/javascript">
+  (function() {
+    // Helpers
+    function withBasePath(path) {
+      var pathname = window.location.pathname || '';
+      var pluginsIdx = pathname.indexOf('/plugins/');
+      var apiIdx = pathname.indexOf('/api/');
+      var cutIdx = pluginsIdx >= 0 ? pluginsIdx : apiIdx;
+      var base = cutIdx >= 0 ? pathname.slice(0, cutIdx) : '';
+      return base + path;
+    }
+    function getCookie(name) {
+      var value = ('; ' + document.cookie).split('; ' + name + '=').pop();
+      return value ? value.split(';').shift() : undefined;
+    }
+    function csrfToken() {
+      var token = getCookie('csrftoken');
+      if (!token) throw new Error('Missing CSRF token');
+      return token;
+    }
+    function api(method, url, body) {
+      var headers = new Headers();
+      if (method !== 'GET') {
+        headers.set('X-CSRFToken', csrfToken());
+        headers.set('Content-Type', 'application/json');
+        headers.set('Accept', 'application/json');
+      }
+      return fetch(url, {
+        method: method,
+        credentials: 'same-origin',
+        headers: headers,
+        body: body ? JSON.stringify(body) : undefined
+      }).then(function(res) {
+        var ct = res.headers.get('Content-Type') || '';
+        if (ct.indexOf('application/json') === -1) {
+          return res.text().then(function(text){ return { ok: res.ok, json: { error: text } }; });
+        }
+        return res.json().then(function(json){ return { ok: res.ok, json: json }; });
+      }).then(function(result){
+        if (!result.ok) {
+          if (Array.isArray(result.json)) return { error: result.json.join('\n') };
+          if (result.json && result.json.detail) return { error: result.json.detail };
+          return { error: (result.json && result.json.error) || 'Request failed' };
+        }
+        return result.json;
+      });
+    }
+    function toast(level, title, message) {
+      try {
+        var container = document.createElement('div');
+        container.setAttribute('class', 'toast-container position-fixed bottom-0 end-0 m-3');
+        var main = document.createElement('div');
+        main.setAttribute('class', 'toast bg-' + level);
+        main.setAttribute('role', 'alert');
+        main.setAttribute('aria-live', 'assertive');
+        main.setAttribute('aria-atomic', 'true');
+        var header = document.createElement('div');
+        header.setAttribute('class', 'toast-header bg-' + level + ' text-body');
+        var icon = document.createElement('i');
+        var iconName = (level === 'success') ? 'mdi-check-circle' : (level === 'info') ? 'mdi-information' : 'mdi-alert';
+        icon.setAttribute('class', 'mdi ' + iconName);
+        var strong = document.createElement('strong');
+        strong.setAttribute('class', 'me-auto ms-1');
+        strong.innerText = title;
+        var btn = document.createElement('button');
+        btn.setAttribute('type', 'button');
+        btn.setAttribute('class', 'btn-close');
+        btn.setAttribute('data-bs-dismiss', 'toast');
+        btn.setAttribute('aria-label', 'Close');
+        var body = document.createElement('div');
+        body.setAttribute('class', 'toast-body');
+        body.innerText = (message || '').trim();
+        header.appendChild(icon);
+        header.appendChild(strong);
+        header.appendChild(btn);
+        main.appendChild(header);
+        main.appendChild(body);
+        container.appendChild(main);
+        document.body.appendChild(container);
+        var Bootstrap = window.bootstrap;
+        var instance = Bootstrap && Bootstrap.Toast ? Bootstrap.Toast.getOrCreateInstance(main) : (window.Toast ? new window.Toast(main) : { show: function(){} });
+        instance.show();
+      } catch (e) {}
+    }
+    function getModal(selector) {
+      var el = document.querySelector(selector);
+      var Bootstrap = window.bootstrap;
+      if (el && Bootstrap && Bootstrap.Modal) return Bootstrap.Modal.getOrCreateInstance(el);
+      return null;
+    }
+
+    // Unlock/Lock handlers
+    function toggleButtons(id, action) {
+      var unlock = document.querySelector("button.unlock-secret[secret-id='" + id + "']");
+      var lock = document.querySelector("button.lock-secret[secret-id='" + id + "']");
+      var copy = document.querySelector("span[secret-id='" + id + "']");
+      if (unlock) { if (action === 'unlock') unlock.classList.add('d-none'); else unlock.classList.remove('d-none'); }
+      if (lock) { if (action === 'unlock') lock.classList.remove('d-none'); else lock.classList.add('d-none'); }
+      if (copy) { if (action === 'unlock') copy.classList.remove('d-none'); else copy.classList.add('d-none'); }
+    }
+    function unlock(id) {
+      var modal = getModal('#privkey_modal');
+      var target = document.getElementById('secret_' + id);
+      if (!id) return;
+      api('GET', withBasePath('/api/plugins/secrets/secrets/' + id + '/'))
+        .then(function(data){
+          if (data && data.error) {
+            if ((data.error + '').toLowerCase().indexOf('invalid session key') !== -1) {
+              modal && modal.show();
+            } else {
+              toast('danger', 'Error', data.error);
+            }
+          } else {
+            var plaintext = data && data.plaintext;
+            if (target && plaintext !== null && plaintext !== undefined) {
+              if ('value' in target) target.value = plaintext; else target.innerText = plaintext;
+              toggleButtons(id, 'unlock');
+            } else {
+              modal && modal.show();
+            }
+          }
+        });
+    }
+    function lock(id) {
+      var target = document.getElementById('secret_' + id);
+      if (!id) return;
+      if (target) { if ('value' in target) target.value = '********'; else target.innerText = '********'; }
+      toggleButtons(id, 'lock');
+    }
+
+    function bindSecretButtons() {
+      document.querySelectorAll('button.unlock-secret').forEach(function(btn){
+        btn.addEventListener('click', function(){ unlock(btn.getAttribute('secret-id')); });
+      });
+      document.querySelectorAll('button.lock-secret').forEach(function(btn){
+        btn.addEventListener('click', function(){ lock(btn.getAttribute('secret-id')); });
+      });
+    }
+
+    // Request session key handler
+    function requestSessionKey(privateKey) {
+      return api('POST', withBasePath('/api/plugins/secrets/session-keys/'), {
+        private_key: privateKey,
+        preserve_key: true
+      }).then(function(res){
+        if (res && res.error) {
+          toast('danger', 'Failed to Retrieve Session Key', res.error + (res.exception ? ('\n' + res.exception) : ''));
+        } else {
+          if (window.location.pathname === withBasePath('/plugins/secrets/user-key/')) {
+            window.location.reload();
+          } else {
+            toast('success', 'Session Key Received', 'You may now unlock secrets.');
+            window.location.reload();
+          }
+        }
+      });
+    }
+
+    function bindSessionKeyRequest() {
+      document.querySelectorAll('#request_session_key').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          document.querySelectorAll('#user_privkey').forEach(function(pk){
+            requestSessionKey(pk.value);
+            pk.value = '';
+          });
+        });
+      });
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState !== 'loading') { bindSecretButtons(); bindSessionKeyRequest(); }
+    else { document.addEventListener('DOMContentLoaded', function(){ bindSecretButtons(); bindSessionKeyRequest(); }); }
+  })();
+</script>
 {% endblock %}
