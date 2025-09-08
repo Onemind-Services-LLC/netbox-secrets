@@ -107,7 +107,11 @@ class SecretViewSet(NetBoxModelViewSet):
 
         # Attempt to decrypt the secret if the master key is known
         if self.master_key is not None:
-            secret.decrypt(self.master_key)
+            try:
+                secret.decrypt(self.master_key)
+            except (UnicodeDecodeError, ValueError):
+                # Normalize decryption failures to a validation error instead of 500
+                raise ValidationError("Invalid session key.")
 
         serializer = self.get_serializer(secret)
         return Response(serializer.data)
@@ -121,7 +125,10 @@ class SecretViewSet(NetBoxModelViewSet):
             if self.master_key is not None:
                 secrets = []
                 for secret in page:
-                    secret.decrypt(self.master_key)
+                    try:
+                        secret.decrypt(self.master_key)
+                    except (UnicodeDecodeError, ValueError):
+                        raise ValidationError("Invalid session key.")
                     secrets.append(secret)
                 serializer = self.get_serializer(secrets, many=True)
             else:
