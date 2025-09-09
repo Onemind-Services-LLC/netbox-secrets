@@ -358,11 +358,11 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             request,
             self.template_name,
             {
-                'userkey': self.userkey,
+                'object': self.userkey,
                 'form': form,
+                'return_url': self.get_return_url(request, self.userkey),
             },
         )
-
 
 @register_model_view(models.UserKey, 'activate', path='userkey_activate', detail=False)
 class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
