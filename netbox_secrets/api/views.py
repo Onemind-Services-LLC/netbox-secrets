@@ -111,7 +111,7 @@ class SecretViewSet(NetBoxModelViewSet):
                 secret.decrypt(self.master_key)
             except (UnicodeDecodeError, ValueError):
                 # Normalize decryption failures to a validation error instead of 500
-                raise ValidationError("You don't have an active session key. Please add one.")
+                raise ValidationError("Invalid session key.")
         else:
             # No session key was provided; instruct client to activate
             raise ValidationError("You don't have an active session key. Please add one.")
