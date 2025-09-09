@@ -134,10 +134,12 @@
       api('GET', withBasePath('/api/plugins/secrets/secrets/' + id + '/'))
         .then(function(data){
           if (data && data.error) {
-            if ((data.error + '').toLowerCase().indexOf('invalid session key') !== -1) {
+            var msg = (data.error || '').toString();
+            if (msg.toLowerCase().indexOf('session key') !== -1) {
+              toast('warning', 'Session Key Required', msg);
               modal && modal.show();
             } else {
-              toast('danger', 'Error', data.error);
+              toast('danger', 'Error', msg);
             }
           } else {
             var plaintext = data && data.plaintext;
@@ -145,6 +147,7 @@
               if ('value' in target) target.value = plaintext; else target.innerText = plaintext;
               toggleButtons(id, 'unlock');
             } else {
+              toast('warning', 'Session Key Required', "You don't have an active session key. Please add one.");
               modal && modal.show();
             }
           }
@@ -175,12 +178,13 @@
         if (res && res.error) {
           toast('danger', 'Failed to Retrieve Session Key', res.error + (res.exception ? ('\n' + res.exception) : ''));
         } else {
-          if (window.location.pathname === withBasePath('/plugins/secrets/user-key/')) {
-            window.location.reload();
-          } else {
-            toast('success', 'Session Key Received', 'You may now unlock secrets.');
-            window.location.reload();
+          // Show success and auto-reload after a brief delay so users see feedback
+          toast('success', 'Session Key Received', 'You may now unlock secrets.');
+          var modalEl = document.getElementById('privkey_modal');
+          if (window.bootstrap && modalEl) {
+            try { window.bootstrap.Modal.getOrCreateInstance(modalEl).hide(); } catch (e) {}
           }
+          setTimeout(function(){ window.location.reload(); }, 1500);
         }
       });
     }

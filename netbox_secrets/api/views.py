@@ -111,7 +111,10 @@ class SecretViewSet(NetBoxModelViewSet):
                 secret.decrypt(self.master_key)
             except (UnicodeDecodeError, ValueError):
                 # Normalize decryption failures to a validation error instead of 500
-                raise ValidationError("Invalid session key.")
+                raise ValidationError("You don't have an active session key. Please add one.")
+        else:
+            # No session key was provided; instruct client to activate
+            raise ValidationError("You don't have an active session key. Please add one.")
 
         serializer = self.get_serializer(secret)
         return Response(serializer.data)
@@ -355,7 +358,13 @@ class GetSessionKeyViewSet(ViewSet):
 
         # If token authentication is not in use, assign the session key as a cookie
         if request.auth is None:
-            response.set_cookie('session_key', value=encoded_key)
+            response.set_cookie(
+                constants.SESSION_COOKIE_NAME,
+                value=encoded_key,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite='Strict',
+                max_age=settings.LOGIN_TIMEOUT,
+            )
 
         return response
 
