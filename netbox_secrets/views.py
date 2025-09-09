@@ -364,6 +364,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             },
         )
 
+
 @register_model_view(models.UserKey, 'activate', path='userkey_activate', detail=False)
 class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
     queryset = models.UserKey.objects.all()
