@@ -44,5 +44,5 @@
     "validate:lint": "eslint ./src/**/*.ts",
     "validate:types": "tsc --noEmit"
   },
-  "version": "2.3.3"
+  "version": "2.3.4"
 }
