@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
   pull-requests: write
 
 jobs:
@@ -20,7 +21,6 @@ jobs:
     with:
       working-directory: 'netbox_secrets/project-static'
       bundle-dist-path: 'netbox_secrets/project-static/dist'
-      eslint-args: './src/**/*.ts'
       patterns: '**/*.+(ts)'
       run-browserslist: false
       run-bundle-check: true
