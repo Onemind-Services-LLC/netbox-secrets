@@ -1,4 +1,4 @@
-import Cookie from 'cookie';
+import { parse as parseCookie } from 'cookie';
 
 type APIRes<T> = T | ErrorBase | APIError;
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -37,7 +37,7 @@ export function isInputElement(element: HTMLElement): element is HTMLInputElemen
  * Retrieve the CSRF token from cookie storage.
  */
 export function getCsrfToken(): string {
-  const { csrftoken: csrfToken } = Cookie.parse(document.cookie);
+  const { csrftoken: csrfToken } = parseCookie(document.cookie);
   if (typeof csrfToken === 'undefined') {
     throw new Error('Invalid or missing CSRF token');
   }
