@@ -108,12 +108,12 @@ class UserKey(NetBoxModel):
 
         # If this is the first/only user (no other active UserKeys), and there are no Secrets yet,
         # generate a new master key and activate this UserKey.
-        if (
-            self.is_filled()
-            and not self.is_active()
-            and not UserKey.objects.exclude(pk=self.pk).active().count()
-            and not Secret.objects.exists()
-        ):
+        is_filled = self.is_filled()
+        is_not_active = not self.is_active()
+        is_first_user = not UserKey.objects.exclude(pk=self.pk).active().count()
+        no_secrets_exist = not Secret.objects.exists()
+
+        if is_filled and is_not_active and is_first_user and no_secrets_exist:
             master_key = generate_random_key()
             self.master_key_cipher = encrypt_master_key(master_key, self.public_key)
 
