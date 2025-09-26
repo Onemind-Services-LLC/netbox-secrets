@@ -6,8 +6,12 @@ on:
 
 permissions:
   contents: read
+
 jobs:
   publish:
     uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@master
+    with:
+      app-id: ${{ vars.APP_ID }}
     secrets:
+      private-key: ${{ secrets.APP_PRIVATE_KEY }}
       pypi-token: ${{ secrets.PYPI_API_TOKEN }}
