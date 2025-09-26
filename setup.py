@@ -33,7 +33,7 @@ def read_requirements(path: str) -> list[str]:
 
 setup(
     name='netbox-secrets',
-    version='2.3.4',
+    version='2.3.5',
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
