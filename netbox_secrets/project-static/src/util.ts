@@ -37,12 +37,6 @@ export function isInputElement(element: HTMLElement): element is HTMLInputElemen
  * Retrieve the CSRF token from cookie storage.
  */
 export function getCsrfToken(): string {
-  // Prefer a token embedded in the DOM (works when CSRF cookie is HttpOnly)
-  const input = document.querySelector<HTMLInputElement>('input[name="csrfmiddlewaretoken"]');
-  if (input && input.value) {
-    return input.value;
-  }
-  // Fallback to cookie when available
   const { csrftoken: csrfToken } = Cookie.parse(document.cookie);
   if (typeof csrfToken === 'undefined') {
     throw new Error('Invalid or missing CSRF token');
@@ -63,16 +57,8 @@ export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
   method: Method,
   data?: D,
 ): Promise<APIRes<R>> {
-  const headers = new Headers();
-  // Only include CSRF token for non-GET methods; if missing, continue so UI can surface server error.
-  if (method !== 'GET') {
-    try {
-      const token = getCsrfToken();
-      headers.set('X-CSRFToken', token);
-    } catch (e) {
-      // No CSRF cookie available; proceed without header to let server respond (e.g., 403)
-    }
-  }
+  const token = getCsrfToken();
+  const headers = new Headers({ 'X-CSRFToken': token });
 
   let body;
   if (typeof data !== 'undefined') {

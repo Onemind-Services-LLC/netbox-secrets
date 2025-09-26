@@ -13,8 +13,6 @@
                     You do not have an active session key. To request one, please provide your private RSA key below.
                     Once retrieved, your session key will be saved for future requests.
                 </p>
-                {# Ensure Django sets the CSRF token; a hidden input is sufficient #}
-                {% csrf_token %}
                 <div class="form-group">
                     <textarea class="form-control font-monospace" id="user_privkey" style="height: 300px;"></textarea>
                 </div>
