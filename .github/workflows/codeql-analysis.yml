@@ -8,18 +8,19 @@ on:
 
 # Add concurrency group to control job running
 concurrency:
-  group: ${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
+  group: codeql-${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
   cancel-in-progress: true
 
 jobs:
   codeql:
     name: CodeQL
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
         language: [ 'javascript-typescript', 'python' ]
     uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@master
     with:
+      app-id: ${{ vars.APP_ID }}
       languages: ${{ matrix.language }}
+    secrets:
+      private-key: ${{ secrets.APP_PRIVATE_KEY }}

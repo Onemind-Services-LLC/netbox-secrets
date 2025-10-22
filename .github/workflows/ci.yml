@@ -1,12 +1,12 @@
 name: CI
 
 on:
-  - push
-  - pull_request
+  push: {}
+  pull_request: {}
 
 # Add concurrency group to control job running
 concurrency:
-  group: ${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
   cancel-in-progress: true
 
 permissions:
