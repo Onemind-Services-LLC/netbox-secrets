@@ -1,5 +1,3 @@
-import { parse as parseCookie } from 'cookie';
-
 type APIRes<T> = T | ErrorBase | APIError;
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 type ReqData = URLSearchParams | Dict | undefined | unknown;
@@ -34,10 +32,10 @@ export function isInputElement(element: HTMLElement): element is HTMLInputElemen
 }
 
 /**
- * Retrieve the CSRF token from cookie storage.
+ * Retrieve the CSRF token from window.CSRF_TOKEN (set by NetBox base template).
  */
 export function getCsrfToken(): string {
-  const { csrftoken: csrfToken } = parseCookie(document.cookie);
+  const csrfToken = (window as any).CSRF_TOKEN;
   if (typeof csrfToken === 'undefined') {
     throw new Error('Invalid or missing CSRF token');
   }
