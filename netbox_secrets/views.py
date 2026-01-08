@@ -14,6 +14,7 @@ from django.views.generic.base import View
 from core.signals import clear_events
 from netbox.views import generic
 from netbox_secrets.models import UserKey
+from netbox.object_actions import BulkDelete, BulkEdit, BulkExport
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.query import count_related
@@ -107,11 +108,7 @@ class SecretListView(generic.ObjectListView):
     filterset = filtersets.SecretFilterSet
     filterset_form = forms.SecretFilterForm
     table = tables.SecretTable
-    actions = {
-        "export": {"view"},
-        "bulk_edit": {"change"},
-        "bulk_delete": {"delete"},
-    }
+    actions = (BulkExport, BulkEdit, BulkDelete)
 
 
 @register_model_view(models.Secret)
