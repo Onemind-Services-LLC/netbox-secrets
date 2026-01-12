@@ -11,9 +11,9 @@ from utilities.filtersets import register_filterset
 from .models import Secret, SecretRole, UserKey
 
 __all__ = [
-    'UserKeyFilterSet',
     'SecretFilterSet',
     'SecretRoleFilterSet',
+    'UserKeyFilterSet',
 ]
 
 
