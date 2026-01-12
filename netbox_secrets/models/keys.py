@@ -51,7 +51,6 @@ class UserKey(NetBoxModel):
         modified: Timestamp when the key was last modified
     """
 
-    id = models.BigAutoField(primary_key=True)
     user = models.OneToOneField(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
