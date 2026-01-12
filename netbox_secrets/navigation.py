@@ -2,9 +2,11 @@ from django.conf import settings
 
 from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
-plugins_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
+# Plugin configuration
+_config = settings.PLUGINS_CONFIG.get("netbox_secrets", {})
 
-menu_buttons = (
+# Menu item definitions
+_MENU_ITEMS = (
     PluginMenuItem(
         link_text="User Keys",
         link="plugins:netbox_secrets:userkey_list",
@@ -36,11 +38,12 @@ menu_buttons = (
     ),
 )
 
-if plugins_settings.get('top_level_menu'):
+# Export menu structure based on configuration
+if _config.get("top_level_menu"):
     menu = PluginMenu(
-        label='Secrets',
-        groups=(('Secrets', menu_buttons),),
-        icon_class='mdi mdi-eye-closed',
+        label="Secrets",
+        groups=(("Secrets", _MENU_ITEMS),),
+        icon_class="mdi mdi-eye-closed",
     )
 else:
-    menu_items = menu_buttons
+    menu_items = _MENU_ITEMS
