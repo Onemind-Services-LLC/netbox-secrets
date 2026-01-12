@@ -1,112 +1,81 @@
 import django_filters
-from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
-from netbox.filtersets import NetBoxModelFilterSet
-from tenancy.models import Contact
-from utilities.filters import ContentTypeFilter, MultiValueCharFilter
-from .constants import SECRET_ASSIGNABLE_MODELS
+from netbox.filtersets import NetBoxModelFilterSet, OrganizationalModelFilterSet, PrimaryModelFilterSet
+from tenancy.filtersets import ContactModelFilterSet
+from users.models import User
+from utilities.filters import ContentTypeFilter
+from utilities.filtersets import register_filterset
 from .models import Secret, SecretRole, UserKey
 
 __all__ = [
+    'UserKeyFilterSet',
     'SecretFilterSet',
     'SecretRoleFilterSet',
 ]
 
 
+@register_filterset
 class UserKeyFilterSet(NetBoxModelFilterSet):
     user_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=get_user_model().objects.all(),
+        queryset=User.objects.all(),
         label=_('User (ID)'),
     )
     user = django_filters.ModelMultipleChoiceFilter(
         field_name='user__username',
-        queryset=get_user_model().objects.all(),
+        queryset=User.objects.all(),
         to_field_name='username',
         label=_('User (name)'),
     )
 
     class Meta:
         model = UserKey
-        fields = [
-            'id',
-        ]
-
-    def search(self, queryset, name, value):
-        if not value.strip():
-            return queryset
-        return queryset.filter(Q(user__username__icontains=value))
-
-
-class SecretRoleFilterSet(NetBoxModelFilterSet):
-    name = MultiValueCharFilter(lookup_expr='iexact')
-
-    class Meta:
-        model = SecretRole
-        fields = ['id', 'name', 'slug', 'description', 'comments']
+        fields = ('id',)
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
         return queryset.filter(
-            Q(name__icontains=value)
-            | Q(slug__icontains=value)
-            | Q(description__icontains=value)
-            | Q(comments__icontains=value),
+            Q(user__username__icontains=value)
         )
 
 
-class SecretFilterSet(NetBoxModelFilterSet):
-    name = MultiValueCharFilter(lookup_expr='iexact')
+@register_filterset
+class SecretRoleFilterSet(OrganizationalModelFilterSet):
+    class Meta:
+        model = SecretRole
+        fields = ('id', 'name', 'slug', 'description')
 
+
+@register_filterset
+class SecretFilterSet(PrimaryModelFilterSet, ContactModelFilterSet):
+    assigned_object_type = ContentTypeFilter()
+    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=ContentType.objects.all()
+    )
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
-        label='Role (ID)',
+        label=_('Role (ID)'),
     )
     role = django_filters.ModelMultipleChoiceFilter(
         field_name='role__slug',
         queryset=SecretRole.objects.all(),
         to_field_name='slug',
-        label='Role (slug)',
-    )
-
-    assigned_object_type = ContentTypeFilter()
-
-    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
-        label='Object type (ID)',
-    )
-
-    contact = django_filters.ModelMultipleChoiceFilter(
-        field_name='contacts__contact',
-        queryset=Contact.objects.all(),
-        label=_('Contact'),
+        label=_('Role (slug)'),
     )
 
     class Meta:
         model = Secret
-        fields = [
-            'id',
-            'assigned_object_type',
-            'assigned_object_type_id',
-            'assigned_object_id',
-            'role_id',
-            'role',
-            'name',
-            'contact',
-            '_object_repr',
-            'description',
-            'comments',
-        ]
+        fields = ('id', 'name', 'assigned_object_id', '_object_repr')
 
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
         return queryset.filter(
-            Q(name__icontains=value)
-            | Q(_object_repr__icontains=value)
-            | Q(description__icontains=value)
-            | Q(comments__icontains=value),
+            models.Q(name__icontains=value) |
+            models.Q(slug__icontains=value) |
+            models.Q(_object_repr__icontains=value) |
+            models.Q(description__icontains=value)
         )
