@@ -15,7 +15,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
-from netbox.models import OrganizationalModel, PrimaryModel
+from netbox.models import NestedGroupModel, PrimaryModel
 from netbox.models.features import ContactsMixin
 from utilities.querysets import RestrictedQuerySet
 from ..hashers import SecretValidationHasher
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-class SecretRole(OrganizationalModel):
+class SecretRole(NestedGroupModel):
     """
     Functional classification for secrets (e.g., "Login Credentials", "API Keys").
 
