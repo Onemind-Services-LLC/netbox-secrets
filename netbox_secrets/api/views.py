@@ -14,9 +14,9 @@ from rest_framework.routers import APIRootView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
 
 from netbox.api.viewsets import BaseViewSet, MPTTLockedMixin, NetBoxModelViewSet, mixins
-from netbox_secrets.models import Secret, SecretRole, UserKey
+from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from . import serializers
-from .. import constants, exceptions, filtersets, models
+from .. import constants, exceptions, filtersets
 
 # Plugin settings
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -66,7 +66,7 @@ class SecretRoleViewSet(MPTTLockedMixin, NetBoxModelViewSet):
 
 
 class SecretViewSet(NetBoxModelViewSet):
-    queryset = models.Secret.objects.select_related('role', 'assigned_object_type').prefetch_related('tags')
+    queryset = Secret.objects.select_related('role', 'assigned_object_type').prefetch_related('tags')
     serializer_class = serializers.SecretSerializer
     filterset_class = filtersets.SecretFilterSet
 
@@ -116,9 +116,9 @@ class SecretViewSet(NetBoxModelViewSet):
             ValidationError: If session key is invalid
         """
         try:
-            sk = models.SessionKey.objects.get(userkey__user=self.request.user)
+            sk = SessionKey.objects.get(userkey__user=self.request.user)
             self.master_key = sk.get_master_key(session_key)
-        except models.SessionKey.DoesNotExist:
+        except SessionKey.DoesNotExist:
             raise ValidationError(ERR_SESSION_KEY_INVALID)
         except exceptions.InvalidKey:
             raise ValidationError(ERR_SESSION_KEY_INVALID)
@@ -146,7 +146,7 @@ class SecretViewSet(NetBoxModelViewSet):
         if session_key is not None:
             self._load_master_key(session_key)
 
-    def _decrypt_secret(self, secret: models.Secret) -> None:
+    def _decrypt_secret(self, secret: Secret) -> None:
         """
         Decrypt a secret if master key is available.
 
@@ -214,7 +214,7 @@ class SessionKeyViewSet(
     a user session. Each user can have only one active session key at a time.
     """
 
-    queryset = models.SessionKey.objects.select_related('userkey__user')
+    queryset = SessionKey.objects.select_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
 
     def get_queryset(self):
@@ -266,8 +266,8 @@ class SessionKeyViewSet(
 
         # Validate user key
         try:
-            user_key = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
+            user_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
 
         if not user_key.is_active():
@@ -292,7 +292,7 @@ class SessionKeyViewSet(
         else:
             # Create new session key
             self.get_queryset().delete()
-            session_key_obj = models.SessionKey(userkey=user_key)
+            session_key_obj = SessionKey(userkey=user_key)
             session_key_obj.save(master_key=master_key)
             key = session_key_obj.key
             created = True
@@ -336,7 +336,7 @@ class GenerateRSAKeyPairViewSet(ViewSet):
 
     def get_queryset(self):
         """Dummy queryset for schema generation."""
-        return models.UserKey.objects.filter(user=self.request.user)
+        return UserKey.objects.filter(user=self.request.user)
 
     @drf_utils.extend_schema(
         parameters=[
@@ -444,8 +444,8 @@ class ActivateUserKeyViewSet(ViewSet):
 
         # Validate requesting user's key
         try:
-            user_key = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
+            user_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
             return HttpResponseBadRequest(ERR_USERKEY_MISSING)
 
         if not user_key.is_active():
@@ -462,10 +462,10 @@ class ActivateUserKeyViewSet(ViewSet):
 
         for key_id in user_key_ids:
             try:
-                target_key = models.UserKey.objects.get(pk=key_id)
+                target_key = UserKey.objects.get(pk=key_id)
                 target_key.activate(master_key)
                 activated_count += 1
-            except models.UserKey.DoesNotExist:
+            except UserKey.DoesNotExist:
                 failed_keys.append(key_id)
             except Exception as e:
                 failed_keys.append(key_id)
