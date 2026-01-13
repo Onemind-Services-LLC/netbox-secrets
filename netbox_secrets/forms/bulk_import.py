@@ -16,7 +16,7 @@ class SecretRoleImportForm(NestedGroupModelImportForm):
         queryset=SecretRole.objects.all(),
         required=False,
         to_field_name='name',
-        help_text=_('Parent group'),
+        help_text=_('Parent role'),
     )
 
     class Meta:
