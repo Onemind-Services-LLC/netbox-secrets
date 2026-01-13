@@ -1,7 +1,7 @@
 import django_tables2 as tables
 from django.utils.translation import gettext as _
 
-from netbox.tables import NetBoxTable, OrganizationalModelTable, PrimaryModelTable, columns
+from netbox.tables import NestedGroupModelTable, NetBoxTable, PrimaryModelTable, columns
 from tenancy.tables.columns import ContactsColumnMixin
 from .models import Secret, SecretRole, UserKey
 
@@ -30,20 +30,19 @@ class UserKeyTable(NetBoxTable):
         default_columns = ('id', 'user', 'is_active', 'actions')
 
 
-class SecretRoleTable(OrganizationalModelTable):
-    name = tables.Column(linkify=True)
-    tags = columns.TagColumn(url_name='plugins:netbox_secrets:secretrole_list')
+class SecretRoleTable(NestedGroupModelTable):
     secret_count = columns.LinkedCountColumn(
         viewname='plugins:netbox_secrets:secret_list',
         url_params={'role_id': 'pk'},
         verbose_name=_('Secrets'),
     )
+    tags = columns.TagColumn(url_name='plugins:netbox_secrets:secretrole_list')
 
-    class Meta(NetBoxTable.Meta):
+    class Meta(NestedGroupModelTable.Meta):
         model = SecretRole
         fields = (
-            'pk', 'id', 'name', 'slug', 'secret_count', 'description', 'comments', 'tags', 'created',
-            'last_updated', 'actions'
+            'pk', 'id', 'name', 'parent', 'secret_count', 'description', 'comments', 'slug', 'tags', 'created',
+            'last_updated', 'actions',
         )
         default_columns = ('pk', 'name', 'secret_count', 'description')
 
