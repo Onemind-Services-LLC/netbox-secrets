@@ -36,67 +36,63 @@ def validate_rsa_key(key, is_secret=True):
 
     # Check for unsupported OpenSSH format
     if key.startswith('ssh-rsa ') or key.startswith('ssh-ed25519 '):
-        raise ValidationError(_(
-            "OpenSSH line format is not supported. Please ensure that your key "
-            "is in PEM (base64) format."
-        ))
+        raise ValidationError(
+            _("OpenSSH line format is not supported. Please ensure that your key " "is in PEM (base64) format.")
+        )
 
     # Import and validate the key
     try:
         rsa_key = RSA.importKey(key)
     except ValueError as e:
-        raise ValidationError(_(
-            "Invalid RSA key. Please ensure that your key is in PEM (base64) format. "
-            "Error: {error}"
-        ).format(error=str(e)))
+        raise ValidationError(
+            _("Invalid RSA key. Please ensure that your key is in PEM (base64) format. " "Error: {error}").format(
+                error=str(e)
+            )
+        )
     except Exception as e:
         raise ValidationError(_("Invalid key detected: {error}").format(error=str(e)))
 
     # Validate key size (minimum 2048 bits recommended)
     key_size = rsa_key.size_in_bits()
     if key_size < 2048:
-        raise ValidationError(_(
-            "RSA key size must be at least 2048 bits for security. "
-            "Your key is {size} bits."
-        ).format(size=key_size))
+        raise ValidationError(
+            _("RSA key size must be at least 2048 bits for security. " "Your key is {size} bits.").format(size=key_size)
+        )
 
     # Check if key type matches expectation
     if is_secret and not rsa_key.has_private():
-        raise ValidationError(_(
-            "This appears to be a public key. Please provide your private RSA key."
-        ))
+        raise ValidationError(_("This appears to be a public key. Please provide your private RSA key."))
     elif not is_secret and rsa_key.has_private():
-        raise ValidationError(_(
-            "This appears to be a private key. Please provide your public RSA key."
-        ))
+        raise ValidationError(_("This appears to be a private key. Please provide your public RSA key."))
 
     # Validate PKCS#1 OAEP compatibility
     try:
         PKCS1_OAEP.new(rsa_key)
     except Exception as e:
-        raise ValidationError(_(
-            "Error validating RSA key. Please ensure that your key supports "
-            "PKCS#1 OAEP. Error: {error}"
-        ).format(error=str(e)))
+        raise ValidationError(
+            _("Error validating RSA key. Please ensure that your key supports " "PKCS#1 OAEP. Error: {error}").format(
+                error=str(e)
+            )
+        )
 
     return rsa_key
 
 
 class SecretRoleForm(NestedGroupModelForm):
-    parent = DynamicModelChoiceField(
-        label=_('Parent'),
-        queryset=SecretRole.objects.all(),
-        required=False
-    )
+    parent = DynamicModelChoiceField(label=_('Parent'), queryset=SecretRole.objects.all(), required=False)
 
-    fieldsets = (
-        FieldSet('parent', 'name', 'slug', 'description', 'tags', name=_('Secret Role')),
-    )
+    fieldsets = (FieldSet('parent', 'name', 'slug', 'description', 'tags', name=_('Secret Role')),)
 
     class Meta:
         model = SecretRole
         fields = [
-            'parent', 'name', 'slug', 'description', 'owner', 'comments', 'tags',
+            'parent',
+            'name',
+            'slug',
+            'description',
+            'owner',
+            'comments',
+            'tags',
         ]
 
 
@@ -140,7 +136,14 @@ class SecretForm(PrimaryModelForm):
     class Meta:
         model = Secret
         fields = (
-            'name', 'role', 'plaintext', 'plaintext2', 'description', 'owner', 'comments', 'tags',
+            'name',
+            'role',
+            'plaintext',
+            'plaintext2',
+            'description',
+            'owner',
+            'comments',
+            'tags',
         )
 
     def __init__(self, *args, **kwargs):
@@ -169,11 +172,7 @@ class SecretForm(PrimaryModelForm):
 
         # Verify that the provided plaintext values match
         if plaintext != plaintext2:
-            raise ValidationError({
-                'plaintext2': _(
-                    "The two plaintext values do not match. Please check your input."
-                )
-            })
+            raise ValidationError({'plaintext2': _("The two plaintext values do not match. Please check your input.")})
 
         return cleaned_data
 

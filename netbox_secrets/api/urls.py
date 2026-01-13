@@ -12,15 +12,7 @@ router.register('secret-roles', views.SecretRoleViewSet)
 router.register('secrets', views.SecretViewSet)
 
 # Utility endpoints
-router.register(
-    'generate-rsa-key-pair',
-    views.GenerateRSAKeyPairViewSet,
-    basename='generate-rsa-key-pair'
-)
-router.register(
-    'activate-user-key',
-    views.ActivateUserKeyViewSet,
-    basename='activate-user-keys'
-)
+router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairViewSet, basename='generate-rsa-key-pair')
+router.register('activate-user-key', views.ActivateUserKeyViewSet, basename='activate-user-keys')
 
 urlpatterns = router.urls

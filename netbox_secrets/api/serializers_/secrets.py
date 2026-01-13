@@ -23,26 +23,32 @@ class SecretRoleSerializer(NestedGroupModelSerializer):
     class Meta:
         model = SecretRole
         fields = [
-            'id', 'url', 'display_url', 'display', 'name', 'slug', 'parent', 'description', 'tags', 'custom_fields',
-            'created', 'last_updated', 'secret_count', 'owner', 'comments', '_depth',
+            'id',
+            'url',
+            'display_url',
+            'display',
+            'name',
+            'slug',
+            'parent',
+            'description',
+            'tags',
+            'custom_fields',
+            'created',
+            'last_updated',
+            'secret_count',
+            'owner',
+            'comments',
+            '_depth',
         ]
         brief_fields = ('id', 'url', 'display', 'name', 'slug', 'description', 'secret_count', '_depth')
 
 
 class SecretSerializer(PrimaryModelSerializer):
     role = SecretRoleSerializer(nested=True, required=False)
-    assigned_object_type = ContentTypeField(
-        queryset=ObjectType.objects.filter(SECRET_ASSIGNABLE_MODELS)
-    )
+    assigned_object_type = ContentTypeField(queryset=ObjectType.objects.filter(SECRET_ASSIGNABLE_MODELS))
     assigned_object = GFKSerializerField(read_only=True)
-    plaintext = serializers.CharField(
-        required=False,
-        help_text="Plaintext secret value (encrypted at rest)"
-    )
-    hash = serializers.CharField(
-        read_only=True,
-        help_text="SHA-256 hash for validation (read-only)"
-    )
+    plaintext = serializers.CharField(required=False, help_text="Plaintext secret value (encrypted at rest)")
+    hash = serializers.CharField(read_only=True, help_text="SHA-256 hash for validation (read-only)")
 
     class Meta:
         model = Secret
@@ -104,9 +110,9 @@ class SecretSerializer(PrimaryModelSerializer):
             master_key = self.context.get('master_key')
 
             if master_key is None:
-                raise serializers.ValidationError({
-                    'plaintext': 'Cannot encrypt secret: master key not available in context'
-                })
+                raise serializers.ValidationError(
+                    {'plaintext': 'Cannot encrypt secret: master key not available in context'}
+                )
 
             # Create temporary Secret instance for encryption
             secret = Secret(plaintext=plaintext)

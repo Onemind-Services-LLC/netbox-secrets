@@ -37,9 +37,7 @@ class UserKeyFilterSet(NetBoxModelFilterSet):
     def search(self, queryset, name, value):
         if not value.strip():
             return queryset
-        return queryset.filter(
-            Q(user__username__icontains=value)
-        )
+        return queryset.filter(Q(user__username__icontains=value))
 
 
 @register_filterset
@@ -76,9 +74,7 @@ class SecretRoleFilterSet(NestedGroupModelFilterSet):
 @register_filterset
 class SecretFilterSet(PrimaryModelFilterSet, ContactModelFilterSet):
     assigned_object_type = ContentTypeFilter()
-    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(
-        queryset=ContentType.objects.all()
-    )
+    assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(queryset=ContentType.objects.all())
     role_id = django_filters.ModelMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
         label=_('Role (ID)'),
@@ -98,7 +94,5 @@ class SecretFilterSet(PrimaryModelFilterSet, ContactModelFilterSet):
         if not value.strip():
             return queryset
         return queryset.filter(
-            Q(name__icontains=value) |
-            Q(_object_repr__icontains=value) |
-            Q(description__icontains=value)
+            Q(name__icontains=value) | Q(_object_repr__icontains=value) | Q(description__icontains=value)
         )

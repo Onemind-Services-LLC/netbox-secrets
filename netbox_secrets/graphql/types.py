@@ -21,9 +21,9 @@ __all__ = [
 @strawberry_django.type(Secret, exclude=['ciphertext', 'hash', 'plaintext'], filters=SecretFilter, pagination=True)
 class SecretType(ContactsMixin, PrimaryObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
-    assigned_object_type: Annotated['ContentTypeFilter', strawberry.lazy('core.graphql.filters')] | None = (
-        strawberry_django.filter_field()
-    )
+    assigned_object_type: Annotated[
+        'ContentTypeFilter', strawberry.lazy('core.graphql.filters')
+    ] | None = strawberry_django.filter_field()
     assigned_object_type_id: ID | None = strawberry_django.filter_field()
     assigned_object_id: ID | None = strawberry_django.filter_field()
 

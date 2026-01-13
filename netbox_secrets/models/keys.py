@@ -56,18 +56,13 @@ class UserKey(NetBoxModel):
         on_delete=models.CASCADE,
         related_name='user_key',
         editable=False,
-        help_text=_("User who owns this encryption key")
+        help_text=_("User who owns this encryption key"),
     )
     public_key = models.TextField(
-        verbose_name=_('RSA public key'),
-        help_text=_("RSA public key in PEM format (minimum 2048 bits)")
+        verbose_name=_('RSA public key'), help_text=_("RSA public key in PEM format (minimum 2048 bits)")
     )
     master_key_cipher = models.BinaryField(
-        max_length=512,
-        blank=True,
-        null=True,
-        editable=False,
-        help_text=_("Encrypted copy of the master key")
+        max_length=512, blank=True, null=True, editable=False, help_text=_("Encrypted copy of the master key")
     )
 
     objects = UserKeyQuerySet.as_manager()
@@ -105,16 +100,16 @@ class UserKey(NetBoxModel):
         try:
             pubkey = RSA.import_key(self.public_key)
         except ValueError as e:
-            raise ValidationError({
-                'public_key': _("Invalid RSA key format: {}").format(str(e))
-            })
+            raise ValidationError({'public_key': _("Invalid RSA key format: {}").format(str(e))})
         except Exception:
-            raise ValidationError({
-                'public_key': _(
-                    "Failed to import RSA key. Please ensure you're uploading a valid "
-                    "RSA public key in PEM format (not SSH or PGP format)."
-                )
-            })
+            raise ValidationError(
+                {
+                    'public_key': _(
+                        "Failed to import RSA key. Please ensure you're uploading a valid "
+                        "RSA public key in PEM format (not SSH or PGP format)."
+                    )
+                }
+            )
 
         # Validate key length constraints
         pubkey_length = pubkey.size_in_bits()
@@ -122,18 +117,22 @@ class UserKey(NetBoxModel):
         max_key_size = 8192  # Database field constraint
 
         if pubkey_length < min_key_size:
-            raise ValidationError({
-                'public_key': _(
-                    "Key length ({} bits) is below minimum requirement ({} bits)."
-                ).format(pubkey_length, min_key_size)
-            })
+            raise ValidationError(
+                {
+                    'public_key': _("Key length ({} bits) is below minimum requirement ({} bits).").format(
+                        pubkey_length, min_key_size
+                    )
+                }
+            )
 
         if pubkey_length > max_key_size:
-            raise ValidationError({
-                'public_key': _(
-                    "Key length ({} bits) exceeds maximum allowed ({} bits)."
-                ).format(pubkey_length, max_key_size)
-            })
+            raise ValidationError(
+                {
+                    'public_key': _("Key length ({} bits) exceeds maximum allowed ({} bits).").format(
+                        pubkey_length, max_key_size
+                    )
+                }
+            )
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -172,7 +171,7 @@ class UserKey(NetBoxModel):
                     "Cannot delete the last active UserKey while secrets exist. "
                     "This would make all secrets permanently inaccessible."
                 ),
-                Secret.objects.all()
+                Secret.objects.all(),
             )
 
         return super().delete(*args, **kwargs)
@@ -194,9 +193,9 @@ class UserKey(NetBoxModel):
 
             if 'master_key_cipher' in data:
                 # Mark as changed if value differs from previous
-                if (data_attr == 'postchange_data' and
-                        data.get('master_key_cipher') !=
-                        (objectchange.prechange_data or {}).get('master_key_cipher')):
+                if data_attr == 'postchange_data' and data.get('master_key_cipher') != (
+                    objectchange.prechange_data or {}
+                ).get('master_key_cipher'):
                     data['master_key_cipher'] = CENSOR_MASTER_KEY_CHANGED
                 else:
                     data['master_key_cipher'] = CENSOR_MASTER_KEY
@@ -279,22 +278,9 @@ class SessionKey(models.Model):
         created: Timestamp when session key was created
     """
 
-    userkey = models.OneToOneField(
-        to='UserKey',
-        on_delete=models.CASCADE,
-        related_name='session_key',
-        editable=False
-    )
-    cipher = models.BinaryField(
-        max_length=512,
-        editable=False,
-        help_text=_("XOR-encrypted master key")
-    )
-    hash = models.CharField(
-        max_length=128,
-        editable=False,
-        help_text=_("Hash of session key for validation")
-    )
+    userkey = models.OneToOneField(to='UserKey', on_delete=models.CASCADE, related_name='session_key', editable=False)
+    cipher = models.BinaryField(max_length=512, editable=False, help_text=_("XOR-encrypted master key"))
+    hash = models.CharField(max_length=128, editable=False, help_text=_("Hash of session key for validation"))
     created = models.DateTimeField(auto_now_add=True)
 
     # Transient attribute for the decrypted session key

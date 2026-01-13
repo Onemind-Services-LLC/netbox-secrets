@@ -45,17 +45,8 @@ class SecretRole(NestedGroupModel):
         comments: Optional comments about the role
     """
 
-    name = models.CharField(
-        verbose_name=_('name'),
-        max_length=100,
-        unique=True,
-        db_collation="natural_sort"
-    )
-    slug = models.SlugField(
-        verbose_name=_('slug'),
-        max_length=100,
-        unique=True
-    )
+    name = models.CharField(verbose_name=_('name'), max_length=100, unique=True, db_collation="natural_sort")
+    slug = models.SlugField(verbose_name=_('slug'), max_length=100, unique=True)
 
     class Meta:
         ordering = ['name']
@@ -105,17 +96,14 @@ class Secret(PrimaryModel, ContactsMixin):
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
-    assigned_object = GenericForeignKey(
-        ct_field='assigned_object_type',
-        fk_field='assigned_object_id'
-    )
+    assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
     _object_repr = models.CharField(
         max_length=200,
         editable=False,
         blank=True,
         null=True,
         db_index=True,
-        help_text=_("Cached string representation for search")
+        help_text=_("Cached string representation for search"),
     )
 
     # Secret metadata
@@ -123,24 +111,18 @@ class Secret(PrimaryModel, ContactsMixin):
         to='SecretRole',
         on_delete=models.PROTECT,
         related_name='secrets',
-        help_text=_("Functional role/category of this secret")
+        help_text=_("Functional role/category of this secret"),
     )
-    name = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text=_("Optional descriptive name for this secret")
-    )
+    name = models.CharField(max_length=100, blank=True, help_text=_("Optional descriptive name for this secret"))
 
     # Encrypted data
     ciphertext = models.BinaryField(
         max_length=65568,  # IV (16) + length header (2) + max secret (65535) + max padding (15)
         editable=False,
-        help_text=_("Encrypted secret data with IV")
+        help_text=_("Encrypted secret data with IV"),
     )
     hash = models.CharField(
-        max_length=128,
-        editable=False,
-        help_text=_("SHA-256 hash for validating decrypted plaintext")
+        max_length=128, editable=False, help_text=_("SHA-256 hash for validating decrypted plaintext")
     )
 
     # Transient attribute for decrypted plaintext (not persisted to database)
@@ -151,9 +133,7 @@ class Secret(PrimaryModel, ContactsMixin):
 
     class Meta:
         ordering = ('role', 'name', 'pk')
-        unique_together = (
-            ('assigned_object_type', 'assigned_object_id', 'role', 'name'),
-        )
+        unique_together = (('assigned_object_type', 'assigned_object_id', 'role', 'name'),)
         verbose_name = _('Secret')
         verbose_name_plural = _('Secrets')
         indexes = [
@@ -210,9 +190,11 @@ class Secret(PrimaryModel, ContactsMixin):
         plaintext_bytes = plaintext.encode('utf-8')
 
         if len(plaintext_bytes) > self.MAX_SECRET_SIZE:
-            raise ValueError(_(
-                "Plaintext size ({} bytes) exceeds maximum ({} bytes)."
-            ).format(len(plaintext_bytes), self.MAX_SECRET_SIZE))
+            raise ValueError(
+                _("Plaintext size ({} bytes) exceeds maximum ({} bytes).").format(
+                    len(plaintext_bytes), self.MAX_SECRET_SIZE
+                )
+            )
 
         # Calculate required padding
         total_size = len(plaintext_bytes) + 2  # +2 for length header
@@ -248,7 +230,7 @@ class Secret(PrimaryModel, ContactsMixin):
         plaintext_length = (padded[0] << 8) | padded[1]
 
         # Extract plaintext (skip 2-byte header, read plaintext_length bytes)
-        return padded[2:plaintext_length + 2].decode('utf-8')
+        return padded[2 : plaintext_length + 2].decode('utf-8')
 
     def encrypt(self, secret_key: bytes) -> None:
         """
@@ -312,8 +294,8 @@ class Secret(PrimaryModel, ContactsMixin):
             raise ValueError(_("Ciphertext must be set before decryption."))
 
         # Extract IV and encrypted data
-        iv = bytes(self.ciphertext[:self.IV_SIZE])
-        encrypted_data = bytes(self.ciphertext[self.IV_SIZE:])
+        iv = bytes(self.ciphertext[: self.IV_SIZE])
+        encrypted_data = bytes(self.ciphertext[self.IV_SIZE :])
 
         # Decrypt and remove padding
         cipher = AES.new(secret_key, AES.MODE_CFB, iv)

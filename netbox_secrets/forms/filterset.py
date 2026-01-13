@@ -2,7 +2,8 @@ from django.utils.translation import gettext_lazy as _
 
 from core.models import ObjectType
 from netbox.forms import (
-    NestedGroupModelFilterSetForm, PrimaryModelFilterSetForm,
+    NestedGroupModelFilterSetForm,
+    PrimaryModelFilterSetForm,
 )
 from netbox_secrets.constants import *
 from netbox_secrets.models import Secret, SecretRole
@@ -27,9 +28,7 @@ class SecretRoleFilterForm(NestedGroupModelFilterSetForm):
         FieldSet('parent_id', name=_('Secret Role')),
     )
     parent_id = DynamicModelMultipleChoiceField(
-        queryset=SecretRole.objects.all(),
-        required=False,
-        label=_('Parent role')
+        queryset=SecretRole.objects.all(), required=False, label=_('Parent role')
     )
     tag = TagFilterField(model)
 
@@ -49,9 +48,6 @@ class SecretFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
         label=_('Object Type'),
     )
     role_id = DynamicModelMultipleChoiceField(
-        queryset=SecretRole.objects.all(),
-        required=False,
-        null_option='None',
-        label=_('Role')
+        queryset=SecretRole.objects.all(), required=False, null_option='None', label=_('Role')
     )
     tag = TagFilterField(model)

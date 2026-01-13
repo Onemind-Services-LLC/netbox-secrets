@@ -1,7 +1,8 @@
 from django.utils.translation import gettext_lazy as _
 
 from netbox.forms import (
-    NestedGroupModelImportForm, )
+    NestedGroupModelImportForm,
+)
 from utilities.forms.fields import CSVModelChoiceField
 from ..models import SecretRole
 

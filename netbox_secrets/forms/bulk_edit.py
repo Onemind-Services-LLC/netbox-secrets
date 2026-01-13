@@ -1,7 +1,8 @@
 from django.utils.translation import gettext_lazy as _
 
 from netbox.forms import (
-    NestedGroupModelBulkEditForm, PrimaryModelBulkEditForm,
+    NestedGroupModelBulkEditForm,
+    PrimaryModelBulkEditForm,
 )
 from tenancy.models import *
 from utilities.forms.fields import DynamicModelChoiceField
@@ -15,25 +16,15 @@ __all__ = [
 
 
 class SecretRoleBulkEditForm(NestedGroupModelBulkEditForm):
-    parent = DynamicModelChoiceField(
-        label=_('Parent'),
-        queryset=SecretRole.objects.all(),
-        required=False
-    )
+    parent = DynamicModelChoiceField(label=_('Parent'), queryset=SecretRole.objects.all(), required=False)
 
     model = SecretRole
     nullable_fields = ('parent', 'description', 'comments')
 
 
 class SecretBulkEditForm(PrimaryModelBulkEditForm):
-    role = DynamicModelChoiceField(
-        label=_('Group'),
-        queryset=SecretRole.objects.all(),
-        required=False
-    )
+    role = DynamicModelChoiceField(label=_('Group'), queryset=SecretRole.objects.all(), required=False)
 
     model = Tenant
-    fieldsets = (
-        FieldSet('role', 'description'),
-    )
-    nullable_fields = ('description')
+    fieldsets = (FieldSet('role', 'description'),)
+    nullable_fields = 'description'

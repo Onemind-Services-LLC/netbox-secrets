@@ -54,11 +54,7 @@ class UserKeyViewSet(ReadOnlyModelViewSet):
 
 class SecretRoleViewSet(MPTTLockedMixin, NetBoxModelViewSet):
     queryset = SecretRole.objects.add_related_count(
-        SecretRole.objects.all(),
-        Secret,
-        'role',
-        'secret_count',
-        cumulative=True
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     serializer_class = serializers.SecretRoleSerializer
     filterset_class = filtersets.SecretRoleFilterSet
@@ -70,10 +66,7 @@ class SecretRoleViewSet(MPTTLockedMixin, NetBoxModelViewSet):
 
 
 class SecretViewSet(NetBoxModelViewSet):
-    queryset = models.Secret.objects.select_related(
-        'role',
-        'assigned_object_type'
-    ).prefetch_related('tags')
+    queryset = models.Secret.objects.select_related('role', 'assigned_object_type').prefetch_related('tags')
     serializer_class = serializers.SecretSerializer
     filterset_class = filtersets.SecretFilterSet
 
@@ -215,10 +208,10 @@ class SessionKeyViewSet(
     BaseViewSet,
 ):
     """
-        API endpoint for managing session keys.
+    API endpoint for managing session keys.
 
-        Session keys are temporary keys used to encrypt/decrypt secrets during
-        a user session. Each user can have only one active session key at a time.
+    Session keys are temporary keys used to encrypt/decrypt secrets during
+    a user session. Each user can have only one active session key at a time.
     """
 
     queryset = models.SessionKey.objects.select_related('userkey__user')
@@ -381,10 +374,12 @@ class GenerateRSAKeyPairViewSet(ViewSet):
         private_key = key.exportKey('PEM').decode('utf-8')
         public_key = key.publickey().exportKey('PEM').decode('utf-8')
 
-        return Response({
-            'public_key': public_key,
-            'private_key': private_key,
-        })
+        return Response(
+            {
+                'public_key': public_key,
+                'private_key': private_key,
+            }
+        )
 
 
 class ActivateUserKeyViewSet(ViewSet):
@@ -483,7 +478,4 @@ class ActivateUserKeyViewSet(ViewSet):
             )
             return Response(message, status=status.HTTP_207_MULTI_STATUS)
 
-        return Response(
-            f"Successfully activated {activated_count} user keys.",
-            status=status.HTTP_200_OK
-        )
+        return Response(f"Successfully activated {activated_count} user keys.", status=status.HTTP_200_OK)

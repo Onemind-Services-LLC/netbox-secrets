@@ -30,11 +30,7 @@ from .models import Secret, SecretRole, SessionKey, UserKey
 @register_model_view(SecretRole, 'list', path='', detail=False)
 class SecretRoleListView(generic.ObjectListView):
     queryset = SecretRole.objects.add_related_count(
-        SecretRole.objects.all(),
-        Secret,
-        'role',
-        'secret_count',
-        cumulative=True
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     table = tables.SecretRoleTable
     filterset = filtersets.SecretRoleFilterSet
@@ -74,11 +70,7 @@ class SecretRoleBulkImportView(generic.BulkImportView):
 @register_model_view(SecretRole, 'bulk_edit', path='edit', detail=False)
 class SecretRoleBulkEditView(generic.BulkEditView):
     queryset = SecretRole.objects.add_related_count(
-        SecretRole.objects.all(),
-        Secret,
-        'role',
-        'secret_count',
-        cumulative=True
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     filterset = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
@@ -94,11 +86,7 @@ class SecretRoleBulkRenameView(generic.BulkRenameView):
 @register_model_view(SecretRole, 'bulk_delete', path='delete', detail=False)
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = SecretRole.objects.add_related_count(
-        SecretRole.objects.all(),
-        Secret,
-        'role',
-        'secret_count',
-        cumulative=True
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     filtersets = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
@@ -438,6 +426,7 @@ class SessionKeyDeleteView(generic.ObjectDeleteView):
 #
 # View Tabs
 #
+
 
 @register_model_view(SecretRole, 'secret')
 class SecretRoleSecretView(generic.ObjectChildrenView):

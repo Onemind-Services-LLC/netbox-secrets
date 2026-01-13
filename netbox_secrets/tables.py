@@ -17,16 +17,12 @@ class UserKeyTable(NetBoxTable):
     is_active = columns.BooleanColumn(
         verbose_name=_('Is Active'),
     )
-    tags = columns.TagColumn(
-        url_name='plugins:netbox_secrets:userkey_list'
-    )
+    tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
     actions = columns.ActionsColumn(actions=('delete',))
 
     class Meta(NetBoxTable.Meta):
         model = UserKey
-        fields = (
-            'pk', 'id', 'user', 'is_active', 'created', 'last_updated', 'tags', 'actions'
-        )
+        fields = ('pk', 'id', 'user', 'is_active', 'created', 'last_updated', 'tags', 'actions')
         default_columns = ('id', 'user', 'is_active', 'actions')
 
 
@@ -41,8 +37,18 @@ class SecretRoleTable(NestedGroupModelTable):
     class Meta(NestedGroupModelTable.Meta):
         model = SecretRole
         fields = (
-            'pk', 'id', 'name', 'parent', 'secret_count', 'description', 'comments', 'slug', 'tags', 'created',
-            'last_updated', 'actions',
+            'pk',
+            'id',
+            'name',
+            'parent',
+            'secret_count',
+            'description',
+            'comments',
+            'slug',
+            'tags',
+            'created',
+            'last_updated',
+            'actions',
         )
         default_columns = ('pk', 'name', 'secret_count', 'description')
 
@@ -50,20 +56,25 @@ class SecretRoleTable(NestedGroupModelTable):
 class SecretTable(PrimaryModelTable, ContactsColumnMixin):
     name = tables.Column(linkify=True)
     role = tables.Column(linkify=True)
-    assigned_object_type = columns.ContentTypeColumn(
-        verbose_name=_('Object Type')
-    )
-    assigned_object = tables.Column(
-        linkify=True,
-        orderable=False,
-        verbose_name=_('Object')
-    )
+    assigned_object_type = columns.ContentTypeColumn(verbose_name=_('Object Type'))
+    assigned_object = tables.Column(linkify=True, orderable=False, verbose_name=_('Object'))
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:secret_list')
 
     class Meta(NetBoxTable.Meta):
         model = Secret
         fields = (
-            'pk', 'id', 'name', 'role', 'assigned_object_type', 'assigned_object', 'description', 'comments',
-            'contacts', 'tags', 'created', 'last_updated', 'actions'
+            'pk',
+            'id',
+            'name',
+            'role',
+            'assigned_object_type',
+            'assigned_object',
+            'description',
+            'comments',
+            'contacts',
+            'tags',
+            'created',
+            'last_updated',
+            'actions',
         )
         default_columns = ('pk', 'name', 'role', 'assigned_object_type', 'assigned_object', 'description')
