@@ -355,8 +355,9 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             request,
             self.template_name,
             {
-                'userkey': self.userkey,
+                'object': self.userkey,
                 'form': form,
+                'return_url': self.get_return_url(request, self.userkey),
             },
         )
 
