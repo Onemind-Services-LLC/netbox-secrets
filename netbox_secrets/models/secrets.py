@@ -45,6 +45,18 @@ class SecretRole(NestedGroupModel):
         comments: Optional comments about the role
     """
 
+    name = models.CharField(
+        verbose_name=_('name'),
+        max_length=100,
+        unique=True,
+        db_collation="natural_sort"
+    )
+    slug = models.SlugField(
+        verbose_name=_('slug'),
+        max_length=100,
+        unique=True
+    )
+
     class Meta:
         ordering = ['name']
         verbose_name = _('Secret Role')
