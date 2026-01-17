@@ -1,0 +1,90 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load plugins %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'plugins:netbox_secrets:tenantmembership_list' %}">Tenant Memberships</a>
+  </li>
+  <li class="breadcrumb-item">{{ object }}</li>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Membership Details</h5>
+        <div class="card-body">
+          <table class="table table-hover attr-table">
+            <tr>
+              <th scope="row">Tenant</th>
+              <td>
+                <a href="{{ object.tenant.get_absolute_url }}">{{ object.tenant }}</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">User</th>
+              <td>{{ object.user }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Role</th>
+              <td>
+                {% if object.is_admin %}
+                  <span class="badge bg-primary">Admin</span>
+                {% else %}
+                  <span class="badge bg-secondary">Member</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Added By</th>
+              <td>{{ object.added_by|placeholder }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Created</th>
+              <td>{{ object.created|placeholder }}</td>
+            </tr>
+            <tr>
+              <th scope="row">Last Updated</th>
+              <td>{{ object.last_updated|placeholder }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      {% include 'inc/panels/custom_fields.html' %}
+      {% plugin_left_page object %}
+    </div>
+    <div class="col col-md-6">
+      <div class="card">
+        <h5 class="card-header">Cryptographic Info</h5>
+        <div class="card-body">
+          <table class="table table-hover attr-table">
+            <tr>
+              <th scope="row">Public Key</th>
+              <td>
+                <small class="text-muted font-monospace">{{ object.public_key|truncatechars:64 }}</small>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">WebAuthn Credential</th>
+              <td>
+                {% if object.webauthn_credential_id %}
+                  <i class="mdi mdi-check-circle text-success"></i> Registered
+                {% else %}
+                  <i class="mdi mdi-close-circle text-danger"></i> Not registered
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      {% include 'inc/panels/tags.html' %}
+      {% plugin_right_page object %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-md-12">
+      {% plugin_full_width_page object %}
+    </div>
+  </div>
+{% endblock %}

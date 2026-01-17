@@ -4,7 +4,8 @@ from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 plugins_settings = settings.PLUGINS_CONFIG.get('netbox_secrets')
 
-menu_buttons = (
+# Legacy secrets menu items
+legacy_secrets_buttons = (
     PluginMenuItem(
         link_text="User Keys",
         link="plugins:netbox_secrets:userkey_list",
@@ -36,11 +37,41 @@ menu_buttons = (
     ),
 )
 
+# Tenant crypto menu items (zero-knowledge secret sharing)
+tenant_crypto_buttons = (
+    PluginMenuItem(
+        link_text="Tenant Secrets",
+        link="plugins:netbox_secrets:tenantsecret_list",
+        permissions=["netbox_secrets.view_tenantsecret"],
+    ),
+    PluginMenuItem(
+        link_text="My Memberships",
+        link="plugins:netbox_secrets:tenantmembership_list",
+        permissions=["netbox_secrets.view_tenantmembership"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_secrets:tenant_crypto_setup",
+                title="Setup Passkey",
+                icon_class="mdi mdi-key-plus",
+                permissions=["netbox_secrets.add_tenantmembership"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link_text="Service Accounts",
+        link="plugins:netbox_secrets:tenantserviceaccount_list",
+        permissions=["netbox_secrets.view_tenantserviceaccount"],
+    ),
+)
+
 if plugins_settings.get('top_level_menu'):
     menu = PluginMenu(
         label='Secrets',
-        groups=(('Secrets', menu_buttons),),
+        groups=(
+            ('Legacy Secrets', legacy_secrets_buttons),
+            ('Tenant Crypto', tenant_crypto_buttons),
+        ),
         icon_class='mdi mdi-eye-closed',
     )
 else:
-    menu_items = menu_buttons
+    menu_items = legacy_secrets_buttons + tenant_crypto_buttons

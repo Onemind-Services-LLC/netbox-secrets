@@ -1,0 +1,274 @@
+{% extends 'base/layout.html' %}
+{% load static %}
+
+{% block title %}Tenant Crypto Setup{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'plugins:netbox_secrets:tenantmembership_list' %}">Tenant Memberships</a></li>
+          <li class="breadcrumb-item active">Setup Passkey</li>
+        </ol>
+      </nav>
+
+      <h1 class="my-3">
+        <i class="mdi mdi-key-plus"></i> Setup Tenant Crypto Access
+      </h1>
+
+      <div class="row">
+        <div class="col-md-8">
+          <!-- Setup Form -->
+          <div class="card">
+            <h5 class="card-header">
+              <i class="mdi mdi-shield-key"></i> Register Passkey for Tenant Access
+            </h5>
+            <div class="card-body">
+              <div class="alert alert-info">
+                <i class="mdi mdi-information"></i>
+                <strong>Zero-Knowledge Encryption:</strong>
+                Your secrets are encrypted in your browser before being sent to the server.
+                Only you (and other tenant members) can decrypt them using your Passkey.
+                NetBox administrators cannot access your encrypted secrets.
+              </div>
+
+              <form id="setup-form">
+                <div class="mb-3">
+                  <label for="tenant-select" class="form-label">Select Tenant</label>
+                  <select class="form-select" id="tenant-select" required>
+                    <option value="">-- Select a tenant --</option>
+                    {% for tenant in available_tenants %}
+                    <option value="{{ tenant.pk }}" {% if selected_tenant_id == tenant.pk %}selected{% endif %}>
+                      {{ tenant.name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">
+                    Choose the tenant you want to access secrets for.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="role-select" class="form-label">Role</label>
+                  <select class="form-select" id="role-select">
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <div class="form-text">
+                    Admins can add/remove other members and manage service accounts.
+                  </div>
+                </div>
+
+                <div id="passkey-section" class="d-none">
+                  <hr>
+                  <h6>Step 1: Create or Use Existing Passkey</h6>
+                  <p class="text-muted">
+                    You'll be prompted to authenticate with your device (fingerprint, face, or security key).
+                    This creates a cryptographic key pair that's unique to you and this tenant.
+                  </p>
+
+                  <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary btn-lg" id="create-passkey-btn">
+                      <i class="mdi mdi-fingerprint"></i> Create Passkey & Join Tenant
+                    </button>
+                  </div>
+                </div>
+
+                <div id="success-section" class="d-none">
+                  <div class="alert alert-success">
+                    <i class="mdi mdi-check-circle"></i>
+                    <strong>Success!</strong> You've been added to the tenant.
+                    You can now access and create secrets for this tenant.
+                  </div>
+                  <div class="d-grid gap-2">
+                    <a href="{% url 'plugins:netbox_secrets:tenantsecret_list' %}" class="btn btn-success">
+                      <i class="mdi mdi-eye"></i> View Tenant Secrets
+                    </a>
+                  </div>
+                </div>
+
+                <div id="error-section" class="d-none">
+                  <div class="alert alert-danger">
+                    <i class="mdi mdi-alert-circle"></i>
+                    <strong>Error:</strong> <span id="error-message"></span>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <!-- Existing Memberships -->
+          <div class="card">
+            <h5 class="card-header">
+              <i class="mdi mdi-account-group"></i> Your Memberships
+            </h5>
+            <div class="card-body">
+              {% if my_memberships %}
+                <ul class="list-group list-group-flush">
+                  {% for membership in my_memberships %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <a href="{{ membership.tenant.get_absolute_url }}">{{ membership.tenant.name }}</a>
+                    </span>
+                    <span class="badge {% if membership.is_admin %}bg-primary{% else %}bg-secondary{% endif %}">
+                      {{ membership.get_role_display }}
+                    </span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted mb-0">
+                  You're not a member of any tenant yet.
+                </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- How It Works -->
+          <div class="card mt-3">
+            <h5 class="card-header">
+              <i class="mdi mdi-help-circle"></i> How It Works
+            </h5>
+            <div class="card-body">
+              <ol class="mb-0">
+                <li class="mb-2">
+                  <strong>Create Passkey:</strong> Your device generates a unique cryptographic key pair.
+                </li>
+                <li class="mb-2">
+                  <strong>Derive Keys:</strong> A tenant encryption key is generated and encrypted to your public key.
+                </li>
+                <li class="mb-2">
+                  <strong>Access Secrets:</strong> When you need to decrypt a secret, your Passkey unlocks the tenant key.
+                </li>
+                <li>
+                  <strong>Zero Knowledge:</strong> The server only stores encrypted data - it never sees your keys or plaintext secrets.
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'netbox_secrets/js/crypto.js' %}"></script>
+<script>
+  const tenantSelect = document.getElementById('tenant-select');
+  const passkeySection = document.getElementById('passkey-section');
+  const successSection = document.getElementById('success-section');
+  const errorSection = document.getElementById('error-section');
+  const errorMessage = document.getElementById('error-message');
+  const createPasskeyBtn = document.getElementById('create-passkey-btn');
+
+  // Show passkey section when tenant is selected
+  tenantSelect.addEventListener('change', function() {
+    if (this.value) {
+      passkeySection.classList.remove('d-none');
+      successSection.classList.add('d-none');
+      errorSection.classList.add('d-none');
+    } else {
+      passkeySection.classList.add('d-none');
+    }
+  });
+
+  // Trigger change event if tenant is pre-selected
+  if (tenantSelect.value) {
+    tenantSelect.dispatchEvent(new Event('change'));
+  }
+
+  createPasskeyBtn.addEventListener('click', async function() {
+    const tenantId = tenantSelect.value;
+    const role = document.getElementById('role-select').value;
+
+    if (!tenantId) {
+      showError('Please select a tenant');
+      return;
+    }
+
+    createPasskeyBtn.disabled = true;
+    createPasskeyBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Creating Passkey...';
+
+    try {
+      // Check if WebAuthn is available
+      if (!window.PublicKeyCredential) {
+        throw new Error('WebAuthn is not supported in this browser');
+      }
+
+      // Check for PRF extension support
+      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) {
+        console.warn('Platform authenticator not available, will try external');
+      }
+
+      // Generate tenant key (for first member) or receive from existing admin
+      // For now, generate new tenant key (first member case)
+      const tenantKey = await NetBoxSecretsCrypto.generateAES256Key();
+
+      // Create passkey and setup membership
+      const setupResult = await NetBoxSecretsCrypto.setupMembership(
+        null,  // Will create new credential
+        tenantKey,
+        window.location.hostname
+      );
+
+      // Send to server
+      const response = await fetch('/api/plugins/netbox_secrets/tenant-memberships/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          tenant: parseInt(tenantId),
+          public_key: setupResult.publicKey,
+          webauthn_credential_id: setupResult.credentialId,
+          encrypted_private_key: setupResult.encryptedPrivateKey,
+          encrypted_tenant_key: setupResult.encryptedTenantKey,
+          role: role
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to create membership');
+      }
+
+      // Success!
+      passkeySection.classList.add('d-none');
+      successSection.classList.remove('d-none');
+      errorSection.classList.add('d-none');
+
+    } catch (error) {
+      console.error('Setup failed:', error);
+      showError(error.message);
+      createPasskeyBtn.disabled = false;
+      createPasskeyBtn.innerHTML = '<i class="mdi mdi-fingerprint"></i> Create Passkey & Join Tenant';
+    }
+  });
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorSection.classList.remove('d-none');
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}

@@ -20,9 +20,19 @@ from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from ..exceptions import InvalidKey
 from ..hashers import SecretValidationHasher
 from ..querysets import UserKeyQuerySet
-from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
+from ..utils import (
+    decrypt_master_key,
+    encrypt_master_key,
+    generate_random_key,
+    detect_key_type,
+    validate_x25519_public_key,
+    KEY_TYPE_RSA,
+    KEY_TYPE_X25519,
+    NACL_AVAILABLE,
+)
 
 __all__ = [
+    'KeyTypeChoices',
     'Secret',
     'SecretRole',
     'SessionKey',
@@ -32,19 +42,35 @@ __all__ = [
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
+class KeyTypeChoices(models.TextChoices):
+    """Choices for cryptographic key types."""
+    RSA = KEY_TYPE_RSA, 'RSA'
+    X25519 = KEY_TYPE_X25519, 'X25519'
+
+
 class UserKey(NetBoxModel):
     """
-    A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
+    A UserKey stores a user's personal encryption key (RSA or X25519), which is used to generate their unique encrypted
     copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
-    matching (private) decryption key.
+    matching private decryption key.
+
+    Supports both RSA (legacy) and X25519 (modern, recommended) key types.
     """
 
     id = models.BigAutoField(primary_key=True)
     user = models.OneToOneField(
         to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False
     )
+    key_type = models.CharField(
+        max_length=10,
+        choices=KeyTypeChoices.choices,
+        default=KeyTypeChoices.RSA,
+        verbose_name='Key type',
+        help_text='Type of cryptographic key (RSA or X25519)',
+    )
     public_key = models.TextField(
-        verbose_name='RSA public key',
+        verbose_name='Public key',
+        help_text='RSA or X25519 public key in PEM format',
     )
     master_key_cipher = models.BinaryField(max_length=512, blank=True, null=True, editable=False)
 
@@ -56,8 +82,9 @@ class UserKey(NetBoxModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Store the initial public_key and master_key_cipher to check for changes on save().
+        # Store the initial public_key, key_type, and master_key_cipher to check for changes on save().
         self.__initial_public_key = self.public_key
+        self.__initial_key_type = self.key_type
         self.__initial_master_key_cipher = self.master_key_cipher
 
     def __str__(self):
@@ -70,40 +97,71 @@ class UserKey(NetBoxModel):
         super().clean()
 
         if self.public_key:
-            # Validate the public key format
-            try:
-                pubkey = RSA.import_key(self.public_key)
-            except ValueError:
-                raise ValidationError({'public_key': "Invalid RSA key format."})
-            except Exception:
-                raise ValidationError(
-                    "Something went wrong while trying to save your key. Please ensure that you're "
-                    "uploading a valid RSA public key in PEM format (no SSH/PGP).",
-                )
+            # Auto-detect key type from the public key format
+            detected_type = detect_key_type(self.public_key)
+            self.key_type = detected_type
 
-            # Validate the public key length
-            pubkey_length = pubkey.size_in_bits()
-            if pubkey_length < settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']:
-                raise ValidationError(
-                    {
-                        'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
-                            settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size'],
-                        ),
-                    },
-                )
-            # We can't use keys bigger than our master_key_cipher field can hold
-            if pubkey_length > 8192:
-                raise ValidationError(
-                    {
-                        'public_key': "Public key size ({}) is too large. Maximum key size is 8192 bits.".format(
-                            pubkey_length,
-                        ),
-                    },
-                )
+            if detected_type == KEY_TYPE_X25519:
+                # Validate X25519 key
+                self._validate_x25519_key()
+            else:
+                # Validate RSA key (legacy)
+                self._validate_rsa_key()
+
+    def _validate_x25519_key(self):
+        """Validate X25519 public key format."""
+        if not NACL_AVAILABLE:
+            raise ValidationError(
+                {'public_key': "X25519 keys require pynacl library. Please install with: pip install pynacl"}
+            )
+
+        try:
+            validate_x25519_public_key(self.public_key)
+        except ValueError as e:
+            raise ValidationError({'public_key': str(e)})
+        except Exception:
+            raise ValidationError(
+                "Something went wrong while trying to validate your X25519 key. Please ensure that you're "
+                "uploading a valid X25519 public key in PEM format.",
+            )
+
+    def _validate_rsa_key(self):
+        """Validate RSA public key format and length."""
+        try:
+            pubkey = RSA.import_key(self.public_key)
+        except ValueError:
+            raise ValidationError({'public_key': "Invalid RSA key format."})
+        except Exception:
+            raise ValidationError(
+                "Something went wrong while trying to save your key. Please ensure that you're "
+                "uploading a valid RSA public key in PEM format (no SSH/PGP).",
+            )
+
+        # Validate the public key length
+        pubkey_length = pubkey.size_in_bits()
+        if pubkey_length < settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']:
+            raise ValidationError(
+                {
+                    'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
+                        settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size'],
+                    ),
+                },
+            )
+        # We can't use keys bigger than our master_key_cipher field can hold
+        if pubkey_length > 8192:
+            raise ValidationError(
+                {
+                    'public_key': "Public key size ({}) is too large. Maximum key size is 8192 bits.".format(
+                        pubkey_length,
+                    ),
+                },
+            )
 
     def save(self, *args, **kwargs):
-        # Check whether public_key has been modified. If so, nullify the initial master_key_cipher.
-        if self.__initial_master_key_cipher and self.public_key != self.__initial_public_key:
+        # Check whether public_key or key_type has been modified. If so, nullify the master_key_cipher.
+        key_changed = self.public_key != self.__initial_public_key
+        type_changed = self.key_type != self.__initial_key_type
+        if self.__initial_master_key_cipher and (key_changed or type_changed):
             self.master_key_cipher = None
 
         # If no other active UserKeys exist, generate a new master key and use it to activate this UserKey.
@@ -271,6 +329,9 @@ class Secret(PrimaryModel, ContactsMixin):
 
     A Secret can be up to 65,535 bytes (64KB - 1B) in length. Each secret string will be padded with random data to
     a minimum of 64 bytes during encryption in order to protect short strings from ciphertext analysis.
+
+    Optionally, a Secret can have an associated TOTP (Time-based One-Time Password) seed for 2FA support.
+    The TOTP seed is stored encrypted alongside the main secret.
     """
 
     assigned_object_type = models.ForeignKey(
@@ -290,9 +351,39 @@ class Secret(PrimaryModel, ContactsMixin):
     )
     hash = models.CharField(max_length=128, editable=False)
 
+    # TOTP (Time-based One-Time Password) support
+    totp_ciphertext = models.BinaryField(
+        max_length=256,
+        editable=False,
+        blank=True,
+        null=True,
+        help_text='Encrypted TOTP seed (base32-encoded secret)',
+    )
+    totp_hash = models.CharField(
+        max_length=128,
+        editable=False,
+        blank=True,
+        null=True,
+        help_text='SHA256 hash of TOTP seed for validation',
+    )
+    totp_issuer = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='TOTP issuer name (e.g., service name)',
+    )
+    totp_digits = models.PositiveSmallIntegerField(
+        default=6,
+        help_text='Number of digits in TOTP code (default: 6)',
+    )
+    totp_period = models.PositiveSmallIntegerField(
+        default=30,
+        help_text='TOTP validity period in seconds (default: 30)',
+    )
+
     objects = RestrictedQuerySet.as_manager()
 
     plaintext = None
+    totp_plaintext = None  # In-memory TOTP seed
 
     clone_fields = ('role', 'assigned_object_id', 'assigned_object_type', 'tags')
 
@@ -302,6 +393,7 @@ class Secret(PrimaryModel, ContactsMixin):
 
     def __init__(self, *args, **kwargs):
         self.plaintext = kwargs.pop('plaintext', None)
+        self.totp_plaintext = kwargs.pop('totp_plaintext', None)
         super().__init__(*args, **kwargs)
 
     def __str__(self):
@@ -354,6 +446,8 @@ class Secret(PrimaryModel, ContactsMixin):
         Generate a random initialization vector (IV) for AES. Pad the plaintext to the AES block size (16 bytes) and
         encrypt. Prepend the IV for use in decryption. Finally, record the SHA256 hash of the plaintext for validation
         upon decryption.
+
+        Also encrypts TOTP seed if present.
         """
         if self.plaintext is None:
             raise Exception("Must unlock or set plaintext before locking.")
@@ -368,11 +462,32 @@ class Secret(PrimaryModel, ContactsMixin):
 
         self.plaintext = None
 
+        # Encrypt TOTP seed if present
+        if self.totp_plaintext:
+            self._encrypt_totp(secret_key)
+
+    def _encrypt_totp(self, secret_key):
+        """Encrypt the TOTP seed using the same AES key."""
+        if not self.totp_plaintext:
+            return
+
+        # Pad and encrypt TOTP seed
+        iv = os.urandom(16)
+        aes = AES.new(secret_key, AES.MODE_CFB, iv)
+        self.totp_ciphertext = iv + aes.encrypt(self._pad(self.totp_plaintext))
+
+        # Generate hash for validation
+        self.totp_hash = make_password(self.totp_plaintext, hasher=SecretValidationHasher())
+
+        self.totp_plaintext = None
+
     def decrypt(self, secret_key):
         """
         Consume the first 16 bytes of self.ciphertext as the AES initialization vector (IV). The remainder is decrypted
         using the IV and the provided secret key. Padding is then removed to reveal the plaintext. Finally, validate the
         decrypted plaintext value against the stored hash.
+
+        Also decrypts TOTP seed if present.
         """
         if self.plaintext is not None:
             return
@@ -391,6 +506,27 @@ class Secret(PrimaryModel, ContactsMixin):
 
         self.plaintext = plaintext
 
+        # Decrypt TOTP seed if present
+        if self.totp_ciphertext:
+            self._decrypt_totp(secret_key)
+
+    def _decrypt_totp(self, secret_key):
+        """Decrypt the TOTP seed."""
+        if not self.totp_ciphertext:
+            return
+
+        # Decrypt TOTP ciphertext and remove padding
+        iv = bytes(self.totp_ciphertext[0:16])
+        ciphertext = bytes(self.totp_ciphertext[16:])
+        aes = AES.new(secret_key, AES.MODE_CFB, iv)
+        totp_plaintext = self._unpad(aes.decrypt(ciphertext))
+
+        # Verify decrypted TOTP against hash
+        if self.totp_hash and not self.validate_totp(totp_plaintext):
+            raise ValueError("Invalid key or TOTP ciphertext!")
+
+        self.totp_plaintext = totp_plaintext
+
     def validate(self, plaintext):
         """
         Validate that a given plaintext matches the stored hash.
@@ -398,3 +534,85 @@ class Secret(PrimaryModel, ContactsMixin):
         if not self.hash:
             raise Exception("Hash has not been generated for this secret.")
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
+
+    def validate_totp(self, totp_plaintext):
+        """
+        Validate that a given TOTP plaintext matches the stored hash.
+        """
+        if not self.totp_hash:
+            return True  # No hash means no TOTP was set
+        return check_password(totp_plaintext, self.totp_hash, preferred=SecretValidationHasher())
+
+    @property
+    def has_totp(self):
+        """Returns True if this secret has a TOTP seed configured."""
+        return self.totp_ciphertext is not None
+
+    def get_totp_code(self):
+        """
+        Generate the current TOTP code.
+
+        Requires the secret to be decrypted first (call decrypt() before this).
+        Returns None if no TOTP seed is configured.
+        """
+        if not self.totp_plaintext:
+            return None
+
+        try:
+            import pyotp
+            totp = pyotp.TOTP(
+                self.totp_plaintext,
+                digits=self.totp_digits,
+                interval=self.totp_period,
+            )
+            return totp.now()
+        except ImportError:
+            raise ImportError("pyotp is required for TOTP support. Install with: pip install pyotp")
+
+    def get_totp_provisioning_uri(self, account_name=None):
+        """
+        Generate a provisioning URI for TOTP (for QR code generation).
+
+        Requires the secret to be decrypted first.
+        account_name: The account identifier (e.g., username or email).
+        """
+        if not self.totp_plaintext:
+            return None
+
+        if not account_name:
+            account_name = self.name or str(self.assigned_object) or 'secret'
+
+        try:
+            import pyotp
+            totp = pyotp.TOTP(
+                self.totp_plaintext,
+                digits=self.totp_digits,
+                interval=self.totp_period,
+            )
+            return totp.provisioning_uri(
+                name=account_name,
+                issuer_name=self.totp_issuer or 'NetBox',
+            )
+        except ImportError:
+            raise ImportError("pyotp is required for TOTP support. Install with: pip install pyotp")
+
+    def verify_totp_code(self, code):
+        """
+        Verify a TOTP code.
+
+        Requires the secret to be decrypted first.
+        Returns True if the code is valid, False otherwise.
+        """
+        if not self.totp_plaintext:
+            return False
+
+        try:
+            import pyotp
+            totp = pyotp.TOTP(
+                self.totp_plaintext,
+                digits=self.totp_digits,
+                interval=self.totp_period,
+            )
+            return totp.verify(code)
+        except ImportError:
+            raise ImportError("pyotp is required for TOTP support. Install with: pip install pyotp")

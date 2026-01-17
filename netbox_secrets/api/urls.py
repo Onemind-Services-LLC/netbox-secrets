@@ -15,4 +15,11 @@ router.register('get-session-key', views.GetSessionKeyViewSet, basename='get-ses
 router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairViewSet, basename='generate-rsa-key-pair')
 router.register('activate-user-key', views.ActivateUserKeyViewSet, basename='activate-user-keys')
 
+# Zero-knowledge tenant crypto
+router.register('tenant-memberships', views.TenantMembershipViewSet)
+router.register('tenant-service-accounts', views.TenantServiceAccountViewSet)
+router.register('service-account-activation', views.ServiceAccountActivationViewSet, basename='service-account-activation')
+router.register('tenant-secrets', views.TenantSecretViewSet)
+router.register('svc/secrets', views.ServiceAccountSecretViewSet, basename='service-account-secrets')
+
 urlpatterns = router.urls

@@ -15,4 +15,19 @@ urlpatterns = [
     path('user-keys/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
     # Session Key
     path('session-key/delete/', views.SessionKeyDeleteView.as_view(), name='sessionkey_delete'),
+
+    # Tenant Crypto - Zero-knowledge secret sharing
+    path('tenant-memberships/', include(get_model_urls('netbox_secrets', 'tenantmembership', detail=False))),
+    path('tenant-memberships/<int:pk>/', include(get_model_urls('netbox_secrets', 'tenantmembership'))),
+    path('tenant-service-accounts/', include(get_model_urls('netbox_secrets', 'tenantserviceaccount', detail=False))),
+    path('tenant-service-accounts/<int:pk>/', include(get_model_urls('netbox_secrets', 'tenantserviceaccount'))),
+    path('tenant-secrets/', include(get_model_urls('netbox_secrets', 'tenantsecret', detail=False))),
+    path('tenant-secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'tenantsecret'))),
+
+    # Tenant Crypto Setup (Passkey enrollment)
+    path('tenant-crypto/setup/', views.TenantCryptoSetupView.as_view(), name='tenant_crypto_setup'),
+    path('tenant-crypto/setup/<int:tenant_id>/', views.TenantCryptoSetupView.as_view(), name='tenant_crypto_setup_tenant'),
+
+    # Service Account Activation
+    path('tenant-service-accounts/<int:pk>/activate/', views.ServiceAccountActivateView.as_view(), name='tenantserviceaccount_activate'),
 ]
