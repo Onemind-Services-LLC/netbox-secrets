@@ -333,7 +333,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             self.template_name,
             {
                 'object': self.userkey,
-                'form': self.form,
+                'form': self.form(instance=self.userkey),
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )
@@ -418,3 +418,137 @@ class SessionKeyDeleteView(generic.ObjectDeleteView):
         # Delete the cookie
         response.delete_cookie(constants.SESSION_COOKIE_NAME)
         return response
+
+
+#
+# Tenant Crypto Views
+#
+
+
+@register_model_view(models.TenantMembership, 'list', path='', detail=False)
+class TenantMembershipListView(generic.ObjectListView):
+    queryset = models.TenantMembership.objects.select_related('tenant', 'user', 'added_by')
+    table = tables.TenantMembershipTable
+    filterset = filtersets.TenantMembershipFilterSet
+    filterset_form = forms.TenantMembershipFilterForm
+
+
+@register_model_view(models.TenantMembership)
+class TenantMembershipView(generic.ObjectView):
+    queryset = models.TenantMembership.objects.select_related('tenant', 'user', 'added_by')
+    template_name = 'netbox_secrets/tenantmembership.html'
+
+
+@register_model_view(models.TenantMembership, 'delete')
+class TenantMembershipDeleteView(generic.ObjectDeleteView):
+    queryset = models.TenantMembership.objects.all()
+
+
+@register_model_view(models.TenantServiceAccount, 'list', path='', detail=False)
+class TenantServiceAccountListView(generic.ObjectListView):
+    queryset = models.TenantServiceAccount.objects.select_related('tenant', 'last_activated_by')
+    table = tables.TenantServiceAccountTable
+    filterset = filtersets.TenantServiceAccountFilterSet
+    filterset_form = forms.TenantServiceAccountFilterForm
+
+
+@register_model_view(models.TenantServiceAccount)
+class TenantServiceAccountView(generic.ObjectView):
+    queryset = models.TenantServiceAccount.objects.select_related('tenant', 'last_activated_by')
+    template_name = 'netbox_secrets/tenantserviceaccount.html'
+
+
+@register_model_view(models.TenantServiceAccount, 'edit')
+class TenantServiceAccountEditView(generic.ObjectEditView):
+    queryset = models.TenantServiceAccount.objects.all()
+    form = forms.TenantServiceAccountForm
+
+
+@register_model_view(models.TenantServiceAccount, 'delete')
+class TenantServiceAccountDeleteView(generic.ObjectDeleteView):
+    queryset = models.TenantServiceAccount.objects.all()
+
+
+@register_model_view(models.TenantSecret, 'list', path='', detail=False)
+class TenantSecretListView(generic.ObjectListView):
+    queryset = models.TenantSecret.objects.select_related('tenant', 'created_by', 'last_modified_by')
+    table = tables.TenantSecretTable
+    filterset = filtersets.TenantSecretFilterSet
+    filterset_form = forms.TenantSecretFilterForm
+
+
+@register_model_view(models.TenantSecret)
+class TenantSecretView(generic.ObjectView):
+    queryset = models.TenantSecret.objects.select_related('tenant', 'created_by', 'last_modified_by')
+    template_name = 'netbox_secrets/tenantsecret.html'
+
+
+@register_model_view(models.TenantSecret, 'delete')
+class TenantSecretDeleteView(generic.ObjectDeleteView):
+    queryset = models.TenantSecret.objects.all()
+
+
+class TenantCryptoSetupView(LoginRequiredMixin, View):
+    """
+    View for setting up tenant crypto membership using WebAuthn PRF.
+    This is a JavaScript-heavy view that handles Passkey enrollment.
+    """
+    template_name = 'netbox_secrets/tenant_crypto_setup.html'
+
+    def get(self, request, tenant_id=None):
+        from tenancy.models import Tenant
+
+        # Get tenants the user can potentially join
+        # Show tenants the user is NOT already a member of
+        existing_memberships = models.TenantMembership.objects.filter(
+            user=request.user
+        ).values_list('tenant_id', flat=True)
+
+        available_tenants = Tenant.objects.exclude(pk__in=existing_memberships)
+
+        # Get the user's existing memberships for display
+        my_memberships = models.TenantMembership.objects.filter(
+            user=request.user
+        ).select_related('tenant')
+
+        context = {
+            'available_tenants': available_tenants,
+            'my_memberships': my_memberships,
+            'selected_tenant_id': tenant_id,
+        }
+
+        return render(request, self.template_name, context)
+
+
+class ServiceAccountActivateView(LoginRequiredMixin, View):
+    """
+    View for activating a service account (unlocking its private key in memory).
+    """
+    template_name = 'netbox_secrets/service_account_activate.html'
+
+    def get(self, request, pk):
+        service_account = get_object_or_404(
+            models.TenantServiceAccount.objects.select_related('tenant'),
+            pk=pk
+        )
+
+        # Check user has membership in this tenant
+        membership = models.TenantMembership.objects.filter(
+            tenant=service_account.tenant,
+            user=request.user
+        ).first()
+
+        if not membership:
+            messages.error(request, "You don't have access to this tenant's secrets.")
+            return redirect('plugins:netbox_secrets:tenantserviceaccount_list')
+
+        # Check if already activated
+        is_active = models.ServiceAccountActivation.is_active(pk)
+
+        context = {
+            'service_account': service_account,
+            'membership': membership,
+            'is_active': is_active,
+        }
+
+        return render(request, self.template_name, context)

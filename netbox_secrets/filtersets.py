@@ -5,14 +5,17 @@ from django.db.models import Q
 from django.utils.translation import gettext as _
 
 from netbox.filtersets import NetBoxModelFilterSet
-from tenancy.models import Contact
+from tenancy.models import Contact, Tenant
 from utilities.filters import ContentTypeFilter, MultiValueCharFilter
 from .constants import SECRET_ASSIGNABLE_MODELS
-from .models import Secret, SecretRole, UserKey
+from .models import Secret, SecretRole, UserKey, TenantMembership, TenantServiceAccount, TenantSecret
 
 __all__ = [
     'SecretFilterSet',
     'SecretRoleFilterSet',
+    'TenantMembershipFilterSet',
+    'TenantServiceAccountFilterSet',
+    'TenantSecretFilterSet',
 ]
 
 
@@ -109,4 +112,107 @@ class SecretFilterSet(NetBoxModelFilterSet):
             | Q(_object_repr__icontains=value)
             | Q(description__icontains=value)
             | Q(comments__icontains=value),
+        )
+
+
+#
+# Tenant Crypto Models Filtersets
+#
+
+
+class TenantMembershipFilterSet(NetBoxModelFilterSet):
+    tenant_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        label=_('Tenant (ID)'),
+    )
+    tenant = django_filters.ModelMultipleChoiceFilter(
+        field_name='tenant__name',
+        queryset=Tenant.objects.all(),
+        to_field_name='name',
+        label=_('Tenant (name)'),
+    )
+    user_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=get_user_model().objects.all(),
+        label=_('User (ID)'),
+    )
+    user = django_filters.ModelMultipleChoiceFilter(
+        field_name='user__username',
+        queryset=get_user_model().objects.all(),
+        to_field_name='username',
+        label=_('User (name)'),
+    )
+    role = django_filters.ChoiceFilter(
+        choices=TenantMembership.ROLE_CHOICES,
+        label=_('Role'),
+    )
+
+    class Meta:
+        model = TenantMembership
+        fields = ['id', 'tenant_id', 'user_id', 'role']
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(tenant__name__icontains=value)
+            | Q(user__username__icontains=value)
+        )
+
+
+class TenantServiceAccountFilterSet(NetBoxModelFilterSet):
+    tenant_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        label=_('Tenant (ID)'),
+    )
+    tenant = django_filters.ModelMultipleChoiceFilter(
+        field_name='tenant__name',
+        queryset=Tenant.objects.all(),
+        to_field_name='name',
+        label=_('Tenant (name)'),
+    )
+    name = MultiValueCharFilter(lookup_expr='iexact')
+    enabled = django_filters.BooleanFilter()
+
+    class Meta:
+        model = TenantServiceAccount
+        fields = ['id', 'tenant_id', 'name', 'enabled', 'description']
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(name__icontains=value)
+            | Q(tenant__name__icontains=value)
+            | Q(description__icontains=value)
+        )
+
+
+class TenantSecretFilterSet(NetBoxModelFilterSet):
+    tenant_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        label=_('Tenant (ID)'),
+    )
+    tenant = django_filters.ModelMultipleChoiceFilter(
+        field_name='tenant__name',
+        queryset=Tenant.objects.all(),
+        to_field_name='name',
+        label=_('Tenant (name)'),
+    )
+    name = MultiValueCharFilter(lookup_expr='iexact')
+    created_by = django_filters.ModelMultipleChoiceFilter(
+        queryset=get_user_model().objects.all(),
+        label=_('Created By'),
+    )
+
+    class Meta:
+        model = TenantSecret
+        fields = ['id', 'tenant_id', 'name', 'description', 'created_by']
+
+    def search(self, queryset, name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(name__icontains=value)
+            | Q(tenant__name__icontains=value)
+            | Q(description__icontains=value)
         )

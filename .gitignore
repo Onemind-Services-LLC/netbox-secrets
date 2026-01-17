@@ -198,3 +198,9 @@ yarn.error
 /netbox_secrets/project-static/netbox/
 build
 dist
+
+# Cryptographic keys (NEVER commit these!)
+*.key
+*.pem
+secrets/
+!scripts/generate_keypair.py
