@@ -292,9 +292,6 @@ class TenantMembershipSerializer(NetBoxModelSerializer):
 
 class TenantMembershipCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating TenantMembership - handles encrypted data."""
-    tenant = serializers.PrimaryKeyRelatedField(
-        queryset=None  # Set in __init__
-    )
     public_key = serializers.CharField()
     webauthn_credential_id = serializers.CharField()
     encrypted_private_key = serializers.CharField()  # Base64 encoded
@@ -314,12 +311,6 @@ class TenantMembershipCreateSerializer(serializers.ModelSerializer):
             'encrypted_tenant_key',
             'role',
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Import here to avoid circular import
-        from tenancy.models import Tenant
-        self.fields['tenant'].queryset = Tenant.objects.all()
 
     def validate_encrypted_private_key(self, value):
         """Convert base64 to bytes."""
@@ -381,7 +372,6 @@ class TenantServiceAccountSerializer(NetBoxModelSerializer):
 
 class TenantServiceAccountCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating TenantServiceAccount."""
-    tenant = serializers.PrimaryKeyRelatedField(queryset=None)
     public_key = serializers.CharField()
     encrypted_private_key = serializers.CharField()  # Base64
     encrypted_tenant_key = serializers.CharField()  # Base64
@@ -400,11 +390,6 @@ class TenantServiceAccountCreateSerializer(serializers.ModelSerializer):
             'activation_salt',
             'private_key_nonce',
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from tenancy.models import Tenant
-        self.fields['tenant'].queryset = Tenant.objects.all()
 
     def _decode_base64(self, value, field_name):
         import base64
@@ -505,7 +490,6 @@ class TenantSecretSerializer(NetBoxModelSerializer):
 
 class TenantSecretCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating TenantSecret."""
-    tenant = serializers.PrimaryKeyRelatedField(queryset=None)
     ciphertext = serializers.CharField()  # Base64 encoded
     totp_ciphertext = serializers.CharField(required=False, allow_null=True)  # Base64
 
@@ -524,11 +508,6 @@ class TenantSecretCreateSerializer(serializers.ModelSerializer):
             'assigned_object_id',
             'metadata',
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from tenancy.models import Tenant
-        self.fields['tenant'].queryset = Tenant.objects.all()
 
     def validate_ciphertext(self, value):
         import base64
