@@ -8,7 +8,6 @@ from users.api.serializers import UserSerializer
 
 __all__ = [
     'ActivateUserKeySerializer',
-    'RSAKeyPairSerializer',
     'SessionKeyCreateSerializer',
     'SessionKeySerializer',
     'UserKeySerializer',
@@ -36,17 +35,6 @@ class SessionKeyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionKey
         fields = ['private_key', 'preserve_key']
-
-
-class RSAKeyPairSerializer(serializers.Serializer):
-    """
-    Serializer for RSA key pair generation responses.
-
-    Used by the generate-rsa-key-pair endpoint to return newly generated keys.
-    """
-
-    public_key = serializers.CharField(help_text="RSA public key in PEM format")
-    private_key = serializers.CharField(help_text="RSA private key in PEM format (keep secure!)")
 
 
 class ActivateUserKeySerializer(serializers.Serializer):
