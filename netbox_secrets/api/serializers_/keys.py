@@ -1,14 +1,10 @@
-from functools import cached_property
-
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-from rest_framework.utils.serializer_helpers import BindingDict
 
-from netbox.api.serializers import NetBoxModelSerializer
+from netbox.api.serializers import BaseModelSerializer, NetBoxModelSerializer
 from netbox_secrets.models import *
 from users.api.serializers import UserSerializer
-from utilities.api import get_related_object_by_attrs
 
 __all__ = [
     'ActivateUserKeySerializer',
@@ -107,7 +103,7 @@ class UserKeySerializer(NetBoxModelSerializer):
         brief_fields = ('id', 'display', 'url')
 
 
-class SessionKeySerializer(serializers.ModelSerializer):
+class SessionKeySerializer(BaseModelSerializer):
     """
     Serializer for SessionKey model.
 
@@ -116,12 +112,10 @@ class SessionKeySerializer(serializers.ModelSerializer):
     provided via context (e.g., after creation).
     """
 
-    url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_secrets-api:sessionkey-detail')
     userkey = UserKeySerializer(nested=True, read_only=True)
     session_key = serializers.SerializerMethodField(
         read_only=True, help_text="Base64-encoded session key (only returned on creation)"
     )
-    display = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SessionKey
@@ -134,56 +128,6 @@ class SessionKeySerializer(serializers.ModelSerializer):
             'created',
         ]
         brief_fields = ('id', 'display', 'url')
-
-    def __init__(self, *args, nested=False, fields=None, **kwargs):
-        """
-        Initialize serializer with support for nested representation.
-
-        Args:
-            nested: Whether this is a nested serializer
-            fields: Specific fields to include (for field filtering)
-        """
-        self.nested = nested
-        self._requested_fields = fields
-
-        if self.nested:
-            self.validators = []
-            if not fields:
-                self._requested_fields = getattr(self.Meta, 'brief_fields', None)
-
-        super().__init__(*args, **kwargs)
-
-    @cached_property
-    def fields(self):
-        """
-        Override fields property to support field filtering.
-
-        Returns only the requested fields if specified, otherwise all fields.
-        """
-        if not self._requested_fields:
-            return super().fields
-
-        fields = BindingDict(self)
-        for key, value in self.get_fields().items():
-            if key in self._requested_fields:
-                fields[key] = value
-        return fields
-
-    def to_internal_value(self, data):
-        """
-        Convert incoming data to internal representation.
-
-        For nested serializers, expects attributes or PK identifying the related object.
-        """
-        if self.nested:
-            queryset = self.Meta.model.objects.all()
-            return get_related_object_by_attrs(queryset, data)
-
-        return super().to_internal_value(data)
-
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_display(self, obj):
-        return str(obj)
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_session_key(self, obj):
