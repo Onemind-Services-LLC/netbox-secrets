@@ -27,3 +27,9 @@ def get_assignable_models_filter() -> Q:
 
 
 SECRET_ASSIGNABLE_MODELS = get_assignable_models_filter()
+
+# Key generation settings
+DEFAULT_KEY_SIZE = 2048
+MIN_KEY_SIZE = 2048
+MAX_KEY_SIZE = 8192
+KEY_SIZE_INCREMENT = 256
