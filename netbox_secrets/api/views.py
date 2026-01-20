@@ -2,21 +2,25 @@ import base64
 from typing import Optional
 
 from Crypto.PublicKey import RSA
-from django.conf import settings
+from django.db import transaction
 from django.http import HttpResponseBadRequest
 from drf_spectacular import utils as drf_utils
-from rest_framework import mixins as drf_mixins, status
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
+from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from netbox.api.viewsets import BaseViewSet, MPTTLockedMixin, NetBoxModelViewSet, mixins
+from netbox.api.viewsets import MPTTLockedMixin, NetBoxModelViewSet
+from netbox_secrets.constants import *
+from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from . import serializers
-from .. import constants, exceptions, filtersets
+from .. import filtersets
 
 # Plugin settings
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -29,6 +33,7 @@ ERR_PRIVKEY_MISSING = "Private key was not provided."
 ERR_PRIVKEY_INVALID = "Invalid private key."
 ERR_SESSION_KEY_REQUIRED = "A session key must be provided when creating or updating secrets."
 ERR_SESSION_KEY_INVALID = "Invalid session key."
+ERR_NO_KEYS_PROVIDED = "No user key IDs provided."
 
 
 class SecretsRootView(APIRootView):
@@ -90,9 +95,9 @@ class SecretViewSet(NetBoxModelViewSet):
         request = self.request
 
         # Check cookie first
-        if constants.SESSION_COOKIE_NAME in request.COOKIES:
+        if SESSION_COOKIE_NAME in request.COOKIES:
             try:
-                return base64.b64decode(request.COOKIES[constants.SESSION_COOKIE_NAME])
+                return base64.b64decode(request.COOKIES[SESSION_COOKIE_NAME])
             except Exception:
                 return None
 
@@ -120,7 +125,7 @@ class SecretViewSet(NetBoxModelViewSet):
             self.master_key = sk.get_master_key(session_key)
         except SessionKey.DoesNotExist:
             raise ValidationError(ERR_SESSION_KEY_INVALID)
-        except exceptions.InvalidKey:
+        except InvalidKey:
             raise ValidationError(ERR_SESSION_KEY_INVALID)
 
     def initial(self, request, *args, **kwargs):
@@ -199,21 +204,14 @@ class SecretViewSet(NetBoxModelViewSet):
 #
 # Session Keys
 #
-class SessionKeyViewSet(
-    drf_mixins.ListModelMixin,
-    drf_mixins.RetrieveModelMixin,
-    drf_mixins.DestroyModelMixin,
-    mixins.BulkDestroyModelMixin,
-    mixins.ObjectValidationMixin,
-    BaseViewSet,
-):
+class SessionKeyViewSet(ModelViewSet):
     """
     API endpoint for managing session keys.
 
     Session keys are temporary keys used to encrypt/decrypt secrets during
     a user session. Each user can have only one active session key at a time.
     """
-
+    permission_classes = [IsAuthenticated]
     queryset = SessionKey.objects.select_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
 
@@ -225,11 +223,7 @@ class SessionKeyViewSet(
             Filtered queryset
         """
         queryset = super().get_queryset()
-
-        if self.request.user.is_authenticated:
-            return queryset.filter(userkey__user=self.request.user)
-
-        return queryset
+        return queryset.filter(userkey__user=self.request.user)
 
     @drf_utils.extend_schema(
         request=serializers.SessionKeyCreateSerializer,
@@ -287,7 +281,7 @@ class SessionKeyViewSet(
                 key = current_session_key.get_session_key(master_key)
                 session_key_obj = current_session_key
                 created = False
-            except exceptions.InvalidKey:
+            except InvalidKey:
                 return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
         else:
             # Create new session key
@@ -312,7 +306,7 @@ class SessionKeyViewSet(
         # Set cookie if not using token authentication
         if request.auth is None:
             response.set_cookie(
-                constants.SESSION_COOKIE_NAME,
+                SESSION_COOKIE_NAME,
                 value=encoded_key,
                 secure=settings.SESSION_COOKIE_SECURE,
                 samesite='Strict',
@@ -323,159 +317,347 @@ class SessionKeyViewSet(
         return response
 
 
-class GenerateRSAKeyPairViewSet(ViewSet):
+class GenerateRSAKeyPairView(APIView):
     """
-    API endpoint for generating RSA key pairs.
+    Generate RSA key pairs for encryption purposes.
 
-    Returns a new RSA key pair in PEM format. Key size can be specified
-    via the 'key_size' query parameter (default: 2048 bits).
+    This endpoint generates a new RSA public/private key pair and returns
+    both keys in PEM format. The private key should be stored securely
+    and never shared.
     """
 
-    serializer_class = serializers.RSAKeyPairSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        """Dummy queryset for schema generation."""
-        return UserKey.objects.filter(user=self.request.user)
-
-    @drf_utils.extend_schema(
+    @extend_schema(
+        summary="Generate RSA Key Pair",
+        description=(
+                "Generates a new RSA public/private key pair in PEM format. "
+                "The key size can be customized via query parameter.\n\n"
+                "**Important:** Store the private key securely and never expose it. "
+                "Once generated, you cannot retrieve the same key pair again."
+        ),
         parameters=[
-            drf_utils.OpenApiParameter(
+            OpenApiParameter(
                 name='key_size',
-                type=int,
-                description='RSA key size in bits (2048-8192, increments of 256)',
-                default=public_key_size,
-            ),
-        ],
-        responses={200: serializers.RSAKeyPairSerializer},
-    )
-    def list(self, request):
-        """
-        Generate a new RSA key pair.
-
-        Query Parameters:
-            key_size: Key size in bits (2048-8192, increments of 256)
-
-        Returns:
-            Response with public and private keys in PEM format
-        """
-        # Parse and validate key size
-        try:
-            key_size = int(request.GET.get('key_size', public_key_size))
-        except (ValueError, TypeError):
-            key_size = public_key_size
-
-        # Validate key size range (2048-8192, increments of 256)
-        if key_size not in range(2048, 8193, 256):
-            key_size = public_key_size
-
-        # Generate RSA key pair
-        key = RSA.generate(key_size)
-        private_key = key.exportKey('PEM').decode('utf-8')
-        public_key = key.publickey().exportKey('PEM').decode('utf-8')
-
-        return Response(
-            {
-                'public_key': public_key,
-                'private_key': private_key,
-            }
-        )
-
-
-class ActivateUserKeyViewSet(ViewSet):
-    """
-    API endpoint for activating user keys.
-
-    Allows administrators to activate multiple user keys using their own
-    private key to derive the master key. Requires 'change_userkey' permission.
-    """
-
-    permission_classes = [IsAuthenticated]
-    serializer_class = serializers.ActivateUserKeySerializer
-    parser_classes = [JSONParser, FormParser, MultiPartParser]
-
-    @drf_utils.extend_schema(
-        request=serializers.ActivateUserKeySerializer,
-        responses={
-            200: drf_utils.OpenApiResponse(
-                description="User keys activated successfully",
+                type=OpenApiTypes.INT,
+                location='query',
+                description=(
+                        f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
+                        f'in increments of {KEY_SIZE_INCREMENT}.'
+                ),
+                default=DEFAULT_KEY_SIZE,
                 examples=[
-                    drf_utils.OpenApiExample(
-                        name="Success",
-                        value="Successfully activated 3 user keys.",
+                    OpenApiExample(
+                        'Default',
+                        value=2048,
+                        description='Standard key size for most use cases'
+                    ),
+                    OpenApiExample(
+                        'High Security',
+                        value=4096,
+                        description='Higher security for sensitive data'
                     ),
                 ],
             ),
-            400: drf_utils.OpenApiResponse(
-                description="User key activation failed",
-                examples=[
-                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
-                    drf_utils.OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
-                    drf_utils.OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
-                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
-                ],
+        ],
+        responses={
+            200: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'public_key': {
+                            'type': 'string',
+                            'description': 'RSA public key in PEM format',
+                            'example': '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----'
+                        },
+                        'private_key': {
+                            'type': 'string',
+                            'description': 'RSA private key in PEM format (keep secure!)',
+                            'example': '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----'
+                        },
+                        'key_size': {
+                            'type': 'integer',
+                            'description': 'The size of the generated key in bits',
+                            'example': 2048
+                        }
+                    },
+                    'required': ['public_key', 'private_key', 'key_size']
+                },
+                description='Successfully generated RSA key pair'
             ),
-            403: drf_utils.OpenApiResponse(
-                description="Permission denied",
+            400: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Invalid key size. Must be between 2048 and 8192 in increments of 256.'
+                        }
+                    }
+                },
+                description='Invalid key size parameter'
+            ),
+            401: OpenApiResponse(
+                description='Authentication credentials were not provided or are invalid'
             ),
         },
     )
-    def create(self, request):
-        """
-        Activate multiple user keys.
+    def get(self, request):
+        """Generate and return a new RSA key pair."""
 
-        Requires the administrator's private key to derive the master key,
-        which is then used to activate the specified user keys.
+        # Parse and validate key size
+        key_size_param = request.query_params.get('key_size', DEFAULT_KEY_SIZE)
 
-        Returns:
-            Response indicating how many keys were activated
-        """
-        # Check permissions
+        try:
+            key_size = int(key_size_param)
+        except (ValueError, TypeError):
+            return Response(
+                {'error': f'Invalid key_size parameter. Must be an integer.'},
+                status=400
+            )
+
+        # Validate key size is within allowed range and increment
+        if key_size < MIN_KEY_SIZE or key_size > MAX_KEY_SIZE:
+            return Response(
+                {
+                    'error': (
+                        f'Invalid key size. Must be between {MIN_KEY_SIZE} '
+                        f'and {MAX_KEY_SIZE} bits.'
+                    )
+                },
+                status=400
+            )
+
+        if (key_size - MIN_KEY_SIZE) % KEY_SIZE_INCREMENT != 0:
+            return Response(
+                {
+                    'error': (
+                        f'Invalid key size. Must be in increments of {KEY_SIZE_INCREMENT} '
+                        f'starting from {MIN_KEY_SIZE}.'
+                    )
+                },
+                status=400
+            )
+
+        # Generate RSA key pair
+        try:
+            key = RSA.generate(key_size)
+            private_key = key.export_key('PEM').decode('utf-8')
+            public_key = key.publickey().export_key('PEM').decode('utf-8')
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate key pair: {str(e)}'},
+                status=500
+            )
+
+        return Response({
+            'public_key': public_key,
+            'private_key': private_key,
+            'key_size': key_size,
+        })
+
+
+class ActivateUserKeyView(APIView):
+    """
+    Activate multiple user keys using administrator's master key.
+
+    This endpoint allows administrators with proper permissions to activate
+    user keys by providing their private key to derive the master key.
+    All activations are performed atomically - if any fail, none are activated.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Activate User Keys",
+        description=(
+                "Activates multiple user keys using the administrator's private key to derive "
+                "the master key. This operation requires the `change_userkey` permission.\n\n"
+                "**Process:**\n"
+                "1. Validates administrator's private key\n"
+                "2. Derives master key from the private key\n"
+                "3. Activates all specified user keys atomically\n\n"
+                "**Note:** All activations succeed or fail together (atomic transaction)."
+        ),
+        request=serializers.ActivateUserKeySerializer,
+        responses={
+            200: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {
+                            'type': 'string',
+                            'example': 'Successfully activated 3 user keys.'
+                        },
+                        'activated_count': {
+                            'type': 'integer',
+                            'example': 3
+                        },
+                        'activated_keys': {
+                            'type': 'array',
+                            'items': {'type': 'integer'},
+                            'example': [1, 2, 3]
+                        }
+                    }
+                },
+                description="User keys activated successfully",
+                examples=[
+                    OpenApiExample(
+                        name="Success",
+                        value={
+                            'message': 'Successfully activated 3 user keys.',
+                            'activated_count': 3,
+                            'activated_keys': [1, 2, 3]
+                        }
+                    )
+                ]
+            ),
+            400: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'}
+                    }
+                },
+                description="Bad request - validation failed",
+                examples=[
+                    OpenApiExample(
+                        name="Missing Private Key",
+                        value={'error': ERR_PRIVKEY_MISSING}
+                    ),
+                    OpenApiExample(
+                        name="No User Keys",
+                        value={'error': ERR_NO_KEYS_PROVIDED}
+                    ),
+                    OpenApiExample(
+                        name="Invalid Private Key",
+                        value={'error': ERR_PRIVKEY_INVALID}
+                    ),
+                    OpenApiExample(
+                        name="Inactive UserKey",
+                        value={'error': ERR_USERKEY_INACTIVE}
+                    ),
+                ]
+            ),
+            403: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'detail': {'type': 'string'}
+                    }
+                },
+                description="Permission denied - requires change_userkey permission",
+                examples=[
+                    OpenApiExample(
+                        name="No Permission",
+                        value={'detail': 'You do not have permission to activate user keys.'}
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'invalid_keys': {
+                            'type': 'array',
+                            'items': {'type': 'integer'}
+                        }
+                    }
+                },
+                description="One or more user keys not found",
+                examples=[
+                    OpenApiExample(
+                        name="Keys Not Found",
+                        value={
+                            'error': 'The following user key IDs were not found: 5, 10',
+                            'invalid_keys': [5, 10]
+                        }
+                    )
+                ]
+            ),
+            500: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'details': {'type': 'string'}
+                    }
+                },
+                description="Internal server error during activation"
+            ),
+        },
+    )
+    def post(self, request):
+        """Activate multiple user keys using the administrator's master key."""
+
+        # Check permissions first
         if not request.user.has_perm('netbox_secrets.change_userkey'):
             raise PermissionDenied("You do not have permission to activate user keys.")
 
-        # Validate input
-        serializer = self.serializer_class(data=request.data)
+        # Validate input data using serializer
+        serializer = serializers.ActivateUserKeySerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        private_key = serializer.validated_data['private_key']
-        user_key_ids = serializer.validated_data['user_keys']
+        validated_data = serializer.validated_data
+        private_key = validated_data['private_key']
+        user_key_ids = validated_data['user_key_ids']
 
         # Validate requesting user's key
         try:
             user_key = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
-            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+            return Response(
+                {'error': ERR_USERKEY_MISSING},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if not user_key.is_active():
-            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+            return Response(
+                {'error': ERR_USERKEY_INACTIVE},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Validate private key and get master key
+        # Validate private key and derive master key
         master_key = user_key.get_master_key(private_key)
         if master_key is None:
-            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
-
-        # Activate each user key
-        activated_count = 0
-        failed_keys = []
-
-        for key_id in user_key_ids:
-            try:
-                target_key = UserKey.objects.get(pk=key_id)
-                target_key.activate(master_key)
-                activated_count += 1
-            except UserKey.DoesNotExist:
-                failed_keys.append(key_id)
-            except Exception as e:
-                failed_keys.append(key_id)
-
-        # Build response message
-        if failed_keys:
-            message = (
-                f"Activated {activated_count} user keys. "
-                f"Failed to activate keys: {', '.join(map(str, failed_keys))}"
+            return Response(
+                {'error': ERR_PRIVKEY_INVALID},
+                status=status.HTTP_400_BAD_REQUEST
             )
-            return Response(message, status=status.HTTP_207_MULTI_STATUS)
 
-        return Response(f"Successfully activated {activated_count} user keys.", status=status.HTTP_200_OK)
+        # Activate all keys atomically
+        try:
+            with transaction.atomic():
+                activated_keys = []
+                for key_id in user_key_ids:
+                    target_key = UserKey.objects.select_for_update().get(pk=key_id)
+                    target_key.activate(master_key)
+                    activated_keys.append(key_id)
+
+                return Response({
+                    'message': f'Successfully activated {len(activated_keys)} user key{"s" if len(activated_keys) != 1 else ""}.',
+                    'activated_count': len(activated_keys),
+                    'activated_keys': activated_keys
+                }, status=status.HTTP_200_OK)
+
+        except UserKey.DoesNotExist:
+            # Find which keys don't exist
+            existing_ids = set(UserKey.objects.filter(pk__in=user_key_ids).values_list('pk', flat=True))
+            invalid_ids = [key_id for key_id in user_key_ids if key_id not in existing_ids]
+            return Response(
+                {
+                    'error': f'The following user key IDs were not found: {", ".join(map(str, invalid_ids))}',
+                    'invalid_keys': invalid_ids
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {
+                    'error': 'Failed to activate user keys.',
+                    'details': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
