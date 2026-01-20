@@ -7,6 +7,7 @@ from django.http import HttpResponseBadRequest
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -50,6 +51,119 @@ class UserKeyViewSet(ReadOnlyModelViewSet):
     queryset = UserKey.objects.all()
     serializer_class = serializers.UserKeySerializer
     filterset_class = filtersets.UserKeyFilterSet
+
+    @extend_schema(
+        summary="Bulk activate user keys",
+        description=(
+                "Activates multiple user keys using the administrator's private key "
+                "to derive the master key. All activations are performed atomically.\n\n"
+                "This is a bulk operation and requires the `change_userkey` permission."
+        ),
+        request=serializers.ActivateUserKeySerializer,
+        responses={
+            200: OpenApiResponse(
+                description="User keys activated successfully",
+                examples=[
+                    OpenApiExample(
+                        name="Success",
+                        value={
+                            'message': 'Successfully activated 3 user keys.',
+                            'activated_count': 3,
+                            'activated_keys': [1, 2, 3]
+                        }
+                    )
+                ]
+            ),
+            400: OpenApiResponse(description="Validation failed"),
+            403: OpenApiResponse(description="Permission denied"),
+            404: OpenApiResponse(description="One or more user keys not found"),
+            500: OpenApiResponse(description="Internal server error"),
+        },
+    )
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='activate',
+        permission_classes=[IsAuthenticated],
+    )
+    def activate(self, request):
+        """
+        POST /api/plugins/secrets/user-keys/activate/
+
+        Activate multiple user keys using the administrator's master key.
+        """
+
+        # Permission check
+        if not request.user.has_perm('netbox_secrets.change_userkey'):
+            raise PermissionDenied("You do not have permission to activate user keys.")
+
+        serializer = serializers.ActivateUserKeySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        private_key = serializer.validated_data['private_key']
+        user_key_ids = serializer.validated_data['user_key_ids']
+
+        # Validate requesting user's own key
+        try:
+            admin_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            return Response(
+                {'error': ERR_USERKEY_MISSING},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not admin_key.is_active():
+            return Response(
+                {'error': ERR_USERKEY_INACTIVE},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Derive master key
+        master_key = admin_key.get_master_key(private_key)
+        if master_key is None:
+            return Response(
+                {'error': ERR_PRIVKEY_INVALID},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Perform activation atomically
+        try:
+            with transaction.atomic():
+                activated = []
+                keys = UserKey.objects.select_for_update().filter(pk__in=user_key_ids)
+
+                existing_ids = set(keys.values_list('pk', flat=True))
+                missing_ids = set(user_key_ids) - existing_ids
+                if missing_ids:
+                    return Response(
+                        {
+                            'error': f'The following user key IDs were not found: {", ".join(map(str, missing_ids))}',
+                            'invalid_keys': list(missing_ids),
+                        },
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                for key in keys:
+                    key.activate(master_key)
+                    activated.append(key.pk)
+
+                return Response(
+                    {
+                        'message': f'Successfully activated {len(activated)} user key{"s" if len(activated) != 1 else ""}.',
+                        'activated_count': len(activated),
+                        'activated_keys': activated,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+        except Exception as e:
+            return Response(
+                {
+                    'error': 'Failed to activate user keys.',
+                    'details': str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 #
@@ -517,209 +631,3 @@ class GenerateRSAKeyPairView(APIView):
             'private_key': private_key,
             'key_size': key_size,
         })
-
-
-class ActivateUserKeyView(APIView):
-    """
-    Activate multiple user keys using administrator's master key.
-
-    This endpoint allows administrators with proper permissions to activate
-    user keys by providing their private key to derive the master key.
-    All activations are performed atomically - if any fail, none are activated.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        summary="Activate User Keys",
-        description=(
-                "Activates multiple user keys using the administrator's private key to derive "
-                "the master key. This operation requires the `change_userkey` permission.\n\n"
-                "**Process:**\n"
-                "1. Validates administrator's private key\n"
-                "2. Derives master key from the private key\n"
-                "3. Activates all specified user keys atomically\n\n"
-                "**Note:** All activations succeed or fail together (atomic transaction)."
-        ),
-        request=serializers.ActivateUserKeySerializer,
-        responses={
-            200: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'message': {
-                            'type': 'string',
-                            'example': 'Successfully activated 3 user keys.'
-                        },
-                        'activated_count': {
-                            'type': 'integer',
-                            'example': 3
-                        },
-                        'activated_keys': {
-                            'type': 'array',
-                            'items': {'type': 'integer'},
-                            'example': [1, 2, 3]
-                        }
-                    }
-                },
-                description="User keys activated successfully",
-                examples=[
-                    OpenApiExample(
-                        name="Success",
-                        value={
-                            'message': 'Successfully activated 3 user keys.',
-                            'activated_count': 3,
-                            'activated_keys': [1, 2, 3]
-                        }
-                    )
-                ]
-            ),
-            400: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'}
-                    }
-                },
-                description="Bad request - validation failed",
-                examples=[
-                    OpenApiExample(
-                        name="Missing Private Key",
-                        value={'error': ERR_PRIVKEY_MISSING}
-                    ),
-                    OpenApiExample(
-                        name="No User Keys",
-                        value={'error': ERR_NO_KEYS_PROVIDED}
-                    ),
-                    OpenApiExample(
-                        name="Invalid Private Key",
-                        value={'error': ERR_PRIVKEY_INVALID}
-                    ),
-                    OpenApiExample(
-                        name="Inactive UserKey",
-                        value={'error': ERR_USERKEY_INACTIVE}
-                    ),
-                ]
-            ),
-            403: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'detail': {'type': 'string'}
-                    }
-                },
-                description="Permission denied - requires change_userkey permission",
-                examples=[
-                    OpenApiExample(
-                        name="No Permission",
-                        value={'detail': 'You do not have permission to activate user keys.'}
-                    )
-                ]
-            ),
-            404: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'},
-                        'invalid_keys': {
-                            'type': 'array',
-                            'items': {'type': 'integer'}
-                        }
-                    }
-                },
-                description="One or more user keys not found",
-                examples=[
-                    OpenApiExample(
-                        name="Keys Not Found",
-                        value={
-                            'error': 'The following user key IDs were not found: 5, 10',
-                            'invalid_keys': [5, 10]
-                        }
-                    )
-                ]
-            ),
-            500: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'error': {'type': 'string'},
-                        'details': {'type': 'string'}
-                    }
-                },
-                description="Internal server error during activation"
-            ),
-        },
-    )
-    def post(self, request):
-        """Activate multiple user keys using the administrator's master key."""
-
-        # Check permissions first
-        if not request.user.has_perm('netbox_secrets.change_userkey'):
-            raise PermissionDenied("You do not have permission to activate user keys.")
-
-        # Validate input data using serializer
-        serializer = serializers.ActivateUserKeySerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        validated_data = serializer.validated_data
-        private_key = validated_data['private_key']
-        user_key_ids = validated_data['user_key_ids']
-
-        # Validate requesting user's key
-        try:
-            user_key = UserKey.objects.get(user=request.user)
-        except UserKey.DoesNotExist:
-            return Response(
-                {'error': ERR_USERKEY_MISSING},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if not user_key.is_active():
-            return Response(
-                {'error': ERR_USERKEY_INACTIVE},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate private key and derive master key
-        master_key = user_key.get_master_key(private_key)
-        if master_key is None:
-            return Response(
-                {'error': ERR_PRIVKEY_INVALID},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Activate all keys atomically
-        try:
-            with transaction.atomic():
-                activated_keys = []
-                for key_id in user_key_ids:
-                    target_key = UserKey.objects.select_for_update().get(pk=key_id)
-                    target_key.activate(master_key)
-                    activated_keys.append(key_id)
-
-                return Response({
-                    'message': f'Successfully activated {len(activated_keys)} user key{"s" if len(activated_keys) != 1 else ""}.',
-                    'activated_count': len(activated_keys),
-                    'activated_keys': activated_keys
-                }, status=status.HTTP_200_OK)
-
-        except UserKey.DoesNotExist:
-            # Find which keys don't exist
-            existing_ids = set(UserKey.objects.filter(pk__in=user_key_ids).values_list('pk', flat=True))
-            invalid_ids = [key_id for key_id in user_key_ids if key_id not in existing_ids]
-            return Response(
-                {
-                    'error': f'The following user key IDs were not found: {", ".join(map(str, invalid_ids))}',
-                    'invalid_keys': invalid_ids
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {
-                    'error': 'Failed to activate user keys.',
-                    'details': str(e)
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
