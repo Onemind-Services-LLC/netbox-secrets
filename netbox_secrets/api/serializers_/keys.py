@@ -38,19 +38,26 @@ class SessionKeyCreateSerializer(serializers.ModelSerializer):
 
 
 class ActivateUserKeySerializer(serializers.Serializer):
-    """
-    Serializer for activating user keys.
-
-    Used by administrators to activate multiple user keys using a master key
-    derived from their own private key.
-    """
+    """Serializer for activating user keys."""
 
     private_key = serializers.CharField(
-        write_only=True, required=True, help_text="Administrator's RSA private key for deriving master key"
+        required=True,
+        write_only=True,
+        help_text="Administrator's RSA private key in PEM format for deriving master key",
+        min_length=1,
+        trim_whitespace=True
     )
-    user_keys = serializers.ListField(
-        child=serializers.IntegerField(), required=True, help_text="List of UserKey IDs to activate"
+    user_key_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=True,
+        help_text="List of UserKey IDs to activate",
+        min_length=1,
+        max_length=100
     )
+
+    def validate_user_key_ids(self, value):
+        """Remove duplicates while preserving order."""
+        return list(dict.fromkeys(value))
 
 
 class UserKeySerializer(NetBoxModelSerializer):
