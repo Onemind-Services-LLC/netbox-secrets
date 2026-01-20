@@ -4,7 +4,6 @@ from typing import Optional
 from Crypto.PublicKey import RSA
 from django.db import transaction
 from django.http import HttpResponseBadRequest
-from drf_spectacular import utils as drf_utils
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -13,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from netbox.api.viewsets import MPTTLockedMixin, NetBoxModelViewSet
 from netbox_secrets.constants import *
@@ -34,6 +33,7 @@ ERR_PRIVKEY_INVALID = "Invalid private key."
 ERR_SESSION_KEY_REQUIRED = "A session key must be provided when creating or updating secrets."
 ERR_SESSION_KEY_INVALID = "Invalid session key."
 ERR_NO_KEYS_PROVIDED = "No user key IDs provided."
+ERR_NO_SESSION_KEY = "No active session key found"
 
 
 class SecretsRootView(APIRootView):
@@ -204,15 +204,19 @@ class SecretViewSet(NetBoxModelViewSet):
 #
 # Session Keys
 #
-class SessionKeyViewSet(ModelViewSet):
+class SessionKeyViewSet(APIView):
     """
     API endpoint for managing session keys.
 
     Session keys are temporary keys used to encrypt/decrypt secrets during
     a user session. Each user can have only one active session key at a time.
+
+    Endpoints:
+        GET - Retrieve current user's session key
+        POST - Create new session key
+        DELETE - Delete current user's session key
     """
     permission_classes = [IsAuthenticated]
-    queryset = SessionKey.objects.select_related('userkey__user')
     serializer_class = serializers.SessionKeySerializer
 
     def get_queryset(self):
@@ -222,27 +226,58 @@ class SessionKeyViewSet(ModelViewSet):
         Returns:
             Filtered queryset
         """
-        queryset = super().get_queryset()
-        return queryset.filter(userkey__user=self.request.user)
+        return SessionKey.objects.select_related('userkey__user').filter(
+            userkey__user=self.request.user
+        )
 
-    @drf_utils.extend_schema(
-        request=serializers.SessionKeyCreateSerializer,
+    @extend_schema(
         responses={
-            201: serializers.SessionKeySerializer,
             200: serializers.SessionKeySerializer,
-            400: drf_utils.OpenApiResponse(
-                description="Session key creation failed",
+            404: OpenApiResponse(
+                description="No session key found",
                 examples=[
-                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
-                    drf_utils.OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
-                    drf_utils.OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
-                    drf_utils.OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
+                    OpenApiExample(name=ERR_NO_SESSION_KEY, value=ERR_NO_SESSION_KEY),
                 ],
             ),
         },
     )
-    def create(self, request):
+    def get(self, request):
         """
+        GET /api/session-key/
+        Retrieve the current user's session key details.
+
+        Returns session key metadata (not the actual key value).
+        """
+        session_key = self.get_queryset().first()
+
+        if not session_key:
+            return Response(
+                {"detail": ERR_NO_SESSION_KEY},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.serializer_class(session_key, context={'request': request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        request=serializers.SessionKeyCreateSerializer,
+        responses={
+            201: serializers.SessionKeySerializer,
+            200: serializers.SessionKeySerializer,
+            400: OpenApiResponse(
+                description="Session key creation failed",
+                examples=[
+                    OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
+                    OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
+                    OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
+                    OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
+                ],
+            ),
+        },
+    )
+    def post(self, request):
+        """
+        POST /api/session-key/
         Create a new session key for the current user.
 
         Requires the user's private key to derive the master key.
@@ -315,6 +350,33 @@ class SessionKeyViewSet(ModelViewSet):
             )
 
         return response
+
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description="Session key deleted successfully"),
+            404: OpenApiResponse(
+                description="No session key found",
+                examples=[
+                    OpenApiExample(name=ERR_NO_SESSION_KEY, value=ERR_NO_SESSION_KEY),
+                ],
+            ),
+        },
+    )
+    def delete(self, request):
+        """
+        DELETE /api/session-key/
+        Delete the current user's session key.
+        """
+        session_key = self.get_queryset().first()
+
+        if not session_key:
+            return Response(
+                {"detail": ERR_NO_SESSION_KEY},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        session_key.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class GenerateRSAKeyPairView(APIView):
