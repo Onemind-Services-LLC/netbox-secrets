@@ -12,5 +12,4 @@ urlpatterns = [
     path('secrets/<int:pk>/', include(get_model_urls('netbox_secrets', 'secret'))),
     path('user-keys/', include(get_model_urls('netbox_secrets', 'userkey', detail=False))),
     path('user-keys/<int:pk>/', include(get_model_urls('netbox_secrets', 'userkey'))),
-    path('session-key/delete/', views.SessionKeyDeleteView.as_view(), name='sessionkey_delete'),
 ]

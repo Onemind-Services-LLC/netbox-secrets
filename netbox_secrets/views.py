@@ -3,6 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -90,6 +91,24 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     )
     filtersets = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
+
+
+@register_model_view(SecretRole, 'secret')
+class SecretRoleSecretView(generic.ObjectChildrenView):
+    queryset = SecretRole.objects.all()
+    child_model = Secret
+    table = tables.SecretTable
+    filterset = filtersets.SecretFilterSet
+    tab = ViewTab(
+        label=_('Secrets'),
+        badge=lambda obj: obj.secrets.count(),
+        permission='netbox_secrets.view_secret',
+        weight=500,
+        hide_if_empty=True,
+    )
+
+    def get_children(self, request, parent):
+        return self.child_model.objects.restrict(request.user, 'view').filter(role=parent)
 
 
 #
@@ -409,38 +428,3 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
 
         return render(request, self.template_name, {'form': form})
 
-
-class SessionKeyDeleteView(generic.ObjectDeleteView):
-    queryset = SessionKey.objects.all()
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(userkey__user=request.user)
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        # Delete the cookie
-        response.delete_cookie(constants.SESSION_COOKIE_NAME)
-        return response
-
-
-#
-# View Tabs
-#
-
-
-@register_model_view(SecretRole, 'secret')
-class SecretRoleSecretView(generic.ObjectChildrenView):
-    queryset = SecretRole.objects.all()
-    child_model = Secret
-    table = tables.SecretTable
-    filterset = filtersets.SecretFilterSet
-    tab = ViewTab(
-        label=_('Secrets'),
-        badge=lambda obj: obj.secrets.count(),
-        permission='netbox_secrets.view_secret',
-        weight=500,
-        hide_if_empty=True,
-    )
-
-    def get_children(self, request, parent):
-        return self.child_model.objects.restrict(request.user, 'view').filter(role=parent)
