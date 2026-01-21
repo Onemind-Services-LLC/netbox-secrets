@@ -1,3 +1,5 @@
+import base64
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -79,7 +81,13 @@ class SessionKeySerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.STR)
     def get_session_key(self, obj):
         """Return session key from context if available (e.g., after creation)."""
-        return self.context.get('session_key', None)
+        context_key = self.context.get('session_key')
+        if context_key:
+            return context_key
+        key = getattr(obj, 'key', None)
+        if key:
+            return base64.b64encode(key).decode('utf-8')
+        return None
 
 
 class SessionKeyCreateSerializer(serializers.ModelSerializer):
