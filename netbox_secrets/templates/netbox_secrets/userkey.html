@@ -114,21 +114,22 @@
                         <div class="card-footer">
                             <div class="text-end noprint">
                                 {% if object.session_key %}
-                                    <a class="btn btn-danger btn-sm" title="Delete Session Key"
-                                       href="{% url 'plugins:netbox_secrets:sessionkey_delete' %}?return_url={{ request.path }}">
+                                    <button type="button" class="btn btn-danger btn-sm delete-session-key"
+                                            title="Delete Session Key"
+                                            data-return-url="{{ request.path }}">
                                         <i class="mdi mdi-trash-can-outline" aria-hidden="true"></i> Delete
-                                    </a>
+                                    </button>
                                 {% else %}
                                     <button type="button" class="btn btn-sm btn-primary" id="add_session_key"
                                             data-bs-toggle="modal" data-bs-target="#privkey_modal">
                                         <i class="mdi mdi-plus-thick" aria-hidden="true"></i> Add Session Key
                                     </button>
-                                    {% include 'netbox_secrets/inc/private_key_modal.html' %}
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
+                {% include 'netbox_secrets/inc/private_key_modal.html' %}
             {% endif %}
         {% endif %}
     </div>

@@ -66,6 +66,9 @@ export async function apiRequest<R extends Dict, D extends ReqData = undefined>(
   }
 
   const res = await fetch(url, { method, body, headers, credentials: 'same-origin' });
+  if (res.status === 204) {
+    return {} as R;
+  }
   const contentType = res.headers.get('Content-Type');
   if (typeof contentType === 'string' && contentType.includes('text')) {
     const error = await res.text();

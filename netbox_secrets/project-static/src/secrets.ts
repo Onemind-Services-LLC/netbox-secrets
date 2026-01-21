@@ -2,6 +2,7 @@ import { createToast } from './bs';
 import {
   apiGetBase,
   apiPostForm,
+  apiRequest,
   hasError,
   isApiError,
   isInputElement,
@@ -203,7 +204,7 @@ function initLockUnlock() {
  * @param privateKey RSA Private Key (valid JSON string)
  */
 function requestSessionKey(privateKey: string) {
-  apiPostForm(withBasePath('/api/plugins/secrets/session-keys/'), {
+  apiPostForm(withBasePath('/api/plugins/secrets/session-key/'), {
     private_key: privateKey,
     preserve_key: true,
   }).then(res => {
@@ -232,6 +233,35 @@ function requestSessionKey(privateKey: string) {
 }
 
 /**
+ * Delete the current session key from the API.
+ * @param returnUrl Optional URL to navigate to after delete.
+ */
+function deleteSessionKey(returnUrl?: string) {
+  apiRequest<Dict>(withBasePath('/api/plugins/secrets/session-key/'), 'DELETE').then(res => {
+    if (!hasError(res)) {
+      const toast = createToast(
+        'success',
+        'Session Key Deleted',
+        'You can request a new session key when needed.',
+      );
+      if (typeof returnUrl === 'string' && returnUrl !== '') {
+        window.location.href = returnUrl;
+      } else {
+        window.location.reload();
+      }
+      toast.show();
+    } else {
+      let message = res.error;
+      if (isApiError(res)) {
+        message += `\n${res.exception}`;
+      }
+      const toast = createToast('danger', 'Failed to Delete Session Key', message);
+      toast.show();
+    }
+  });
+}
+
+/**
  * Initialize Request Session Key Elements.
  */
 function initGetSessionKey() {
@@ -246,6 +276,20 @@ function initGetSessionKey() {
         // Clear the private key form field value.
         pk.value = '';
       }
+    }
+    element.addEventListener('click', handleClick);
+  }
+}
+
+/**
+ * Initialize Delete Session Key Elements.
+ */
+function initDeleteSessionKey() {
+  for (const element of document.querySelectorAll<HTMLElement>('.delete-session-key')) {
+    function handleClick(event: Event) {
+      event.preventDefault();
+      const returnUrl = element.getAttribute('data-return-url') || undefined;
+      deleteSessionKey(returnUrl);
     }
     element.addEventListener('click', handleClick);
   }
@@ -277,7 +321,13 @@ function initSecretsEdit() {
 }
 
 export function initSecrets() {
-  for (const func of [initGenerateKeyPair, initLockUnlock, initGetSessionKey, initSecretsEdit]) {
+  for (const func of [
+    initGenerateKeyPair,
+    initLockUnlock,
+    initGetSessionKey,
+    initDeleteSessionKey,
+    initSecretsEdit,
+  ]) {
     func();
   }
 }
