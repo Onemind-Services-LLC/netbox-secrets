@@ -482,15 +482,17 @@ class SessionKeyViewSet(APIView):
         Delete the current user's session key.
         """
         session_key = self.get_queryset().first()
-
         if not session_key:
-            return Response(
+            response = Response(
                 {"detail": ERR_NO_SESSION_KEY},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
+        else:
+            session_key.delete()
+            response = Response(status=status.HTTP_204_NO_CONTENT)
 
-        session_key.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(SESSION_COOKIE_NAME)
+        return response
 
 
 class GenerateRSAKeyPairView(APIView):
