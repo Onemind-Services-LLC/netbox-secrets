@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 db_constraint=False,
                 null=True,
                 on_delete=django.db.models.deletion.PROTECT,
-                to='users.owner',
+                to='users.Owner',
             ),
         ),
         migrations.AddField(
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 db_constraint=False,
                 null=True,
                 on_delete=django.db.models.deletion.PROTECT,
-                to='users.owner',
+                to='users.Owner',
             ),
         ),
     ]
