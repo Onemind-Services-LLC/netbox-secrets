@@ -5,10 +5,16 @@ import strawberry_django
 from strawberry.scalars import ID
 from strawberry_django import FilterLookup
 
-from netbox.graphql.filters import (
-    OrganizationalModelFilter,
-    PrimaryModelFilter,
-)
+try:
+    from netbox.graphql.filters import (
+        OrganizationalModelFilter,
+        PrimaryModelFilter,
+    )
+except ImportError:  # NetBox < 4.5
+    from netbox.graphql.filter_mixins import (
+        OrganizationalModelFilterMixin as OrganizationalModelFilter,
+        PrimaryModelFilterMixin as PrimaryModelFilter,
+    )
 from ..models import *
 
 if TYPE_CHECKING:
