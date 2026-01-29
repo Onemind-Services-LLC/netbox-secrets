@@ -96,6 +96,19 @@ class UserKey(NetBoxModel):
         if not self.public_key:
             return
 
+        # Prevent changing the public key if secrets exist and this is the only active key
+        if self.pk and self.public_key != self._initial_public_key:
+            from .secrets import Secret  # Local import to avoid circular dependency
+            if Secret.objects.exists() and not UserKey.objects.active().exclude(pk=self.pk).exists():
+                raise ValidationError(
+                    {
+                        'public_key': _(
+                            "Cannot change public key while secrets exist and this is the only active key. "
+                            "Create and activate another user key first."
+                        )
+                    }
+                )
+
         # Validate RSA key format
         try:
             pubkey = RSA.import_key(self.public_key)
