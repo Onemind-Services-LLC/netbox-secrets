@@ -12,8 +12,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.views import APIView
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from netbox.api.viewsets import MPTTLockedMixin, NetBoxModelViewSet
 from netbox_secrets.constants import *
@@ -47,7 +46,7 @@ class SecretsRootView(APIRootView):
 #
 # User Key
 #
-class UserKeyViewSet(ReadOnlyModelViewSet):
+class UserKeyViewSet(NetBoxModelViewSet):
     queryset = UserKey.objects.all()
     serializer_class = serializers.UserKeySerializer
     filterset_class = filtersets.UserKeyFilterSet
@@ -318,7 +317,7 @@ class SecretViewSet(NetBoxModelViewSet):
 #
 # Session Keys
 #
-class SessionKeyViewSet(APIView):
+class SessionKeyViewSet(GenericViewSet):
     """
     API endpoint for managing session keys.
 
@@ -332,6 +331,7 @@ class SessionKeyViewSet(APIView):
     """
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.SessionKeySerializer
+    queryset = SessionKey.objects.select_related('userkey__user')
 
     def get_queryset(self):
         """
@@ -340,9 +340,7 @@ class SessionKeyViewSet(APIView):
         Returns:
             Filtered queryset
         """
-        return SessionKey.objects.select_related('userkey__user').filter(
-            userkey__user=self.request.user
-        )
+        return self.queryset.filter(userkey__user=self.request.user)
 
     @extend_schema(
         responses={
@@ -355,7 +353,7 @@ class SessionKeyViewSet(APIView):
             ),
         },
     )
-    def get(self, request):
+    def list(self, request):
         """
         GET /api/session-key/
         Retrieve the current user's session key details.
@@ -370,7 +368,7 @@ class SessionKeyViewSet(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = self.serializer_class(session_key, context={'request': request})
+        serializer = self.get_serializer(session_key)
         return Response(serializer.data)
 
     @extend_schema(
@@ -389,7 +387,7 @@ class SessionKeyViewSet(APIView):
             ),
         },
     )
-    def post(self, request):
+    def create(self, request):
         """
         POST /api/session-key/
         Create a new session key for the current user.
@@ -444,11 +442,11 @@ class SessionKeyViewSet(APIView):
         encoded_key = base64.b64encode(key).decode('utf-8')
 
         # Build response
+        context = self.get_serializer_context()
+        context['session_key'] = encoded_key
+        serializer = self.get_serializer(session_key_obj, context=context)
         response = Response(
-            self.serializer_class(
-                session_key_obj,
-                context={'request': request, 'session_key': encoded_key},
-            ).data,
+            serializer.data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
 
@@ -476,7 +474,7 @@ class SessionKeyViewSet(APIView):
             ),
         },
     )
-    def delete(self, request):
+    def bulk_destroy(self, request):
         """
         DELETE /api/session-key/
         Delete the current user's session key.
@@ -495,7 +493,7 @@ class SessionKeyViewSet(APIView):
         return response
 
 
-class GenerateRSAKeyPairView(APIView):
+class GenerateRSAKeyPairView(ViewSet):
     """
     Generate RSA key pairs for encryption purposes.
 
@@ -580,7 +578,7 @@ class GenerateRSAKeyPairView(APIView):
             ),
         },
     )
-    def get(self, request):
+    def list(self, request):
         """Generate and return a new RSA key pair."""
 
         # Parse and validate key size

@@ -24,7 +24,7 @@ class UserKeySerializer(NetBoxModelSerializer):
     The private key is write-only and never returned in responses.
     """
 
-    user = UserSerializer(nested=True, read_only=True)
+    user = UserSerializer(nested=True, required=False)
     public_key = serializers.CharField(help_text="RSA public key in PEM format")
     private_key = serializers.CharField(
         write_only=True, required=False, help_text="RSA private key in PEM format (write-only, used for activation)"
@@ -52,6 +52,22 @@ class UserKeySerializer(NetBoxModelSerializer):
             'custom_fields',
         ]
         brief_fields = ('id', 'display', 'url')
+
+    def create(self, validated_data):
+        # Ignore private_key (used only for activation workflows)
+        validated_data.pop('private_key', None)
+
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            validated_data.setdefault('user', request.user)
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Ignore private_key (used only for activation workflows)
+        validated_data.pop('private_key', None)
+        validated_data.pop('user', None)
+        return super().update(instance, validated_data)
 
 
 class SessionKeySerializer(serializers.ModelSerializer):
