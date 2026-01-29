@@ -166,15 +166,16 @@ class SecretForm(PrimaryModelForm):
 
     def clean(self):
         """Validate that plaintext values match."""
-        cleaned_data = super().clean()
-        plaintext = cleaned_data.get('plaintext', '')
-        plaintext2 = cleaned_data.get('plaintext2', '')
+        super().clean()
+
+        plaintext = self.cleaned_data.get('plaintext', '')
+        plaintext2 = self.cleaned_data.get('plaintext2', '')
 
         # Verify that the provided plaintext values match
         if plaintext != plaintext2:
-            raise ValidationError({'plaintext2': _("The two plaintext values do not match. Please check your input.")})
+            raise ValidationError({'plaintext2': _("The two secret values do not match. Please check your input.")})
 
-        return cleaned_data
+        return self.cleaned_data
 
 
 class UserKeyForm(forms.ModelForm):
