@@ -54,9 +54,9 @@ class UserKeyViewSet(NetBoxModelViewSet):
     @extend_schema(
         summary="Bulk activate user keys",
         description=(
-                "Activates multiple user keys using the administrator's private key "
-                "to derive the master key. All activations are performed atomically.\n\n"
-                "This is a bulk operation and requires the `change_userkey` permission."
+            "Activates multiple user keys using the administrator's private key "
+            "to derive the master key. All activations are performed atomically.\n\n"
+            "This is a bulk operation and requires the `change_userkey` permission."
         ),
         request=serializers.ActivateUserKeySerializer,
         responses={
@@ -68,10 +68,10 @@ class UserKeyViewSet(NetBoxModelViewSet):
                         value={
                             'message': 'Successfully activated 3 user keys.',
                             'activated_count': 3,
-                            'activated_keys': [1, 2, 3]
-                        }
+                            'activated_keys': [1, 2, 3],
+                        },
                     )
-                ]
+                ],
             ),
             400: OpenApiResponse(description="Validation failed"),
             403: OpenApiResponse(description="Permission denied"),
@@ -106,24 +106,15 @@ class UserKeyViewSet(NetBoxModelViewSet):
         try:
             admin_key = UserKey.objects.get(user=request.user)
         except UserKey.DoesNotExist:
-            return Response(
-                {'error': ERR_USERKEY_MISSING},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': ERR_USERKEY_MISSING}, status=status.HTTP_400_BAD_REQUEST)
 
         if not admin_key.is_active():
-            return Response(
-                {'error': ERR_USERKEY_INACTIVE},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': ERR_USERKEY_INACTIVE}, status=status.HTTP_400_BAD_REQUEST)
 
         # Derive master key
         master_key = admin_key.get_master_key(private_key)
         if master_key is None:
-            return Response(
-                {'error': ERR_PRIVKEY_INVALID},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': ERR_PRIVKEY_INVALID}, status=status.HTTP_400_BAD_REQUEST)
 
         # Perform activation atomically
         try:
@@ -329,6 +320,7 @@ class SessionKeyViewSet(GenericViewSet):
         POST - Create new session key
         DELETE - Delete current user's session key
     """
+
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.SessionKeySerializer
     queryset = SessionKey.objects.select_related('userkey__user')
@@ -363,10 +355,7 @@ class SessionKeyViewSet(GenericViewSet):
         session_key = self.get_queryset().first()
 
         if not session_key:
-            return Response(
-                {"detail": ERR_NO_SESSION_KEY},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": ERR_NO_SESSION_KEY}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(session_key)
         return Response(serializer.data)
@@ -507,10 +496,10 @@ class GenerateRSAKeyPairView(ViewSet):
     @extend_schema(
         summary="Generate RSA Key Pair",
         description=(
-                "Generates a new RSA public/private key pair in PEM format. "
-                "The key size can be customized via query parameter.\n\n"
-                "**Important:** Store the private key securely and never expose it. "
-                "Once generated, you cannot retrieve the same key pair again."
+            "Generates a new RSA public/private key pair in PEM format. "
+            "The key size can be customized via query parameter.\n\n"
+            "**Important:** Store the private key securely and never expose it. "
+            "Once generated, you cannot retrieve the same key pair again."
         ),
         parameters=[
             OpenApiParameter(
@@ -518,21 +507,13 @@ class GenerateRSAKeyPairView(ViewSet):
                 type=OpenApiTypes.INT,
                 location='query',
                 description=(
-                        f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
-                        f'in increments of {KEY_SIZE_INCREMENT}.'
+                    f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
+                    f'in increments of {KEY_SIZE_INCREMENT}.'
                 ),
                 default=DEFAULT_KEY_SIZE,
                 examples=[
-                    OpenApiExample(
-                        'Default',
-                        value=2048,
-                        description='Standard key size for most use cases'
-                    ),
-                    OpenApiExample(
-                        'High Security',
-                        value=4096,
-                        description='Higher security for sensitive data'
-                    ),
+                    OpenApiExample('Default', value=2048, description='Standard key size for most use cases'),
+                    OpenApiExample('High Security', value=4096, description='Higher security for sensitive data'),
                 ],
             ),
         ],
@@ -544,22 +525,22 @@ class GenerateRSAKeyPairView(ViewSet):
                         'public_key': {
                             'type': 'string',
                             'description': 'RSA public key in PEM format',
-                            'example': '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----'
+                            'example': '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----',
                         },
                         'private_key': {
                             'type': 'string',
                             'description': 'RSA private key in PEM format (keep secure!)',
-                            'example': '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----'
+                            'example': '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----',
                         },
                         'key_size': {
                             'type': 'integer',
                             'description': 'The size of the generated key in bits',
-                            'example': 2048
-                        }
+                            'example': 2048,
+                        },
                     },
-                    'required': ['public_key', 'private_key', 'key_size']
+                    'required': ['public_key', 'private_key', 'key_size'],
                 },
-                description='Successfully generated RSA key pair'
+                description='Successfully generated RSA key pair',
             ),
             400: OpenApiResponse(
                 response={
@@ -567,15 +548,13 @@ class GenerateRSAKeyPairView(ViewSet):
                     'properties': {
                         'error': {
                             'type': 'string',
-                            'example': 'Invalid key size. Must be between 2048 and 8192 in increments of 256.'
+                            'example': 'Invalid key size. Must be between 2048 and 8192 in increments of 256.',
                         }
-                    }
+                    },
                 },
-                description='Invalid key size parameter'
+                description='Invalid key size parameter',
             ),
-            401: OpenApiResponse(
-                description='Authentication credentials were not provided or are invalid'
-            ),
+            401: OpenApiResponse(description='Authentication credentials were not provided or are invalid'),
         },
     )
     def list(self, request):
@@ -587,21 +566,13 @@ class GenerateRSAKeyPairView(ViewSet):
         try:
             key_size = int(key_size_param)
         except (ValueError, TypeError):
-            return Response(
-                {'error': f'Invalid key_size parameter. Must be an integer.'},
-                status=400
-            )
+            return Response({'error': f'Invalid key_size parameter. Must be an integer.'}, status=400)
 
         # Validate key size is within allowed range and increment
         if key_size < MIN_KEY_SIZE or key_size > MAX_KEY_SIZE:
             return Response(
-                {
-                    'error': (
-                        f'Invalid key size. Must be between {MIN_KEY_SIZE} '
-                        f'and {MAX_KEY_SIZE} bits.'
-                    )
-                },
-                status=400
+                {'error': (f'Invalid key size. Must be between {MIN_KEY_SIZE} ' f'and {MAX_KEY_SIZE} bits.')},
+                status=400,
             )
 
         if (key_size - MIN_KEY_SIZE) % KEY_SIZE_INCREMENT != 0:
@@ -612,7 +583,7 @@ class GenerateRSAKeyPairView(ViewSet):
                         f'starting from {MIN_KEY_SIZE}.'
                     )
                 },
-                status=400
+                status=400,
             )
 
         # Generate RSA key pair
@@ -621,13 +592,12 @@ class GenerateRSAKeyPairView(ViewSet):
             private_key = key.export_key('PEM').decode('utf-8')
             public_key = key.publickey().export_key('PEM').decode('utf-8')
         except Exception as e:
-            return Response(
-                {'error': f'Failed to generate key pair: {str(e)}'},
-                status=500
-            )
+            return Response({'error': f'Failed to generate key pair: {str(e)}'}, status=500)
 
-        return Response({
-            'public_key': public_key,
-            'private_key': private_key,
-            'key_size': key_size,
-        })
+        return Response(
+            {
+                'public_key': public_key,
+                'private_key': private_key,
+                'key_size': key_size,
+            }
+        )

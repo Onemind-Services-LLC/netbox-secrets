@@ -137,14 +137,14 @@ class ActivateUserKeySerializer(serializers.Serializer):
         write_only=True,
         help_text="Administrator's RSA private key in PEM format for deriving master key",
         min_length=1,
-        trim_whitespace=True
+        trim_whitespace=True,
     )
     user_key_ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         required=True,
         help_text="List of UserKey IDs to activate",
         min_length=1,
-        max_length=100
+        max_length=100,
     )
 
     def validate_user_key_ids(self, value):

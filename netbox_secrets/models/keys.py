@@ -99,6 +99,7 @@ class UserKey(NetBoxModel):
         # Prevent changing the public key if secrets exist and this is the only active key
         if self.pk and self.public_key != self._initial_public_key:
             from .secrets import Secret  # Local import to avoid circular dependency
+
             if Secret.objects.exists() and not UserKey.objects.active().exclude(pk=self.pk).exists():
                 raise ValidationError(
                     {
