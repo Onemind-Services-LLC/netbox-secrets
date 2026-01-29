@@ -1,4 +1,10 @@
-<div class="modal fade" id="privkey_modal" tabindex="-1" role="dialog">
+<div
+    class="modal fade"
+    id="privkey_modal"
+    tabindex="-1"
+    role="dialog"
+    data-session-key-present="{{ session_key_present|yesno:'true,false' }}"
+>
     <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -26,11 +32,4 @@
     </div>
 </div>
 
-{% load static %}
-{% block javascript %}
-    <script
-    type="text/javascript"
-    src="{% static 'netbox_secrets/secrets.js' %}"
-    onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
-    </script>
-{% endblock %}
+{% include 'netbox_secrets/inc/secrets_inline_js.html' %}
