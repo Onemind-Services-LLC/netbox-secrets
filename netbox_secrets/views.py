@@ -3,7 +3,6 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,13 +12,13 @@ from django.utils.translation import gettext as _
 from django.views.generic.base import View
 
 from core.signals import clear_events
-from netbox.object_actions import BulkDelete, BulkEdit, BulkExport
+from netbox.object_actions import AddObject, BulkDelete, BulkEdit, BulkExport
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
-from . import constants, exceptions, filtersets, forms, tables, utils
+from . import exceptions, filtersets, forms, tables, utils
 from .models import Secret, SecretRole, SessionKey, UserKey
 
 
@@ -317,7 +316,7 @@ class UserKeyListView(generic.ObjectListView):
     table = tables.UserKeyTable
     filterset = filtersets.UserKeyFilterSet
     template_name = 'netbox_secrets/userkey_list.html'
-    actions = ()
+    actions = (AddObject,)
 
     def get_extra_context(self, request):
         return {'user_key': UserKey.objects.filter(user=request.user).first()}
@@ -428,4 +427,3 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
                 messages.error(request, "Invalid Private Key.")
 
         return render(request, self.template_name, {'form': form})
-
