@@ -70,6 +70,12 @@ PLUGINS_CONFIG = {
 
 Full documentation lives in [docs/index.md](docs/index.md).
 
+## Deprecations & Migration
+
+- Legacy API endpoints are supported until NetBox v4.6. See [docs/api.md](docs/api.md) for the deprecated routes and
+  their replacements.
+- For upgrade notes (including SecretRole hierarchy changes), see [docs/migration.md](docs/migration.md).
+
 ## Support
 
 - Issues and feature requests: open a ticket in your internal tracker or this repository's issue tracker.

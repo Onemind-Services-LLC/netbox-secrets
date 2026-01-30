@@ -7,12 +7,16 @@ router.APIRootView = views.SecretsRootView
 # Key management endpoints
 router.register('user-keys', views.UserKeyViewSet)
 router.register('session-key', views.SessionKeyViewSet)
+router.register('session-keys', views.LegacySessionKeyViewSet, basename='session-keys')
 
 # Secret management endpoints
 router.register('secret-roles', views.SecretRoleViewSet)
 router.register('secrets', views.SecretViewSet)
 
 # Utility endpoints
+# Deprecated endpoints remain supported until NetBox v4.6 for backward compatibility.
+router.register('get-session-key', views.LegacyGetSessionKeyViewSet, basename='get-session-key')
+router.register('activate-user-key', views.LegacyActivateUserKeyViewSet, basename='activate-user-key')
 router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairView, basename='generate-rsa-key-pair')
 
 urlpatterns = router.urls

@@ -2,6 +2,7 @@ import base64
 from typing import Optional
 
 from Crypto.PublicKey import RSA
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from drf_spectacular.types import OpenApiTypes
@@ -480,6 +481,147 @@ class SessionKeyViewSet(GenericViewSet):
 
         response.delete_cookie(SESSION_COOKIE_NAME)
         return response
+
+
+class LegacySessionKeyViewSet(SessionKeyViewSet):
+    """
+    Backward-compatible endpoints for /session-keys/.
+
+    Maps legacy detail routes to the current session-key behavior.
+    """
+
+    def retrieve(self, request, *args, **kwargs):
+        # Legacy detail GET behaves like list for the current user.
+        return self.list(request)
+
+    def destroy(self, request, *args, **kwargs):
+        # Legacy detail DELETE behaves like bulk delete for the current user.
+        return self.bulk_destroy(request)
+
+
+class LegacyGetSessionKeyViewSet(ViewSet):
+    """
+    Backward-compatible endpoint for /get-session-key/.
+
+    Returns only the base64-encoded session_key, matching the legacy response.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request):
+        # Read private key
+        private_key = request.data.get('private_key')
+        if not private_key:
+            return HttpResponseBadRequest(ERR_PRIVKEY_MISSING)
+
+        # Validate user key
+        try:
+            user_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+        if not user_key.is_active():
+            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+
+        # Validate private key
+        master_key = user_key.get_master_key(private_key)
+        if master_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+
+        # Get or create session key
+        current_session_key = SessionKey.objects.filter(userkey__user=request.user).first()
+        preserve_key = str(request.data.get('preserve_key', False)).lower() in ['true', 'yes', '1']
+
+        if current_session_key and preserve_key:
+            # Retrieve the existing session key
+            try:
+                key = current_session_key.get_session_key(master_key)
+            except InvalidKey:
+                return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+        else:
+            # Create a new SessionKey
+            SessionKey.objects.filter(userkey__user=request.user).delete()
+            sk = SessionKey(userkey=user_key)
+            sk.save(master_key=master_key)
+            key = sk.key
+
+        # Encode the key using base64. (b64decode() returns a bytestring under Python 3.)
+        encoded_key = base64.b64encode(key).decode('utf-8')
+
+        # Craft the response
+        response = Response(
+            {
+                'session_key': encoded_key,
+            },
+        )
+
+        # If token authentication is not in use, assign the session key as a cookie
+        if request.auth is None:
+            # Legacy cookie name
+            response.set_cookie('session_key', value=encoded_key)
+            # Current cookie name
+            response.set_cookie(
+                SESSION_COOKIE_NAME,
+                value=encoded_key,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite='Strict',
+                max_age=settings.LOGIN_TIMEOUT,
+                httponly=True,
+            )
+
+        return response
+
+
+class LegacyActivateUserKeyViewSet(ViewSet):
+    """
+    Backward-compatible endpoint for /activate-user-key/.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.ActivateUserKeySerializer
+
+    def create(self, request):
+        # Check if the user has the permission to change UserKey
+        if not request.user.has_perm('netbox_secrets.change_userkey'):
+            raise PermissionDenied("You do not have permission to active User Keys.")
+
+        data = request.data.copy()
+        if 'user_keys' in data and 'user_key_ids' not in data:
+            data['user_key_ids'] = data.get('user_keys')
+
+        serializer = self.serializer_class(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        private_key = serializer.validated_data['private_key']
+        user_key_ids = serializer.validated_data['user_key_ids']
+
+        if not user_key_ids:
+            return HttpResponseBadRequest(ERR_NO_KEYS_PROVIDED)
+
+        # Validate user key
+        try:
+            user_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+
+        if not user_key.is_active():
+            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+
+        # Validate private key
+        master_key = user_key.get_master_key(private_key)
+        if master_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+
+        activated_keys = 0
+        for key_id in user_key_ids:
+            try:
+                target_key = UserKey.objects.get(pk=key_id)
+                target_key.activate(master_key)
+                activated_keys += 1
+            except UserKey.DoesNotExist:
+                return HttpResponseBadRequest(f"User key with id {key_id} does not exist.")
+
+        return Response(f"Successfully activated {activated_keys} user keys.", status=status.HTTP_200_OK)
 
 
 class GenerateRSAKeyPairView(ViewSet):

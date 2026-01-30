@@ -40,6 +40,16 @@ Response includes `session_key` (base64). If using session auth, the key is also
 
 Deletes the current user's session key and clears the cookie.
 
+## Deprecated Endpoints (supported until NetBox v4.6)
+
+The following endpoints are kept for backward compatibility and will be removed when the plugin targets NetBox v4.6.
+Please migrate clients now.
+
+- `POST /get-session-key/` → use `POST /session-key/` (legacy response only returns `session_key`)
+- `POST /activate-user-key/` → use `POST /user-keys/activate/` with `user_key_ids`
+- `GET|POST /session-keys/` → use `GET|POST /session-key/`
+- `GET|DELETE /session-keys/{id}/` → use `GET|DELETE /session-key/` (per-user key)
+
 ## RSA Key Pair Generation
 
 ### GET /generate-rsa-key-pair/
