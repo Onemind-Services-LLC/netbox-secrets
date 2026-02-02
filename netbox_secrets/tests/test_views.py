@@ -205,6 +205,7 @@ class SecretEditViewPostTestCase(TestCase):
 
     def test_post_abort_request(self):
         from utilities.exceptions import AbortRequest
+
         with mock.patch.object(SecretForm, 'save', side_effect=AbortRequest("boom")):
             response = self.client.post(
                 self._post_url(),

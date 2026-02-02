@@ -187,9 +187,9 @@ class TemplateContentTestCase(TestCase):
 
     def test_template_content_operational_error(self):
         with override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}}):
-            with mock.patch('netbox_secrets.template_content.ContentType.objects.get', side_effect=OperationalError), mock.patch(
-                'netbox_secrets.template_content.logger.warning'
-            ):
+            with mock.patch(
+                'netbox_secrets.template_content.ContentType.objects.get', side_effect=OperationalError
+            ), mock.patch('netbox_secrets.template_content.logger.warning'):
                 importlib.reload(importlib.import_module('netbox_secrets.template_content'))
 
     def test_template_content_tab_view_branch(self):
@@ -217,6 +217,7 @@ class GraphQLImportsTestCase(TestCase):
 class TablesTestCase(TestCase):
     def test_tables_instantiate(self):
         from netbox_secrets.tables import SecretRoleTable, SecretTable, UserKeyTable
+
         role = SecretRole.objects.create(name='Role2', slug='role2')
         device = create_test_device('device-table')
         secret = Secret.objects.create(
@@ -230,7 +231,9 @@ class TablesTestCase(TestCase):
         SecretRoleTable(SecretRole.objects.all())
         SecretTable(Secret.objects.all())
         from django.contrib.auth import get_user_model
+
         user_obj = get_user_model().objects.create_user(username='table-user')
         from netbox_secrets.models import UserKey
+
         UserKey.objects.create(user=user_obj, public_key=PUBLIC_KEY)
         UserKeyTable(UserKey.objects.all())

@@ -62,9 +62,7 @@ class SerializerTestCase(TestCase):
         self.assertEqual(serializer.data['session_key'], base64.b64encode(b'raw').decode('utf-8'))
 
     def test_activate_user_key_serializer(self):
-        serializer = serializers.ActivateUserKeySerializer(
-            data={'private_key': PRIVATE_KEY, 'user_key_ids': [1, 1, 2]}
-        )
+        serializer = serializers.ActivateUserKeySerializer(data={'private_key': PRIVATE_KEY, 'user_key_ids': [1, 1, 2]})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data['user_key_ids'], [1, 2])
 
@@ -226,7 +224,9 @@ class UserKeyAPITestCase(BaseAPITestCase):
         UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
         target_user = get_user_model().objects.create_user(username='target')
         target_key = UserKey.objects.create(user=target_user, public_key=PUBLIC_KEY)
-        response = self.client.post(url, data={'private_key': 'invalid', 'user_key_ids': [target_key.pk]}, **self.header)
+        response = self.client.post(
+            url, data={'private_key': 'invalid', 'user_key_ids': [target_key.pk]}, **self.header
+        )
         self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
 
     def test_userkey_activate_missing_ids(self):
