@@ -42,10 +42,10 @@ class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
     queryset = SecretRole.objects.all()
 
     def get_extra_context(self, request, instance):
-        groups = instance.get_descendants(include_self=True)
+        roles = instance.get_descendants(include_self=True)
 
         return {
-            'related_models': self.get_related_models(request, groups),
+            'related_models': self.get_related_models(request, roles),
         }
 
 
