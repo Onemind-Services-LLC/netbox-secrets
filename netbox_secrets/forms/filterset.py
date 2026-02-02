@@ -5,7 +5,7 @@ from netbox.forms import (
     NestedGroupModelFilterSetForm,
     PrimaryModelFilterSetForm,
 )
-from netbox_secrets.constants import *
+from netbox_secrets.constants import SECRET_ASSIGNABLE_MODELS
 from netbox_secrets.models import Secret, SecretRole
 from tenancy.forms import ContactModelFilterForm
 from utilities.forms.fields import (
