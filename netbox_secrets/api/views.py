@@ -736,8 +736,9 @@ class GenerateRSAKeyPairView(ViewSet):
             key = RSA.generate(key_size)
             private_key = key.export_key('PEM').decode('utf-8')
             public_key = key.publickey().export_key('PEM').decode('utf-8')
-        except Exception as e:
-            return Response({'error': f'Failed to generate key pair: {str(e)}'}, status=500)
+        except Exception:
+            logger.exception("Failed to generate RSA key pair.")
+            return Response({'error': 'Failed to generate key pair due to an internal error.'}, status=500)
 
         return Response(
             {
