@@ -1,0 +1,5 @@
+[run]
+omit =
+    netbox_secrets/migrations/*
+    netbox_secrets/tests/*
+    netbox_secrets/templates/*
