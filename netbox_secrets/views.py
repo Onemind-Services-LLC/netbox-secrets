@@ -88,7 +88,7 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
     queryset = SecretRole.objects.add_related_count(
         SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
-    filtersets = filtersets.SecretRoleFilterSet
+    filterset = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
 
 
