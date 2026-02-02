@@ -311,7 +311,7 @@ class SecretViewSet(NetBoxModelViewSet):
 #
 # Session Keys
 #
-class SessionKeyViewSet(GenericViewSet):
+class SessionKeyViewSet(ViewSet):
     """
     API endpoint for managing session keys.
 
@@ -466,7 +466,7 @@ class SessionKeyViewSet(GenericViewSet):
             ),
         },
     )
-    def bulk_destroy(self, request):
+    def delete(self, request):
         """
         DELETE /api/session-key/
         Delete the current user's session key.
