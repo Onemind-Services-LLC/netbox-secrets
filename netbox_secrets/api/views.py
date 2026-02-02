@@ -3,7 +3,6 @@ from typing import Optional
 
 import logging
 from Crypto.PublicKey import RSA
-from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from drf_spectacular.types import OpenApiTypes
@@ -58,9 +57,9 @@ class UserKeyViewSet(NetBoxModelViewSet):
     @extend_schema(
         summary="Bulk activate user keys",
         description=(
-            "Activates multiple user keys using the administrator's private key "
-            "to derive the master key. All activations are performed atomically.\n\n"
-            "This is a bulk operation and requires the `change_userkey` permission."
+                "Activates multiple user keys using the administrator's private key "
+                "to derive the master key. All activations are performed atomically.\n\n"
+                "This is a bulk operation and requires the `change_userkey` permission."
         ),
         request=serializers.ActivateUserKeySerializer,
         responses={
@@ -641,10 +640,10 @@ class GenerateRSAKeyPairView(ViewSet):
     @extend_schema(
         summary="Generate RSA Key Pair",
         description=(
-            "Generates a new RSA public/private key pair in PEM format. "
-            "The key size can be customized via query parameter.\n\n"
-            "**Important:** Store the private key securely and never expose it. "
-            "Once generated, you cannot retrieve the same key pair again."
+                "Generates a new RSA public/private key pair in PEM format. "
+                "The key size can be customized via query parameter.\n\n"
+                "**Important:** Store the private key securely and never expose it. "
+                "Once generated, you cannot retrieve the same key pair again."
         ),
         parameters=[
             OpenApiParameter(
@@ -652,8 +651,8 @@ class GenerateRSAKeyPairView(ViewSet):
                 type=OpenApiTypes.INT,
                 location='query',
                 description=(
-                    f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
-                    f'in increments of {KEY_SIZE_INCREMENT}.'
+                        f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
+                        f'in increments of {KEY_SIZE_INCREMENT}.'
                 ),
                 default=DEFAULT_KEY_SIZE,
                 examples=[
