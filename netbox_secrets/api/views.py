@@ -1,6 +1,7 @@
 import base64
 from typing import Optional
 
+import logging
 from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.db import transaction
@@ -21,6 +22,8 @@ from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from . import serializers
 from .. import filtersets
+
+logger = logging.getLogger(__name__)
 
 # Plugin settings
 plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
@@ -147,11 +150,11 @@ class UserKeyViewSet(NetBoxModelViewSet):
                     status=status.HTTP_200_OK,
                 )
 
-        except Exception as e:
+        except Exception:
+            logger.exception("Failed to activate user keys.")
             return Response(
                 {
                     'error': 'Failed to activate user keys.',
-                    'details': str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
