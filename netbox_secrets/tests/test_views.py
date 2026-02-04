@@ -260,6 +260,22 @@ class UserKeyViewTestCase(TestCase):
         context = view.get_extra_context(request)
         self.assertIn('user_key', context)
 
+    def test_userkey_list_activate_button_visible_for_active_key(self):
+        UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
+        response = self.client.get(reverse('plugins:netbox_secrets:userkey_list'))
+        self.assertContains(response, 'Activate User Key')
+
+    def test_userkey_list_activate_button_hidden_without_key(self):
+        response = self.client.get(reverse('plugins:netbox_secrets:userkey_list'))
+        self.assertNotContains(response, 'Activate User Key')
+
+    def test_userkey_list_activate_button_hidden_for_inactive_key(self):
+        other_user = get_user_model().objects.create_user(username='list-active-owner')
+        UserKey.objects.create(user=other_user, public_key=PUBLIC_KEY)
+        UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
+        response = self.client.get(reverse('plugins:netbox_secrets:userkey_list'))
+        self.assertNotContains(response, 'Activate User Key')
+
     def test_userkey_edit_post_valid(self):
         response = self.client.post(
             reverse('plugins:netbox_secrets:userkey_add'),
