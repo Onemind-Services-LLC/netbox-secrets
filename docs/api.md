@@ -11,6 +11,14 @@ activation additionally requires permission.
 
 ## Session Key
 
+A session key is required to create or update secrets. Provide it in one of these ways:
+
+- `X-Session-Key` header (base64)
+- `netbox_secrets_sessionid` cookie
+
+If no session key is provided, create/update requests will fail. For read operations, `plaintext` is only populated when
+the session key is provided.
+
 ### GET /session-key/
 
 Returns the current user's session key metadata.
@@ -36,6 +44,11 @@ Request body:
 
 Response includes `session_key` (base64). If using session auth, the key is also stored as a cookie.
 
+Common errors:
+
+- 400: Missing/invalid private key
+- 401: Not authenticated
+
 ### DELETE /session-key/
 
 Deletes the current user's session key and clears the cookie.
@@ -45,10 +58,17 @@ Deletes the current user's session key and clears the cookie.
 The following endpoints are kept for backward compatibility and will be removed when the plugin targets NetBox v4.6.
 Please migrate clients now.
 
-- `POST /get-session-key/` → use `POST /session-key/` (legacy response only returns `session_key`)
+Legacy endpoints and replacements:
+
 - `POST /activate-user-key/` → use `POST /user-keys/activate/` with `user_key_ids`
+  - Legacy accepts `user_keys` or `user_key_ids` and returns a plain success string.
 - `GET|POST /session-keys/` → use `GET|POST /session-key/`
-- `GET|DELETE /session-keys/{id}/` → use `GET|DELETE /session-key/` (per-user key)
+- `GET|DELETE /session-keys/{id}/` → use `GET|DELETE /session-key/`
+  - The `id` is ignored; the operation always applies to the current user.
+
+## Removed Endpoints
+
+- `POST /get-session-key/` (legacy) has been removed. Use `POST /session-key/` instead.
 
 ## RSA Key Pair Generation
 
@@ -69,6 +89,11 @@ Response:
   "key_size": 2048
 }
 ```
+
+Common errors:
+
+- 400: Invalid key_size value
+- 500: Key generation failure
 
 ## User Keys
 
@@ -116,6 +141,11 @@ Bulk activate user keys with an administrator's private key.
 
 Requires `netbox_secrets.change_userkey` permission and an active User Key.
 
+Common errors:
+
+- 400: Missing/invalid private key, empty list, or target user key not found
+- 403: Missing permission
+
 ## Secret Roles
 
 Standard CRUD endpoints:
@@ -135,16 +165,6 @@ Standard CRUD endpoints:
 - `GET /secrets/{id}/`
 - `PATCH /secrets/{id}/`
 - `DELETE /secrets/{id}/`
-
-### Session Key Requirement
-
-A session key is required to create or update secrets. Provide it in one of these ways:
-
-- `X-Session-Key` header (base64)
-- `netbox_secrets_sessionid` cookie
-
-If no session key is provided, create/update requests will fail. For read operations, `plaintext` is only populated when
-the session key is provided.
 
 ### Create Secret Example
 

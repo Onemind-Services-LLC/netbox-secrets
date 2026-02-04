@@ -13,10 +13,10 @@ router.register('secret-roles', views.SecretRoleViewSet)
 router.register('secrets', views.SecretViewSet)
 
 # Utility endpoints
+router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairView, basename='generate-rsa-key-pair')
+
 # Deprecated endpoints remain supported until NetBox v4.6 for backward compatibility.
 router.register('session-keys', views.LegacySessionKeyViewSet, basename='session-keys')
-router.register('get-session-key', views.LegacyGetSessionKeyViewSet, basename='get-session-key')
 router.register('activate-user-key', views.LegacyActivateUserKeyViewSet, basename='activate-user-key')
-router.register('generate-rsa-key-pair', views.GenerateRSAKeyPairView, basename='generate-rsa-key-pair')
 
 urlpatterns = router.urls
