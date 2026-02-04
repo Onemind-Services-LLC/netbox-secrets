@@ -145,7 +145,7 @@ class UserKeyModelTestCase(TestCase):
 
     def test_queryset_bulk_delete_blocked(self):
         UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
-        with self.assertRaises(PermissionDenied):
+        with self.assertRaisesRegex(PermissionDenied, "Bulk deletion disabled for UserKey"):
             UserKey.objects.all().delete()
 
     def test_queryset_active(self):

@@ -1,4 +1,8 @@
 import base64
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
+from rest_framework import mixins as drf_mixins
+from rest_framework import mixins as drf_mixins
+from netbox.api.viewsets import BaseViewSet
 import logging
 from typing import Optional
 
@@ -610,32 +614,108 @@ class GenerateRSAKeyPairView(ViewSet):
 # Legacy support for old viewset style
 
 
-class LegacySessionKeyViewSet(SessionKeyViewSet):
-    """
-    Backward-compatible endpoints for /session-keys/.
+class LegacySessionKeyViewSet(
+    drf_mixins.ListModelMixin,
+    drf_mixins.RetrieveModelMixin,
+    drf_mixins.DestroyModelMixin,
+    mixins.BulkDestroyModelMixin,
+    mixins.ObjectValidationMixin,
+    BaseViewSet,
+):
+    queryset = SessionKey.objects.prefetch_related('userkey__user')
+    serializer_class = serializers.SessionKeySerializer
 
-    Deprecated: use /session-key/ instead. This viewset maps legacy list/detail routes
-    to the current per-user session key behavior and is scheduled for removal when
-    the plugin targets NetBox v4.6.
-    """
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            # Overrides self.queryset to always return the restricted key filtered by the request.user
+            self.queryset = super().get_queryset().filter(userkey__user=self.request.user)
+            return self.queryset
 
-    def retrieve(self, request, *args, **kwargs):
+        return super().get_queryset()
+
+    @extend_schema(
+        request=serializers.SessionKeyCreateSerializer,
+        responses={
+            201: OpenApiResponse(
+                description="Session key created successfully.",
+                response=serializers.SessionKeySerializer,
+            ),
+            400: OpenApiResponse(
+                description="Session key creation failed.",
+                response={
+                    'type': 'string',
+                },
+                examples=[
+                    OpenApiExample(name=ERR_PRIVKEY_MISSING, value=ERR_PRIVKEY_MISSING),
+                    OpenApiExample(name=ERR_USERKEY_MISSING, value=ERR_USERKEY_MISSING),
+                    OpenApiExample(name=ERR_USERKEY_INACTIVE, value=ERR_USERKEY_INACTIVE),
+                    OpenApiExample(name=ERR_PRIVKEY_INVALID, value=ERR_PRIVKEY_INVALID),
+                ],
+            ),
+        },
+    )
+    def create(self, request):
         """
-        Return the current user's session key, ignoring the provided ID.
-
-        Legacy behavior: detail GET mirrors the current list endpoint and does not
-        fetch a specific key by primary key.
+        Creates a new session key for the current user.
         """
-        return self.list(request)
 
-    def destroy(self, request, *args, **kwargs):
-        """
-        Delete the current user's session key, ignoring the provided ID.
+        private_key = request.data.get('private_key', None)
+        preserve_key = str(request.data.get('preserve_key', False)).lower() in ['true', 'yes', '1']
 
-        Legacy behavior: detail DELETE mirrors the current delete endpoint and
-        clears the caller's session key only.
-        """
-        return self.delete(request)
+        if private_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_MISSING)
+
+        # Validate user key
+        try:
+            user_key = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            return HttpResponseBadRequest(ERR_USERKEY_MISSING)
+        if not user_key.is_active():
+            return HttpResponseBadRequest(ERR_USERKEY_INACTIVE)
+
+        # Validate private key
+        master_key = user_key.get_master_key(private_key)
+        if master_key is None:
+            return HttpResponseBadRequest(ERR_PRIVKEY_INVALID)
+
+        current_session_key = self.queryset.first()
+
+        if current_session_key and preserve_key:
+            # Retrieve the existing session key
+            key = current_session_key.get_session_key(master_key)
+            self.queryset = current_session_key
+
+        else:
+            # Create a new SessionKey
+            self.queryset.delete()
+            sk = SessionKey(userkey=user_key)
+            sk.save(master_key=master_key)
+            key = sk.key
+            self.queryset = sk
+
+        # Encode the key using base64. (b64decode() returns a bytestring under Python 3.)
+        encoded_key = base64.b64encode(key).decode()
+
+        # Craft the response
+        response = Response(
+            self.serializer_class(
+                self.queryset,
+                context={'request': request, 'session_key': encoded_key},
+            ).data,
+            status=200 if preserve_key else 201,
+        )
+
+        # If token authentication is not in use, assign the session key as a cookie
+        if request.auth is None:
+            response.set_cookie(
+                SESSION_COOKIE_NAME,
+                value=encoded_key,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite='Strict',
+                max_age=settings.LOGIN_TIMEOUT,
+            )
+
+        return response
 
 
 class LegacyActivateUserKeyViewSet(ViewSet):

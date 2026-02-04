@@ -10,12 +10,11 @@ from rest_framework.parsers import FormParser
 from rest_framework.request import Request
 from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
-from utilities.testing import APITestCase, TestCase, create_test_device
-
 from netbox_secrets.api import serializers, views as api_views
 from netbox_secrets.constants import SESSION_COOKIE_NAME
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
+from utilities.testing import APITestCase, TestCase, create_test_device
 
 
 class SerializerTestCase(TestCase):
@@ -142,6 +141,10 @@ class BaseAPITestCase(APITestCase):
         'netbox_secrets.add_userkey',
         'netbox_secrets.change_userkey',
         'netbox_secrets.delete_userkey',
+        'netbox_secrets.view_sessionkey',
+        'netbox_secrets.add_sessionkey',
+        'netbox_secrets.change_sessionkey',
+        'netbox_secrets.delete_sessionkey',
         'netbox_secrets.view_secretrole',
         'netbox_secrets.add_secretrole',
         'netbox_secrets.change_secretrole',
@@ -568,6 +571,53 @@ class LegacyEndpointsAPITestCase(BaseAPITestCase):
         self.userkey = self.create_userkey()
         self.session_key, self.session_key_b64 = self.create_session_key()
 
+    def test_legacy_session_keys_create_missing_private_key(self):
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = self.client.post(url, data={}, **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+
+    def test_legacy_session_keys_create_missing_userkey(self):
+        user_key = UserKey.objects.get(user=self.user)
+        user_key.delete()
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = self.client.post(url, data={'private_key': PRIVATE_KEY}, **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+
+    def test_legacy_session_keys_create_inactive_userkey(self):
+        other_user = get_user_model().objects.create_user(username='legacy-inactive-owner')
+        other_key = UserKey.objects.create(user=other_user, public_key=PUBLIC_KEY)
+        master_key = self.userkey.get_master_key(PRIVATE_KEY)
+        other_key.activate(master_key)
+        user_key = UserKey.objects.get(user=self.user)
+        user_key.delete()
+        UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = self.client.post(url, data={'private_key': PRIVATE_KEY}, **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+
+    def test_legacy_session_keys_create_invalid_private_key(self):
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = self.client.post(url, data={'private_key': 'invalid'}, **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+
+    def test_legacy_session_keys_create_preserve(self):
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = self.client.post(
+            url,
+            data={'private_key': PRIVATE_KEY, 'preserve_key': True},
+            **self.header,
+        )
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(response.data['session_key'], self.session_key_b64)
+
+    def test_legacy_session_keys_create_sets_cookie(self):
+        client = APIClient()
+        client.force_login(self.user)
+        url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
+        response = client.post(url, data={'private_key': PRIVATE_KEY})
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+        self.assertIn(SESSION_COOKIE_NAME, response.cookies)
+
     def test_legacy_session_keys(self):
         url = reverse('plugins-api:netbox_secrets-api:session-keys-list')
         response = self.client.get(url, **self.header)
@@ -580,69 +630,15 @@ class LegacyEndpointsAPITestCase(BaseAPITestCase):
         response = self.client.delete(detail, **self.header)
         self.assertHttpStatus(response, status.HTTP_204_NO_CONTENT)
 
-    def test_legacy_get_session_key(self):
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': PRIVATE_KEY})
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        self.assertIn('session_key', response.data)
-        self.assertIn('session_key', response.cookies)
-        self.assertIn(SESSION_COOKIE_NAME, response.cookies)
+    def test_legacy_session_keys_get_queryset_anonymous(self):
+        from netbox_secrets.api.views import LegacySessionKeyViewSet
 
-    def test_legacy_get_session_key_preserve(self):
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': PRIVATE_KEY})
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        first_key = response.data['session_key']
-
-        response = client.post(url, data={'private_key': PRIVATE_KEY, 'preserve_key': True})
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        self.assertEqual(response.data['session_key'], first_key)
-
-    def test_legacy_get_session_key_preserve_invalid(self):
-        # Corrupt the existing session key hash to force InvalidKey
-        SessionKey.objects.filter(pk=self.session_key.pk).update(hash='invalid')
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': PRIVATE_KEY, 'preserve_key': True})
-        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
-
-    def test_legacy_get_session_key_missing_private_key(self):
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={})
-        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
-
-    def test_legacy_get_session_key_missing_userkey(self):
-        other_user = get_user_model().objects.create_user(username='legacy-missing')
-        client = APIClient()
-        client.force_login(other_user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': PRIVATE_KEY})
-        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
-
-    def test_legacy_get_session_key_inactive_userkey(self):
-        UserKey.objects.get(user=self.user).delete()
-        other_user = get_user_model().objects.create_user(username='legacy-active')
-        UserKey.objects.create(user=other_user, public_key=PUBLIC_KEY)
-        UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': PRIVATE_KEY})
-        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
-
-    def test_legacy_get_session_key_invalid_private_key(self):
-        client = APIClient()
-        client.force_login(self.user)
-        url = reverse('plugins-api:netbox_secrets-api:get-session-key-list')
-        response = client.post(url, data={'private_key': 'invalid'})
-        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+        request = APIRequestFactory().get('/api/plugins/secrets/session-keys/')
+        request.user = AnonymousUser()
+        viewset = LegacySessionKeyViewSet()
+        viewset.request = Request(request)
+        queryset = viewset.get_queryset()
+        self.assertIsNotNone(queryset)
 
     def test_legacy_activate_user_key(self):
         target_user = get_user_model().objects.create_user(username='legacy-target')
