@@ -498,7 +498,7 @@ class LegacySessionKeyViewSet(SessionKeyViewSet):
 
     def destroy(self, request, *args, **kwargs):
         # Legacy detail DELETE behaves like bulk delete for the current user.
-        return self.bulk_destroy(request)
+        return self.delete(request)
 
 
 class LegacyGetSessionKeyViewSet(ViewSet):
