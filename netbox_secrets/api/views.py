@@ -13,7 +13,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from netbox.api.viewsets import MPTTLockedMixin, NetBoxModelViewSet
 from netbox_secrets.constants import *
@@ -311,7 +311,7 @@ class SecretViewSet(NetBoxModelViewSet):
 #
 # Session Keys
 #
-class SessionKeyViewSet(ViewSet):
+class SessionKeyViewSet(GenericViewSet):
     """
     API endpoint for managing session keys.
 
