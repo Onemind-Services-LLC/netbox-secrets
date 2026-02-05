@@ -6,10 +6,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def rebuild_secretrole_tree(apps, schema_editor):
-    SecretRole = apps.get_model("netbox_secrets", "SecretRole")
-    SecretRole.objects.rebuild()
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -95,9 +91,5 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='userkey',
             index=models.Index(fields=['user'], name='netbox_secr_user_id_2a9e10_idx'),
-        ),
-        migrations.RunPython(
-            rebuild_secretrole_tree,
-            migrations.RunPython.noop,  # reverse safe
         ),
     ]
