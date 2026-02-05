@@ -168,7 +168,7 @@ class UserKeyViewSet(NetBoxModelViewSet):
 #
 
 
-class SecretRoleViewSet(MPTTLockedMixin, NetBoxModelViewSet):
+class SecretRoleViewSet(NetBoxModelViewSet):
     queryset = SecretRole.objects.add_related_count(
         SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
