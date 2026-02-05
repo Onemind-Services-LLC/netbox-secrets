@@ -14,11 +14,10 @@ permissions:
   packages: read
   pull-requests: write
 
-
 jobs:
   test:
     name: Run Tests
-    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@feat/change-netbox-config
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
