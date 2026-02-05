@@ -11,6 +11,7 @@ jobs:
   publish:
     uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@master
     with:
+      runs-on: ubuntu-latest
       app-id: ${{ vars.APP_ID }}
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}
