@@ -68,7 +68,25 @@ PLUGINS_CONFIG = {
 
 ## Documentation
 
-Full documentation lives in [docs/index.md](docs/index.md).
+Full documentation lives in [docs/index.md](docs/index.md). A consolidated NetBox v4.5 document is available at
+[docs/README.md](docs/README.md).
+
+## Release Notes (NetBox v4.5)
+
+Highlights for the 4.5-compatible release:
+- NetBox v4.5 compatibility across models, views, API, GraphQL
+- Session-key API consolidated to `/session-key/`
+- SecretRole hierarchy (MPTT) with migration `0009_*`
+- RSA key-pair generation endpoint
+- Inline JS (no build pipeline)
+
+Breaking changes and full details:
+- NetBox < 4.5 no longer supported
+- `POST /get-session-key/` removed (use `/session-key/`)
+- `/session-keys/` deprecated until NetBox v4.6
+- SecretRole hierarchy migration required
+
+See [docs/README.md](docs/README.md) for the complete change list, upgrade steps, and API details.
 
 ## Deprecations & Migration
 
