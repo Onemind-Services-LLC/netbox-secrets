@@ -2,19 +2,17 @@ import base64
 from unittest import mock
 
 from Crypto.PublicKey import RSA
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import ProtectedError
 
-from utilities.testing import TestCase, create_test_device
-
 from netbox_secrets.constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
-from netbox_secrets.utils import decrypt_master_key, encrypt_master_key, generate_random_key
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
+from netbox_secrets.utils import decrypt_master_key, encrypt_master_key, generate_random_key
+from utilities.testing import TestCase, create_test_device
 
 
 class UserKeyModelTestCase(TestCase):

@@ -1,8 +1,4 @@
 import base64
-from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
-from rest_framework import mixins as drf_mixins
-from rest_framework import mixins as drf_mixins
-from netbox.api.viewsets import BaseViewSet
 import logging
 from typing import Optional
 
@@ -11,7 +7,7 @@ from django.db import transaction
 from django.http import HttpResponseBadRequest
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
-from rest_framework import status
+from rest_framework import mixins as drf_mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -19,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.viewsets import GenericViewSet, ViewSet
 
-from netbox.api.viewsets import MPTTLockedMixin, NetBoxModelViewSet
+from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet, mixins
 from netbox_secrets.constants import *
 from netbox_secrets.exceptions import InvalidKey
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey

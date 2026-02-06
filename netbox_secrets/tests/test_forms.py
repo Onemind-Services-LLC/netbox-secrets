@@ -5,20 +5,19 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
-from utilities.testing import create_test_device
-
 from netbox_secrets.forms import (
     ActivateUserKeyForm,
     SecretForm,
     SecretRoleForm,
     UserKeyForm,
 )
-from netbox_secrets.forms.model_forms import validate_rsa_key
 from netbox_secrets.forms.bulk_edit import SecretBulkEditForm, SecretRoleBulkEditForm
 from netbox_secrets.forms.bulk_import import SecretRoleImportForm
 from netbox_secrets.forms.filterset import SecretFilterForm, SecretRoleFilterForm
+from netbox_secrets.forms.model_forms import validate_rsa_key
 from netbox_secrets.models import Secret, SecretRole, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY, SSH_PUBLIC_KEY
+from utilities.testing import create_test_device
 
 
 class RSAValidationTestCase(TestCase):

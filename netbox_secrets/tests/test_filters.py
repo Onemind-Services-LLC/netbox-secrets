@@ -2,11 +2,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
-from utilities.testing import create_test_device
-
 from netbox_secrets.filtersets import SecretFilterSet, SecretRoleFilterSet, UserKeyFilterSet
 from netbox_secrets.models import Secret, SecretRole, UserKey
 from netbox_secrets.tests.constants import PUBLIC_KEY
+from utilities.testing import create_test_device
 
 
 class UserKeyFilterSetTestCase(TestCase):

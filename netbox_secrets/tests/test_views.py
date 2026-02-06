@@ -7,12 +7,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.urls import reverse
 
-from utilities.testing import TestCase, create_test_device
-
 from netbox_secrets import views as plugin_views
 from netbox_secrets.forms import SecretForm
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
+from utilities.testing import TestCase, create_test_device
 
 
 class SecretRoleViewTestCase(TestCase):

@@ -6,13 +6,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.utils import OperationalError
 from django.test import RequestFactory, TestCase, override_settings
 
-from utilities.testing import create_test_device
-
 from netbox_secrets import constants as plugin_constants
 from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.models import Secret, SecretRole
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
 from netbox_secrets.utils import decrypt_master_key, encrypt_master_key, generate_random_key, get_session_key
+from utilities.testing import create_test_device
 
 
 class CryptoHelpersTestCase(TestCase):
