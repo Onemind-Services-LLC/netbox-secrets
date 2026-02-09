@@ -118,10 +118,5 @@
 {% endblock content %}
 
 {% block javascript %}
-    {# Javascript #}
-    <script
-            type="text/javascript"
-            src="{% static 'netbox_secrets/secrets.js' %}"
-            onerror="window.location='{% url 'media_failure' %}?filename=netbox_secrets/secrets.js'">
-    </script>
+    {% include 'netbox_secrets/inc/secrets_inline_js.html' %}
 {% endblock %}

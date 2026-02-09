@@ -5,10 +5,11 @@ import strawberry_django
 from strawberry.scalars import ID
 from strawberry_django import FilterLookup
 
-from netbox.graphql.filter_mixins import (
-    OrganizationalModelFilterMixin,
-    PrimaryModelFilterMixin,
+from netbox.graphql.filters import (
+    OrganizationalModelFilter,
+    PrimaryModelFilter,
 )
+from tenancy.graphql.filter_mixins import ContactFilterMixin
 from ..models import *
 
 if TYPE_CHECKING:
@@ -21,18 +22,30 @@ __all__ = [
 
 
 @strawberry_django.filter_type(SecretRole, lookups=True)
-class SecretRoleFilter(OrganizationalModelFilterMixin):
-    pass
+class SecretRoleFilter(OrganizationalModelFilter):
+    parent: Annotated[
+        'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
+    ] | None = strawberry_django.filter_field()
+    parent_id: ID | None = strawberry.UNSET
+    secrets: Annotated[
+        'SecretFilter', strawberry.lazy('netbox_secrets.graphql.filters')
+    ] | None = strawberry_django.filter_field()
+    children: Annotated[
+        'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters'), True
+    ] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(Secret, lookups=True)
-class SecretFilter(PrimaryModelFilterMixin):
+class SecretFilter(ContactFilterMixin, PrimaryModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     role: Annotated[
         'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
     ] | None = strawberry_django.filter_field()
-    role_id: ID | None = strawberry_django.filter_field()
+    role_id: Annotated[
+        'TreeNodeFilter', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
     assigned_object_type: Annotated[
         'ContentTypeFilter', strawberry.lazy('core.graphql.filters')
     ] | None = strawberry_django.filter_field()
+    assigned_object_type_id: ID | None = strawberry_django.filter_field()
     assigned_object_id: ID | None = strawberry_django.filter_field()

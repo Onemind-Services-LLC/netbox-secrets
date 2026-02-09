@@ -1,102 +1,108 @@
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
-from dcim.models import Device, DeviceRole, DeviceType, Manufacturer, Site
-from netbox_secrets.filtersets import *
-from netbox_secrets.models import Secret, SecretRole
-from virtualization.models import Cluster, ClusterType, VirtualMachine
+from netbox_secrets.filtersets import SecretFilterSet, SecretRoleFilterSet, UserKeyFilterSet
+from netbox_secrets.models import Secret, SecretRole, UserKey
+from netbox_secrets.tests.constants import PUBLIC_KEY
+from utilities.testing import create_test_device
 
 
-class SecretRoleTestCase(TestCase):
-    queryset = SecretRole.objects.all()
-    filterset = SecretRoleFilterSet
-
+class UserKeyFilterSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        roles = (
-            SecretRole(name='Secret Role 1', slug='secret-role-1'),
-            SecretRole(name='Secret Role 2', slug='secret-role-2'),
-            SecretRole(name='Secret Role 3', slug='secret-role-3'),
-        )
-        SecretRole.objects.bulk_create(roles)
+        User = get_user_model()
+        cls.user1 = User.objects.create_user(username='alice')
+        cls.user2 = User.objects.create_user(username='bob')
+        UserKey.objects.create(user=cls.user1, public_key=PUBLIC_KEY)
+        UserKey.objects.create(user=cls.user2, public_key=PUBLIC_KEY)
 
-    def test_secret_role(self):
-        name = SecretRole.objects.all()
-        params = {'id': self.queryset.values_list('pk', flat=True)[:2]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-        params = {'name': [name[0].name, name[1].name]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-        params = {'slug': ['secret-role-1', 'secret-role-2']}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+    def test_search_filter(self):
+        qs = UserKey.objects.all()
+        fs = UserKeyFilterSet(data={'q': 'ali'}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+        fs = UserKeyFilterSet(data={'q': ''}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 2)
+
+    def test_user_filters(self):
+        qs = UserKey.objects.all()
+        fs = UserKeyFilterSet(data={'user_id': [self.user1.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+        fs = UserKeyFilterSet(data={'user': [self.user2.username]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+    def test_search_filter_blank_value(self):
+        qs = UserKey.objects.all()
+        fs = UserKeyFilterSet()
+        self.assertEqual(fs.search(qs, 'q', '   ').count(), qs.count())
 
 
-class SecretTestCase(TestCase):
-    queryset = Secret.objects.all()
-    filterset = SecretFilterSet
-
+class SecretRoleFilterSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        site = Site.objects.create(name='Site 1', slug='site-1')
-        manufacturer = Manufacturer.objects.create(name='Manufacturer 1', slug='manufacturer-1')
-        device_type = DeviceType.objects.create(manufacturer=manufacturer, model='Device Type 1')
-        device_role = DeviceRole.objects.create(name='Device Role 1', slug='device-role-1')
+        cls.parent = SecretRole.objects.create(name='Parent', slug='parent')
+        cls.child = SecretRole.objects.create(name='Child', slug='child', parent=cls.parent)
 
-        devices = (
-            Device(device_type=device_type, name='Device 1', site=site, role=device_role),
-            Device(device_type=device_type, name='Device 2', site=site, role=device_role),
-            Device(device_type=device_type, name='Device 3', site=site, role=device_role),
+    def test_parent_filter(self):
+        qs = SecretRole.objects.all()
+        fs = SecretRoleFilterSet(data={'parent_id': [self.parent.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+        fs = SecretRoleFilterSet(data={'parent': [self.parent.slug]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+    def test_ancestor_filter(self):
+        qs = SecretRole.objects.all()
+        fs = SecretRoleFilterSet(data={'ancestor_id': [self.parent.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+        fs = SecretRoleFilterSet(data={'ancestor': [self.parent.slug]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+
+class SecretFilterSetTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.role = SecretRole.objects.create(name='Role', slug='role')
+        cls.device = create_test_device('device-filter')
+        cls.secret = Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(cls.device),
+            assigned_object_id=cls.device.pk,
+            role=cls.role,
+            name='admin',
+            description='device admin',
+            ciphertext=b'0123456789abcdef' * 5,
+            hash='dummy',
         )
-        Device.objects.bulk_create(devices)
 
-        cluster_type = ClusterType.objects.create(name='Cluster Type 1', slug='cluster-type-1')
-        cluster = Cluster.objects.create(name='Cluster 1', type=cluster_type)
-        virtual_machines = (
-            VirtualMachine(name='Virtual Machine 1', cluster=cluster),
-            VirtualMachine(name='Virtual Machine 2', cluster=cluster),
-            VirtualMachine(name='Virtual Machine 3', cluster=cluster),
-        )
-        VirtualMachine.objects.bulk_create(virtual_machines)
+    def test_search_filter(self):
+        qs = Secret.objects.all()
+        fs = SecretFilterSet(data={'q': 'admin'}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
 
-        roles = (
-            SecretRole(name='Secret Role 1', slug='secret-role-1'),
-            SecretRole(name='Secret Role 2', slug='secret-role-2'),
-            SecretRole(name='Secret Role 3', slug='secret-role-3'),
-        )
-        SecretRole.objects.bulk_create(roles)
+        fs = SecretFilterSet(data={'q': ''}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
 
-        secrets = (
-            Secret(assigned_object=devices[0], role=roles[0], name='Secret 1', plaintext='SECRET DATA'),
-            Secret(assigned_object=devices[1], role=roles[1], name='Secret 2', plaintext='SECRET DATA'),
-            Secret(assigned_object=devices[2], role=roles[2], name='Secret 3', plaintext='SECRET DATA'),
-            Secret(assigned_object=virtual_machines[0], role=roles[0], name='Secret 4', plaintext='SECRET DATA'),
-            Secret(assigned_object=virtual_machines[1], role=roles[1], name='Secret 5', plaintext='SECRET DATA'),
-            Secret(assigned_object=virtual_machines[2], role=roles[2], name='Secret 6', plaintext='SECRET DATA'),
-        )
-        # Must call save() to encrypt Secrets
-        for s in secrets:
-            s.save()
+    def test_role_filters(self):
+        qs = Secret.objects.all()
+        fs = SecretFilterSet(data={'role_id': [self.role.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
 
-    def test_Secret(self):
-        secrets = Secret.objects.all()[:4]
-        params = {'id': [secrets[0].id, secrets[1].id, secrets[2].id, secrets[3].id]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
-        params = {'name': [secrets[0].name, secrets[1].name, secrets[2].name, secrets[3].name]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
+        fs = SecretFilterSet(data={'role': [self.role.slug]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
 
-    def test_role(self):
-        roles = SecretRole.objects.all()[:2]
-        params = {'role_id': [roles[0].id, roles[1].id]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
-        params = {'role': [roles[0].slug, roles[1].slug]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
+    def test_assigned_object_filters(self):
+        qs = Secret.objects.all()
+        ct = ContentType.objects.get_for_model(self.device)
+        fs = SecretFilterSet(data={'assigned_object_type_id': [ct.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
 
-    def test_assigned_object(self):
-        params = {
-            'assigned_object_type': 'dcim.device',
-            'assigned_object_id': [Device.objects.first().pk],
-        }
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
-        params = {
-            'assigned_object_type': 'virtualization.virtualmachine',
-            'assigned_object_id': [VirtualMachine.objects.first().pk],
-        }
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+        fs = SecretFilterSet(data={'assigned_object_id': [self.device.pk]}, queryset=qs)
+        self.assertEqual(fs.qs.count(), 1)
+
+    def test_search_filter_blank_value(self):
+        qs = Secret.objects.all()
+        fs = SecretFilterSet()
+        self.assertEqual(fs.search(qs, 'q', '   ').count(), qs.count())

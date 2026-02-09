@@ -1,14 +1,16 @@
-from typing import Annotated, TYPE_CHECKING
+from typing import Annotated, List, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
+from strawberry.scalars import ID
 
-from netbox.graphql.types import NetBoxObjectType, OrganizationalObjectType
+from extras.graphql.mixins import ContactsMixin
+from netbox.graphql.types import NestedGroupObjectType, PrimaryObjectType
 from netbox_secrets.models import Secret, SecretRole
 from .filters import *
 
 if TYPE_CHECKING:
-    from netbox.graphql.types import ContentTypeType
+    from core.graphql.filters import ContentTypeFilter
 
 __all__ = [
     'SecretRoleType',
@@ -16,18 +18,19 @@ __all__ = [
 ]
 
 
-@strawberry_django.type(SecretRole, fields="__all__", filters=SecretRoleFilter, pagination=True)
-class SecretRoleType(OrganizationalObjectType):
-    pass
-
-
 @strawberry_django.type(Secret, exclude=['ciphertext', 'hash', 'plaintext'], filters=SecretFilter, pagination=True)
-class SecretType(NetBoxObjectType):
+class SecretType(ContactsMixin, PrimaryObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
-    name: str
-    description: str
-    assigned_object_type: Annotated["ContentTypeType", strawberry.lazy('netbox.graphql.types')] | None
+    assigned_object_type: Annotated[
+        'ContentTypeFilter', strawberry.lazy('core.graphql.filters')
+    ] | None = strawberry_django.filter_field()
+    assigned_object_type_id: ID | None = strawberry_django.filter_field()
+    assigned_object_id: ID | None = strawberry_django.filter_field()
 
-    @strawberry_django.field
-    def role(self) -> Annotated["SecretRoleType", strawberry.lazy('netbox_secrets.graphql.types')] | None:
-        return self.role
+
+@strawberry_django.type(SecretRole, fields="__all__", filters=SecretRoleFilter, pagination=True)
+class SecretRoleType(NestedGroupObjectType):
+    parent: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')] | None
+
+    secrets: List[SecretType]
+    children: List[Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]]

@@ -1,46 +1,53 @@
-from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
-from netbox.forms import NetBoxModelFilterSetForm
+from core.models import ObjectType
+from netbox.forms import (
+    NestedGroupModelFilterSetForm,
+    PrimaryModelFilterSetForm,
+)
+from netbox_secrets.constants import SECRET_ASSIGNABLE_MODELS
+from netbox_secrets.models import Secret, SecretRole
+from tenancy.forms import ContactModelFilterForm
 from utilities.forms.fields import (
     ContentTypeMultipleChoiceField,
     DynamicModelMultipleChoiceField,
     TagFilterField,
 )
 from utilities.forms.rendering import FieldSet
-from ..constants import *
-from ..models import Secret, SecretRole
 
 __all__ = [
-    'SecretRoleFilterForm',
     'SecretFilterForm',
+    'SecretRoleFilterForm',
 ]
 
 
-class SecretRoleFilterForm(NetBoxModelFilterSetForm):
+class SecretRoleFilterForm(NestedGroupModelFilterSetForm):
     model = SecretRole
     fieldsets = (
-        FieldSet('q', 'filter_id', 'tag', name=None),
-        FieldSet('id', name=_('Secret Role')),
+        FieldSet('q', 'filter_id', 'tag', 'owner_id'),
+        FieldSet('parent_id', name=_('Secret Role')),
     )
-    id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Roles Name'))
+    parent_id = DynamicModelMultipleChoiceField(
+        queryset=SecretRole.objects.all(), required=False, label=_('Parent role')
+    )
     tag = TagFilterField(model)
 
 
-class SecretFilterForm(NetBoxModelFilterSetForm):
+class SecretFilterForm(ContactModelFilterForm, PrimaryModelFilterSetForm):
     model = Secret
 
     fieldsets = (
-        FieldSet('q', 'filter_id', 'tag', name=None),
-        FieldSet('id', name=_('Secret')),
-        FieldSet('role_id', 'assigned_object_type_id', name=_("Attributes")),
+        FieldSet('q', 'filter_id', 'tag', 'owner_id'),
+        FieldSet('role_id', name=_('Secret')),
+        FieldSet('contact', 'contact_role', 'contact_group', name=_('Contacts')),
+        FieldSet('assigned_object_type_id', name=_("Attributes")),
     )
-
-    id = DynamicModelMultipleChoiceField(queryset=Secret.objects.all(), required=False, label=_('Name'))
     assigned_object_type_id = ContentTypeMultipleChoiceField(
-        queryset=ContentType.objects.filter(SECRET_ASSIGNABLE_MODELS),
+        queryset=ObjectType.objects.filter(SECRET_ASSIGNABLE_MODELS),
         required=False,
-        label='Object type(s)',
+        label=_('Object Type'),
     )
-    role_id = DynamicModelMultipleChoiceField(queryset=SecretRole.objects.all(), required=False, label=_('Role'))
+    role_id = DynamicModelMultipleChoiceField(
+        queryset=SecretRole.objects.all(), required=False, null_option='None', label=_('Role')
+    )
     tag = TagFilterField(model)

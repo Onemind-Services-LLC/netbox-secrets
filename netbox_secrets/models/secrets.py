@@ -1,400 +1,329 @@
-import os
+"""
+Secret storage models for NetBox Secrets Plugin.
+
+This module contains models for managing encrypted secrets:
+- SecretRole: Functional classification/categorization of secrets
+- Secret: Encrypted storage for sensitive data with AES-256 encryption
+"""
+
+import secrets as secrets_module
+from typing import Optional
 
 from Crypto.Cipher import AES
-from Crypto.PublicKey import RSA
-from Crypto.Util import strxor
-from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.db.models import ProtectedError
-from django.urls import reverse
-from django.utils.encoding import force_bytes
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
-from netbox.models import NetBoxModel, PrimaryModel
+from netbox.models import NestedGroupModel, PrimaryModel
 from netbox.models.features import ContactsMixin
 from utilities.querysets import RestrictedQuerySet
-from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
-from ..exceptions import InvalidKey
 from ..hashers import SecretValidationHasher
-from ..querysets import UserKeyQuerySet
-from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
 
 __all__ = [
-    'Secret',
     'SecretRole',
-    'SessionKey',
-    'UserKey',
+    'Secret',
 ]
 
-plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
-
-class UserKey(NetBoxModel):
+class SecretRole(NestedGroupModel):
     """
-    A UserKey stores a user's personal RSA (public) encryption key, which is used to generate their unique encrypted
-    copy of the master encryption key. The encrypted instance of the master key can be decrypted only with the user's
-    matching (private) decryption key.
-    """
+    Functional classification for secrets (e.g., "Login Credentials", "API Keys").
 
-    id = models.BigAutoField(primary_key=True)
-    user = models.OneToOneField(
-        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_key', editable=False
-    )
-    public_key = models.TextField(
-        verbose_name='RSA public key',
-    )
-    master_key_cipher = models.BinaryField(max_length=512, blank=True, null=True, editable=False)
+    SecretRoles provide a way to categorize and organize secrets based on their
+    purpose or usage. Examples include:
+    - Login Credentials
+    - SNMP Communities
+    - API Keys
+    - SSL Certificates
+    - Database Passwords
 
-    objects = UserKeyQuerySet.as_manager()
-
-    class Meta:
-        ordering = ['user__username']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Store the initial public_key and master_key_cipher to check for changes on save().
-        self.__initial_public_key = self.public_key
-        self.__initial_master_key_cipher = self.master_key_cipher
-
-    def __str__(self):
-        return self.user.username
-
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_secrets:userkey', args=[self.pk])
-
-    def clean(self):
-        super().clean()
-
-        if self.public_key:
-            # Validate the public key format
-            try:
-                pubkey = RSA.import_key(self.public_key)
-            except ValueError:
-                raise ValidationError({'public_key': "Invalid RSA key format."})
-            except Exception:
-                raise ValidationError(
-                    "Something went wrong while trying to save your key. Please ensure that you're "
-                    "uploading a valid RSA public key in PEM format (no SSH/PGP).",
-                )
-
-            # Validate the public key length
-            pubkey_length = pubkey.size_in_bits()
-            if pubkey_length < settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size']:
-                raise ValidationError(
-                    {
-                        'public_key': "Insufficient key length. Keys must be at least {} bits long.".format(
-                            settings.PLUGINS_CONFIG['netbox_secrets']['public_key_size'],
-                        ),
-                    },
-                )
-            # We can't use keys bigger than our master_key_cipher field can hold
-            if pubkey_length > 8192:
-                raise ValidationError(
-                    {
-                        'public_key': "Public key size ({}) is too large. Maximum key size is 8192 bits.".format(
-                            pubkey_length,
-                        ),
-                    },
-                )
-
-    def save(self, *args, **kwargs):
-        # Check whether public_key has been modified. If so, nullify the initial master_key_cipher.
-        if self.__initial_master_key_cipher and self.public_key != self.__initial_public_key:
-            self.master_key_cipher = None
-
-        # If no other active UserKeys exist, generate a new master key and use it to activate this UserKey.
-        if self.is_filled() and not self.is_active() and not UserKey.objects.active().count():
-            master_key = generate_random_key()
-            self.master_key_cipher = encrypt_master_key(master_key, self.public_key)
-
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        # If Secrets exist and this is the last active UserKey, prevent its deletion. Deleting the last UserKey will
-        # result in the master key being destroyed and rendering all Secrets inaccessible.
-        if Secret.objects.count() and [uk.pk for uk in UserKey.objects.active()] == [self.pk]:
-            raise ProtectedError(
-                "Cannot delete the last active UserKey when Secrets exist! This would render all secrets "
-                "inaccessible.",
-                [secret for secret in Secret.objects.all()],
-            )
-
-        return super().delete(*args, **kwargs)
-
-    def to_objectchange(self, action):
-        objectchange = super().to_objectchange(action)
-
-        # Censor any backend parameters marked as sensitive in the serialized data
-        pre_change_params = {}
-        post_change_params = {}
-        if objectchange.prechange_data:
-            pre_change_params = objectchange.prechange_data
-        if objectchange.postchange_data:
-            post_change_params = objectchange.postchange_data
-        if post_change_params.get("master_key_cipher"):
-            if post_change_params["master_key_cipher"] != pre_change_params.get("master_key_cipher"):
-                # Set the "changed" master_key_cipher if the parameter's value has been modified
-                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY_CHANGED
-            else:
-                post_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
-        if pre_change_params.get("master_key_cipher"):
-            pre_change_params["master_key_cipher"] = CENSOR_MASTER_KEY
-
-        return objectchange
-
-    def is_filled(self):
-        """
-        Returns True if the UserKey has been filled with a public RSA key.
-        """
-        return bool(self.public_key)
-
-    is_filled.boolean = True
-
-    def is_active(self):
-        """
-        Returns True if the UserKey has been populated with an encrypted copy of the master key.
-        """
-        return self.master_key_cipher is not None
-
-    is_active.boolean = True
-
-    def get_master_key(self, private_key):
-        """
-        Given the User's private key, return the encrypted master key.
-        """
-        if not self.is_active:
-            raise ValueError("Unable to retrieve master key: UserKey is inactive.")
-        try:
-            return decrypt_master_key(force_bytes(self.master_key_cipher), private_key)
-        except ValueError:
-            return None
-
-    def activate(self, master_key):
-        """
-        Activate the UserKey by saving an encrypted copy of the master key to the database.
-        """
-        if not self.public_key:
-            raise Exception("Cannot activate UserKey: Its public key must be filled first.")
-        self.master_key_cipher = encrypt_master_key(master_key, self.public_key)
-        self.save()
-
-
-class SessionKey(models.Model):
-    """
-    A SessionKey stores a User's temporary key to be used for the encryption and decryption of secrets.
+    Attributes:
+        name: Descriptive name for the role
+        slug: URL-friendly identifier
+        description: Optional description of the role's purpose
+        comments: Optional comments about the role
     """
 
-    id = models.BigAutoField(primary_key=True)
-    userkey = models.OneToOneField(to='UserKey', on_delete=models.CASCADE, related_name='session_key', editable=False)
-    cipher = models.BinaryField(max_length=512, editable=False)
-    hash = models.CharField(max_length=128, editable=False)
-    created = models.DateTimeField(auto_now_add=True)
-
-    key = None
-
-    objects = RestrictedQuerySet.as_manager()
-
-    class Meta:
-        ordering = ['userkey__user__username']
-
-    def __str__(self):
-        return f'{self.userkey.user.username} (RSA)'
-
-    def save(self, master_key=None, *args, **kwargs):
-        if master_key is None:
-            raise Exception("The master key must be provided to save a session key.")
-
-        # Generate a random 256-bit session key if one is not already defined
-        if self.key is None:
-            self.key = generate_random_key()
-
-        # Generate SHA256 hash using Django's built-in password hashing mechanism
-        self.hash = make_password(self.key)
-
-        # Encrypt master key using the session key
-        self.cipher = strxor.strxor(self.key, master_key)
-
-        super().save(*args, **kwargs)
-
-    def get_master_key(self, session_key):
-        # Validate the provided session key
-        if not check_password(session_key, self.hash):
-            raise InvalidKey("Invalid session key")
-
-        # Decrypt master key using provided session key
-        master_key = strxor.strxor(session_key, bytes(self.cipher))
-
-        return master_key
-
-    def get_session_key(self, master_key):
-        # Recover session key using the master key
-        session_key = strxor.strxor(master_key, bytes(self.cipher))
-
-        # Validate the recovered session key
-        if not check_password(session_key, self.hash):
-            raise InvalidKey("Invalid master key")
-
-        return session_key
-
-
-class SecretRole(PrimaryModel):
-    """
-    A SecretRole represents an arbitrary functional classification of Secrets. For example, a user might define roles
-    such as "Login Credentials" or "SNMP Communities."
-    """
-
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=100, unique=True)
-
-    clone_fields = ['tags']
+    name = models.CharField(verbose_name=_('name'), max_length=100, unique=True, db_collation="natural_sort")
+    slug = models.SlugField(verbose_name=_('slug'), max_length=100, unique=True)
 
     class Meta:
         ordering = ['name']
+        verbose_name = _('Secret Role')
+        verbose_name_plural = _('Secret Roles')
 
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_secrets:secretrole', args=[self.pk])
-
 
 class Secret(PrimaryModel, ContactsMixin):
     """
-    A Secret stores an AES256-encrypted copy of sensitive data, such as passwords or secret keys. An irreversible
-    SHA-256 hash is stored along with the ciphertext for validation upon decryption. Each Secret is assigned to exactly
-    one NetBox object, and objects may have multiple Secrets associated with them. A name can optionally be defined
-    along with the ciphertext; this string is stored as plain text in the database.
+    AES-256 encrypted storage for sensitive data with cryptographic validation.
 
-    A Secret can be up to 65,535 bytes (64KB - 1B) in length. Each secret string will be padded with random data to
-    a minimum of 64 bytes during encryption in order to protect short strings from ciphertext analysis.
+    Secrets store encrypted sensitive information such as passwords, API keys,
+    certificates, and other confidential data. Each secret is:
+    - Encrypted using AES-256-CFB mode
+    - Validated with SHA-256 hash on decryption
+    - Padded with random data to obscure plaintext length
+    - Associated with any NetBox object via generic foreign key
+
+    Features:
+    - Up to 64KB of encrypted data per secret
+    - Minimum 64-byte padding to protect short secrets
+    - Random IV (initialization vector) for each encryption
+    - Support for multiple secrets per object with different roles
+
+    Attributes:
+        assigned_object: Generic foreign key to any NetBox object
+        role: Functional classification of the secret
+        name: Optional descriptive name (stored as plaintext)
+        ciphertext: AES-encrypted secret data with IV
+        hash: SHA-256 hash for validating decrypted plaintext
+        plaintext: Transient attribute containing decrypted data (not persisted)
     """
 
+    # Encryption constants
+    MAX_SECRET_SIZE = 65535  # Maximum plaintext size in bytes (64KB - 1B)
+    MIN_PADDED_SIZE = 64  # Minimum padded size to obscure short secrets
+    AES_BLOCK_SIZE = 16  # AES block size in bytes
+    IV_SIZE = 16  # Initialization vector size in bytes
+
+    # Generic foreign key to assigned object
     assigned_object_type = models.ForeignKey(
-        to=ContentType,
+        to='contenttypes.ContentType',
         on_delete=models.PROTECT,
         related_name='secrets',
     )
     assigned_object_id = models.PositiveIntegerField()
-    # Internal field for searching the assinged object
-    _object_repr = models.CharField(max_length=200, editable=False, blank=True, null=True)
     assigned_object = GenericForeignKey(ct_field='assigned_object_type', fk_field='assigned_object_id')
-    role = models.ForeignKey(to='SecretRole', on_delete=models.PROTECT, related_name='secrets')
-    name = models.CharField(max_length=100, blank=True)
-    ciphertext = models.BinaryField(
-        max_length=65568,
-        editable=False,  # 128-bit IV + 16-bit pad length + 65535B secret + 15B padding
+    _object_repr = models.CharField(
+        max_length=200,
+        editable=False,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text=_("Cached string representation for search"),
     )
-    hash = models.CharField(max_length=128, editable=False)
+
+    # Secret metadata
+    role = models.ForeignKey(
+        to='SecretRole',
+        on_delete=models.PROTECT,
+        related_name='secrets',
+        help_text=_("Functional role/category of this secret"),
+    )
+    name = models.CharField(max_length=100, blank=True, help_text=_("Optional descriptive name for this secret"))
+
+    # Encrypted data
+    ciphertext = models.BinaryField(
+        max_length=65568,  # IV (16) + length header (2) + max secret (65535) + max padding (15)
+        editable=False,
+        help_text=_("Encrypted secret data with IV"),
+    )
+    hash = models.CharField(
+        max_length=128, editable=False, help_text=_("SHA-256 hash for validating decrypted plaintext")
+    )
+
+    # Transient attribute for decrypted plaintext (not persisted to database)
+    plaintext: Optional[str] = None
 
     objects = RestrictedQuerySet.as_manager()
-
-    plaintext = None
-
     clone_fields = ('role', 'assigned_object_id', 'assigned_object_type', 'tags')
 
     class Meta:
         ordering = ('role', 'name', 'pk')
-        unique_together = ('assigned_object_type', 'assigned_object_id', 'role', 'name')
+        unique_together = (('assigned_object_type', 'assigned_object_id', 'role', 'name'),)
+        verbose_name = _('Secret')
+        verbose_name_plural = _('Secrets')
+        indexes = [
+            models.Index(fields=['assigned_object_type', 'assigned_object_id']),
+            models.Index(fields=['role']),
+            models.Index(fields=['_object_repr']),
+        ]
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize Secret, optionally with plaintext.
+
+        Args:
+            plaintext: Optional plaintext to be encrypted on save
+        """
         self.plaintext = kwargs.pop('plaintext', None)
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        return self.name or 'Secret'
+        return self.name or f'Secret #{self.pk}'
 
-    def get_absolute_url(self):
-        return reverse('plugins:netbox_secrets:secret', args=[self.pk])
-
+    @transaction.atomic
     def save(self, *args, **kwargs):
-        self._object_repr = str(self.assigned_object)
+        """
+        Save the secret, caching the assigned object representation for search.
+        """
+        # Cache object representation for searching
+        if self.assigned_object:
+            self._object_repr = str(self.assigned_object)[:200]
 
         return super().save(*args, **kwargs)
 
-    def _pad(self, s):
+    def _pad(self, plaintext: str) -> bytes:
         """
-        Prepend the length of the plaintext (2B) and pad with garbage to a multiple of 16B (minimum of 64B).
-        +--+--------+-------------------------------------------+
-        |LL|MySecret|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|
-        +--+--------+-------------------------------------------+
-        """
-        s = s.encode('utf8')
-        if len(s) > 65535:
-            raise ValueError("Maximum plaintext size is 65535 bytes.")
+        Pad plaintext with length header and random bytes for AES encryption.
 
-        # Minimum ciphertext size is 64 bytes to conceal the length of short secrets.
-        if len(s) <= 62:
-            pad_length = 62 - len(s)
-        elif (len(s) + 2) % 16:
-            pad_length = 16 - ((len(s) + 2) % 16)
+        Padding format:
+        - 2 bytes: Big-endian plaintext length (allows up to 65535 bytes)
+        - N bytes: UTF-8 encoded plaintext
+        - M bytes: Random padding to reach minimum size or AES block alignment
+
+        Minimum padded size is 64 bytes to obscure the length of short secrets,
+        preventing ciphertext length analysis attacks.
+
+        Args:
+            plaintext: String to pad and prepare for encryption
+
+        Returns:
+            Padded bytes ready for AES encryption
+
+        Raises:
+            ValueError: If plaintext exceeds maximum size (65535 bytes)
+        """
+        plaintext_bytes = plaintext.encode('utf-8')
+
+        if len(plaintext_bytes) > self.MAX_SECRET_SIZE:
+            raise ValueError(
+                _("Plaintext size ({} bytes) exceeds maximum ({} bytes).").format(
+                    len(plaintext_bytes), self.MAX_SECRET_SIZE
+                )
+            )
+
+        # Calculate required padding
+        total_size = len(plaintext_bytes) + 2  # +2 for length header
+
+        if total_size <= self.MIN_PADDED_SIZE:
+            # Pad to minimum size
+            pad_length = self.MIN_PADDED_SIZE - total_size
         else:
-            pad_length = 0
+            # Pad to AES block boundary
+            pad_length = (self.AES_BLOCK_SIZE - (total_size % self.AES_BLOCK_SIZE)) % self.AES_BLOCK_SIZE
 
-        header = bytes([len(s) >> 8]) + bytes([len(s) % 256])
+        # Create length header (big-endian 16-bit unsigned integer)
+        length = len(plaintext_bytes)
+        header = bytes([length >> 8, length & 0xFF])
 
-        return header + s + os.urandom(pad_length)
+        # Combine header, plaintext, and random padding
+        return header + plaintext_bytes + secrets_module.token_bytes(pad_length)
 
-    def _unpad(self, s):
+    def _unpad(self, padded: bytes) -> str:
         """
-        Consume the first two bytes of s as a plaintext length indicator and return only that many bytes as the
-        plaintext.
-        """
-        if isinstance(s[0], str):
-            plaintext_length = (ord(s[0]) << 8) + ord(s[1])
-        else:
-            plaintext_length = (s[0] << 8) + s[1]
-        return s[2 : plaintext_length + 2].decode('utf8')
+        Extract plaintext from padded bytes using length header.
 
-    def encrypt(self, secret_key):
+        Reads the 2-byte big-endian length header and extracts exactly that
+        many bytes as the plaintext, discarding the random padding.
+
+        Args:
+            padded: Padded bytes from decryption
+
+        Returns:
+            Original plaintext string (UTF-8 decoded)
         """
-        Generate a random initialization vector (IV) for AES. Pad the plaintext to the AES block size (16 bytes) and
-        encrypt. Prepend the IV for use in decryption. Finally, record the SHA256 hash of the plaintext for validation
-        upon decryption.
+        # Read 2-byte big-endian length header
+        plaintext_length = (padded[0] << 8) | padded[1]
+
+        # Extract plaintext (skip 2-byte header, read plaintext_length bytes)
+        return padded[2 : plaintext_length + 2].decode('utf-8')
+
+    def encrypt(self, secret_key: bytes) -> None:
+        """
+        Encrypt plaintext using AES-256-CFB mode with random IV.
+
+        Process:
+        1. Generate random 16-byte initialization vector (IV)
+        2. Pad plaintext with length header and random bytes
+        3. Encrypt padded plaintext using AES-256-CFB
+        4. Prepend IV to ciphertext for use in decryption
+        5. Generate SHA-256 hash of plaintext for validation
+        6. Clear plaintext from memory
+
+        The ciphertext format is:
+        [16-byte IV][encrypted padded data]
+
+        Args:
+            secret_key: 256-bit AES encryption key
+
+        Raises:
+            ValueError: If plaintext is not set or exceeds maximum size
         """
         if self.plaintext is None:
-            raise Exception("Must unlock or set plaintext before locking.")
+            raise ValueError(_("Plaintext must be set before encryption."))
 
-        # Pad and encrypt plaintext
-        iv = os.urandom(16)
-        aes = AES.new(secret_key, AES.MODE_CFB, iv)
-        self.ciphertext = iv + aes.encrypt(self._pad(self.plaintext))
+        # Generate random initialization vector
+        iv = secrets_module.token_bytes(self.IV_SIZE)
 
-        # Generate SHA256 using Django's built-in password hashing mechanism
+        # Encrypt padded plaintext
+        cipher = AES.new(secret_key, AES.MODE_CFB, iv)
+        padded_plaintext = self._pad(self.plaintext)
+        self.ciphertext = iv + cipher.encrypt(padded_plaintext)
+
+        # Generate validation hash using custom hasher
         self.hash = make_password(self.plaintext, hasher=SecretValidationHasher())
 
+        # Clear plaintext from memory for security
         self.plaintext = None
 
-    def decrypt(self, secret_key):
+    def decrypt(self, secret_key: bytes) -> None:
         """
-        Consume the first 16 bytes of self.ciphertext as the AES initialization vector (IV). The remainder is decrypted
-        using the IV and the provided secret key. Padding is then removed to reveal the plaintext. Finally, validate the
-        decrypted plaintext value against the stored hash.
+        Decrypt ciphertext and validate against stored hash.
+
+        Process:
+        1. Extract 16-byte IV from beginning of ciphertext
+        2. Decrypt remaining ciphertext using AES-256-CFB
+        3. Remove padding to reveal plaintext
+        4. Validate decrypted plaintext against stored hash
+        5. Store plaintext in transient attribute
+
+        Args:
+            secret_key: 256-bit AES decryption key
+
+        Raises:
+            ValueError: If ciphertext is not set, decryption fails, or validation fails
         """
         if self.plaintext is not None:
-            return
+            return  # Already decrypted
+
         if not self.ciphertext:
-            raise Exception("Must define ciphertext before unlocking.")
+            raise ValueError(_("Ciphertext must be set before decryption."))
 
-        # Decrypt ciphertext and remove padding
-        iv = bytes(self.ciphertext[0:16])
-        ciphertext = bytes(self.ciphertext[16:])
-        aes = AES.new(secret_key, AES.MODE_CFB, iv)
-        plaintext = self._unpad(aes.decrypt(ciphertext))
+        # Extract IV and encrypted data
+        iv = bytes(self.ciphertext[: self.IV_SIZE])
+        encrypted_data = bytes(self.ciphertext[self.IV_SIZE :])
 
-        # Verify decrypted plaintext against hash
+        # Decrypt and remove padding
+        cipher = AES.new(secret_key, AES.MODE_CFB, iv)
+        plaintext = self._unpad(cipher.decrypt(encrypted_data))
+
+        # Validate decrypted plaintext against hash
         if not self.validate(plaintext):
-            raise ValueError("Invalid key or ciphertext!")
+            raise ValueError(_("Decryption failed: invalid key or corrupted ciphertext"))
 
         self.plaintext = plaintext
 
-    def validate(self, plaintext):
+    def validate(self, plaintext: str) -> bool:
         """
-        Validate that a given plaintext matches the stored hash.
+        Verify plaintext matches the stored SHA-256 hash.
+
+        This ensures the decrypted plaintext is correct and hasn't been
+        corrupted or tampered with.
+
+        Args:
+            plaintext: Plaintext to validate
+
+        Returns:
+            True if plaintext matches stored hash, False otherwise
+
+        Raises:
+            ValueError: If hash has not been generated for this secret
         """
         if not self.hash:
-            raise Exception("Hash has not been generated for this secret.")
+            raise ValueError(_("Cannot validate: hash not generated for this secret."))
+
         return check_password(plaintext, self.hash, preferred=SecretValidationHasher())

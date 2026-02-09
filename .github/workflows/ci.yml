@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  push: {}
-  pull_request: {}
+  push: { }
+  pull_request: { }
 
 # Add concurrency group to control job running
 concurrency:
@@ -15,24 +15,14 @@ permissions:
   pull-requests: write
 
 jobs:
-  js_quality:
-    name: JavaScript Quality
-    uses: Onemind-Services-LLC/actions/.github/workflows/js-quality-checks.yml@master
-    with:
-      working-directory: 'netbox_secrets/project-static'
-      bundle-dist-path: 'netbox_secrets/project-static/dist'
-      patterns: '**/*.+(ts)'
-      run-browserslist: false
-      run-bundle-check: true
-      run-typescript: true
-
   test:
     name: Run Tests
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
-    needs: js_quality
     with:
+      runs-on: ubuntu-latest
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
+      netbox-version: v4.5.2
       coverage-minimum: 50
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}

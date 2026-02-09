@@ -18,7 +18,7 @@
         {% endif %}
     {% endfor %}
 
-        {% if perms.netbox_secrets.change_userkey %}
+        {% if perms.netbox_secrets.change_userkey and user_key and user_key.is_active %}
             <a href="{% url 'plugins:netbox_secrets:userkey_activate' %}" type="button" class="btn btn-primary">
                 <i class="mdi mdi-auto-fix"></i> Activate User Key
             </a>

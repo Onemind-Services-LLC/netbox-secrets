@@ -1,37 +1,29 @@
-from django import forms
+from django.utils.translation import gettext_lazy as _
 
-from netbox.forms import NetBoxModelBulkEditForm
-from utilities.forms.fields import CommentField
+from netbox.forms import (
+    NestedGroupModelBulkEditForm,
+    PrimaryModelBulkEditForm,
+)
+from utilities.forms.fields import DynamicModelChoiceField
 from utilities.forms.rendering import FieldSet
 from ..models import Secret, SecretRole
 
 __all__ = [
-    'SecretRoleBulkEditForm',
     'SecretBulkEditForm',
+    'SecretRoleBulkEditForm',
 ]
 
 
-class SecretRoleBulkEditForm(NetBoxModelBulkEditForm):
-    pk = forms.ModelMultipleChoiceField(queryset=SecretRole.objects.all(), widget=forms.MultipleHiddenInput)
-    description = forms.CharField(max_length=200, required=False)
-    comments = CommentField()
+class SecretRoleBulkEditForm(NestedGroupModelBulkEditForm):
+    parent = DynamicModelChoiceField(label=_('Parent'), queryset=SecretRole.objects.all(), required=False)
 
     model = SecretRole
-
-    FieldSets = (FieldSet('description', name=None),)
-
-    class Meta:
-        nullable_fields = ['description', 'comments']
+    nullable_fields = ('parent', 'description', 'comments')
 
 
-class SecretBulkEditForm(NetBoxModelBulkEditForm):
-    pk = forms.ModelMultipleChoiceField(queryset=SecretRole.objects.all(), widget=forms.MultipleHiddenInput)
-    description = forms.CharField(max_length=200, required=False)
-    comments = CommentField()
+class SecretBulkEditForm(PrimaryModelBulkEditForm):
+    role = DynamicModelChoiceField(label=_('Group'), queryset=SecretRole.objects.all(), required=False)
 
     model = Secret
-
-    FieldSets = (FieldSet('description', name=None),)
-
-    class Meta:
-        nullable_fields = ['description', 'comments']
+    fieldsets = (FieldSet('role', 'description'),)
+    nullable_fields = 'description'

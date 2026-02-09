@@ -12,15 +12,14 @@ from django.utils.translation import gettext as _
 from django.views.generic.base import View
 
 from core.signals import clear_events
+from netbox.object_actions import AddObject, BulkDelete, BulkEdit, BulkExport
 from netbox.views import generic
-from netbox_secrets.models import UserKey
-from netbox.object_actions import BulkDelete, BulkEdit, BulkExport
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
-from utilities.query import count_related
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
-from . import constants, exceptions, filtersets, forms, models, tables, utils
+from . import exceptions, filtersets, forms, tables, utils
+from .models import Secret, SecretRole, SessionKey, UserKey
 
 
 #
@@ -28,73 +27,87 @@ from . import constants, exceptions, filtersets, forms, models, tables, utils
 #
 
 
-@register_model_view(models.SecretRole, 'list', path='', detail=False)
+@register_model_view(SecretRole, 'list', path='', detail=False)
 class SecretRoleListView(generic.ObjectListView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
+    queryset = SecretRole.objects.add_related_count(
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     table = tables.SecretRoleTable
     filterset = filtersets.SecretRoleFilterSet
     filterset_form = forms.SecretRoleFilterForm
 
 
-@register_model_view(models.SecretRole)
-class SecretRoleView(generic.ObjectView):
-    queryset = models.SecretRole.objects.prefetch_related('tags')
+@register_model_view(SecretRole)
+class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
+    queryset = SecretRole.objects.all()
+
+    def get_extra_context(self, request, instance):
+        roles = instance.get_descendants(include_self=True)
+
+        return {
+            'related_models': self.get_related_models(request, roles),
+        }
 
 
-@register_model_view(models.SecretRole, 'secret')
-class SecretRoleSecretView(generic.ObjectChildrenView):
-    queryset = models.SecretRole.objects.all()
-    child_model = models.Secret
-    table = tables.SecretTable
-    filterset = filtersets.SecretFilterSet
-    tab = ViewTab(
-        label=_('Secrets'),
-        badge=lambda obj: models.Secret.objects.filter(role=obj).count(),
-        weight=500,
-        hide_if_empty=True,
-    )
-
-    def get_children(self, request, parent):
-        return models.Secret.objects.filter(role=parent)
-
-
-@register_model_view(models.SecretRole, 'add', detail=False)
-@register_model_view(models.SecretRole, 'edit')
+@register_model_view(SecretRole, 'add', detail=False)
+@register_model_view(SecretRole, 'edit')
 class SecretRoleEditView(generic.ObjectEditView):
-    queryset = models.SecretRole.objects.prefetch_related('tags')
+    queryset = SecretRole.objects.all()
     form = forms.SecretRoleForm
 
 
-@register_model_view(models.SecretRole, 'delete')
+@register_model_view(SecretRole, 'delete')
 class SecretRoleDeleteView(generic.ObjectDeleteView):
-    queryset = models.SecretRole.objects.prefetch_related('tags')
+    queryset = SecretRole.objects.all()
 
 
-@register_model_view(models.SecretRole, 'bulk_import', detail=False)
+@register_model_view(SecretRole, 'bulk_import', path='import', detail=False)
 class SecretRoleBulkImportView(generic.BulkImportView):
-    queryset = models.SecretRole.objects.prefetch_related('tags')
+    queryset = SecretRole.objects.all()
     model_form = forms.SecretRoleImportForm
-    table = tables.SecretRoleTable
 
 
-@register_model_view(models.SecretRole, 'bulk_edit', path='edit', detail=False)
+@register_model_view(SecretRole, 'bulk_edit', path='edit', detail=False)
 class SecretRoleBulkEditView(generic.BulkEditView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
+    queryset = SecretRole.objects.add_related_count(
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
     filterset = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
     form = forms.SecretRoleBulkEditForm
 
 
-@register_model_view(models.SecretRole, 'bulk_delete', path='delete', detail=False)
+@register_model_view(SecretRole, 'bulk_rename', path='rename', detail=False)
+class SecretRoleBulkRenameView(generic.BulkRenameView):
+    queryset = SecretRole.objects.all()
+    filterset = filtersets.SecretRoleFilterSet
+
+
+@register_model_view(SecretRole, 'bulk_delete', path='delete', detail=False)
 class SecretRoleBulkDeleteView(generic.BulkDeleteView):
-    queryset = models.SecretRole.objects.annotate(secret_count=count_related(models.Secret, 'role')).prefetch_related(
-        'tags',
+    queryset = SecretRole.objects.add_related_count(
+        SecretRole.objects.all(), Secret, 'role', 'secret_count', cumulative=True
     )
+    filterset = filtersets.SecretRoleFilterSet
     table = tables.SecretRoleTable
+
+
+@register_model_view(SecretRole, 'secret')
+class SecretRoleSecretView(generic.ObjectChildrenView):
+    queryset = SecretRole.objects.all()
+    child_model = Secret
+    table = tables.SecretTable
+    filterset = filtersets.SecretFilterSet
+    tab = ViewTab(
+        label=_('Secrets'),
+        badge=lambda obj: obj.secrets.count(),
+        permission='netbox_secrets.view_secret',
+        weight=500,
+        hide_if_empty=True,
+    )
+
+    def get_children(self, request, parent):
+        return self.child_model.objects.restrict(request.user, 'view').filter(role=parent)
 
 
 #
@@ -102,24 +115,29 @@ class SecretRoleBulkDeleteView(generic.BulkDeleteView):
 #
 
 
-@register_model_view(models.Secret, 'list', path='', detail=False)
+@register_model_view(Secret, 'list', path='', detail=False)
 class SecretListView(generic.ObjectListView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    queryset = Secret.objects.all()
     filterset = filtersets.SecretFilterSet
     filterset_form = forms.SecretFilterForm
     table = tables.SecretTable
     actions = (BulkExport, BulkEdit, BulkDelete)
 
 
-@register_model_view(models.Secret)
+@register_model_view(Secret)
 class SecretView(GetRelatedModelsMixin, generic.ObjectView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    queryset = Secret.objects.all()
+
+    def get_extra_context(self, request, instance):
+        return {
+            'related_models': self.get_related_models(request, instance),
+        }
 
 
-@register_model_view(models.Secret, 'add', detail=False)
-@register_model_view(models.Secret, 'edit')
+@register_model_view(Secret, 'add', detail=False)
+@register_model_view(Secret, 'edit')
 class SecretEditView(generic.ObjectEditView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    queryset = Secret.objects.all()
     form = forms.SecretForm
     template_name = 'netbox_secrets/secret_edit.html'
 
@@ -143,8 +161,8 @@ class SecretEditView(generic.ObjectEditView):
     def dispatch(self, request, *args, **kwargs):
         # Check that the user has a valid UserKey
         try:
-            uk = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
+            uk = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
             messages.warning(request, "This operation requires an active user key, but you don't have one.")
             return redirect('plugins:netbox_secrets:userkey_add')
         if not uk.is_active():
@@ -185,9 +203,9 @@ class SecretEditView(generic.ObjectEditView):
                     elif form.cleaned_data['plaintext']:
                         master_key = None
                         try:
-                            sk = models.SessionKey.objects.get(userkey__user=request.user)
+                            sk = SessionKey.objects.get(userkey__user=request.user)
                             master_key = sk.get_master_key(session_key)
-                        except models.SessionKey.DoesNotExist:
+                        except SessionKey.DoesNotExist:
                             logger.debug("Unable to proceed: User has no session key assigned")
                             form.add_error(None, "No session key found for this user.")
                         except exceptions.InvalidKey:
@@ -262,24 +280,29 @@ class SecretEditView(generic.ObjectEditView):
         )
 
 
-@register_model_view(models.Secret, 'delete')
+@register_model_view(Secret, 'delete')
 class SecretDeleteView(generic.ObjectDeleteView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    queryset = Secret.objects.all()
 
 
-@register_model_view(models.Secret, 'bulk_edit', path='edit', detail=False)
+@register_model_view(Secret, 'bulk_edit', path='edit', detail=False)
 class SecretBulkEditView(generic.BulkEditView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+    queryset = Secret.objects.all()
     filterset = filtersets.SecretFilterSet
     table = tables.SecretTable
     form = forms.SecretBulkEditForm
 
 
-@register_model_view(models.Secret, 'bulk_delete', path='delete', detail=False)
-class SecretBulkDeleteView(generic.BulkDeleteView):
-    queryset = models.Secret.objects.prefetch_related('role', 'tags')
+@register_model_view(Secret, 'bulk_rename', path='rename', detail=False)
+class SecretBulkRenameView(generic.BulkRenameView):
+    queryset = Secret.objects.all()
     filterset = filtersets.SecretFilterSet
-    table = tables.SecretTable
+
+
+@register_model_view(Secret, 'bulk_delete', path='delete', detail=False)
+class SecretBulkDeleteView(generic.BulkDeleteView):
+    queryset = Secret.objects.all()
+    filterset = filtersets.SecretFilterSet
 
 
 #
@@ -287,43 +310,41 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 #
 
 
-@register_model_view(models.UserKey, 'list', path='', detail=False)
+@register_model_view(UserKey, 'list', path='', detail=False)
 class UserKeyListView(generic.ObjectListView):
-    queryset = models.UserKey.objects.all()
+    queryset = UserKey.objects.all()
     table = tables.UserKeyTable
     filterset = filtersets.UserKeyFilterSet
     template_name = 'netbox_secrets/userkey_list.html'
+    actions = (AddObject,)
 
     def get_extra_context(self, request):
-        user_key = UserKey.objects.filter(user=request.user).first()
-        return {
-            'user_key': user_key,
-        }
+        return {'user_key': UserKey.objects.filter(user=request.user).first()}
 
 
-@register_model_view(models.UserKey)
+@register_model_view(UserKey)
 class UserKeyView(generic.ObjectView):
-    queryset = models.UserKey.objects.all()
+    queryset = UserKey.objects.all()
     template_name = 'netbox_secrets/userkey.html'
 
 
-@register_model_view(models.UserKey, 'delete')
+@register_model_view(UserKey, 'delete')
 class UserKeyDeleteView(generic.ObjectDeleteView):
     queryset = UserKey.objects.all()
 
 
-@register_model_view(models.UserKey, 'add', detail=False)
-@register_model_view(models.UserKey, 'edit')
+@register_model_view(UserKey, 'add', detail=False)
+@register_model_view(UserKey, 'edit')
 class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
-    queryset = models.UserKey.objects.all()
+    queryset = UserKey.objects.all()
     form = forms.UserKeyForm
     template_name = 'netbox_secrets/userkey_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.userkey = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
-            self.userkey = models.UserKey(user=request.user)
+            self.userkey = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            self.userkey = UserKey(user=request.user)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -355,22 +376,23 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             request,
             self.template_name,
             {
-                'userkey': self.userkey,
+                'object': self.userkey,
                 'form': form,
+                'return_url': self.get_return_url(request, self.userkey),
             },
         )
 
 
-@register_model_view(models.UserKey, 'activate', path='userkey_activate', detail=False)
+@register_model_view(UserKey, 'activate', path='userkey_activate', detail=False)
 class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
-    queryset = models.UserKey.objects.all()
+    queryset = UserKey.objects.all()
     template_name = 'netbox_secrets/activate_keys.html'
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.userkey = models.UserKey.objects.get(user=request.user)
-        except models.UserKey.DoesNotExist:
-            self.userkey = models.UserKey(user=request.user)
+            self.userkey = UserKey.objects.get(user=request.user)
+        except UserKey.DoesNotExist:
+            self.userkey = UserKey(user=request.user)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -405,16 +427,3 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
                 messages.error(request, "Invalid Private Key.")
 
         return render(request, self.template_name, {'form': form})
-
-
-class SessionKeyDeleteView(generic.ObjectDeleteView):
-    queryset = models.SessionKey.objects.all()
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(userkey__user=request.user)
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        # Delete the cookie
-        response.delete_cookie(constants.SESSION_COOKIE_NAME)
-        return response

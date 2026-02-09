@@ -17,9 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript-typescript', 'python' ]
+        language: [ 'python' ]
     uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@master
     with:
+      runs-on: ubuntu-latest
       app-id: ${{ vars.APP_ID }}
       languages: ${{ matrix.language }}
     secrets:
