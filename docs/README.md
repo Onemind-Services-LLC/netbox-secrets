@@ -74,16 +74,8 @@ Secrets panel or tab added to configured object types from `PLUGINS_CONFIG['netb
 ### Signals
 `GenericRelation` added to configured object types on DB connection to enable `.secrets` access.
 
-## Installation
-Installation steps are consolidated in [docs/installation.md](installation.md). Please follow that guide to avoid drift.
-
-## Configuration
-### Settings Explained
-- `apps`: list of `app.model` strings allowed to receive secrets
-- `display_default`: default placement for secret UI (`tab_view` or `left_page`)
-- `display_setting`: per-model overrides, e.g. `{'dcim.device': 'tab_view'}`
-- `public_key_size`: minimum allowed RSA public key size (default 2048)
-- `top_level_menu`: if `True`, shows a top-level “Secrets” menu
+## Installation & Configuration
+Installation and configuration steps are consolidated in [docs/installation.md](installation.md). Please follow that guide to avoid drift.
 
 ## Models Overview
 ### UserKey
