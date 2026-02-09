@@ -75,7 +75,7 @@ Secrets panel or tab added to configured object types from `PLUGINS_CONFIG['netb
 `GenericRelation` added to configured object types on DB connection to enable `.secrets` access.
 
 ## Installation
-Installation steps are consolidated in `docs/installation.md`. Please follow that guide to avoid drift.
+Installation steps are consolidated in [docs/installation.md](installation.md). Please follow that guide to avoid drift.
 
 ## Configuration
 ### Settings Explained

@@ -30,7 +30,7 @@ with end-to-end encryption. Secrets are encrypted at rest and can be assigned to
 
 ## Quickstart
 
-Installation steps are consolidated in `docs/installation.md`. Follow that guide, then create your first User Key.
+Installation steps are consolidated in [docs/installation.md](docs/installation.md). Follow that guide, then create your first User Key.
 
 ## Documentation
 
