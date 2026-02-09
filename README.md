@@ -38,14 +38,16 @@ with end-to-end encryption. Secrets are encrypted at rest and can be assigned to
 - Cryptography: [docs/cryptography.md](docs/cryptography.md)
 - Permissions: [docs/permissions.md](docs/permissions.md)
 - Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
-- Migration notes: [docs/migration.md](docs/migration.md)
 
 ## Release Notes
 - Release notes are maintained in GitHub for each version.
 
 ## Deprecations & Migration
 - Legacy API endpoints supported until NetBox v4.6: [docs/api.md](docs/api.md)
-- Upgrade and migration guidance: [docs/migration.md](docs/migration.md)
+
+## Legacy Migration
+Legacy guidance for netbox-secretstore migrations is available here:
+[docs/legacy-migration.md](docs/legacy-migration.md)
 
 ## Support
 - Issues and feature requests: open a ticket in your internal tracker or this repository's issue tracker.

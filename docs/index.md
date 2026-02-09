@@ -10,4 +10,4 @@ This documentation covers setup, usage, API endpoints, and the encryption model 
 - [Cryptography and Key Workflow](cryptography.md)
 - [Permissions](permissions.md)
 - [Troubleshooting](troubleshooting.md)
-- [Migration from netbox-secretstore](migration.md)
+ - [Legacy migration (netbox-secretstore)](legacy-migration.md)
