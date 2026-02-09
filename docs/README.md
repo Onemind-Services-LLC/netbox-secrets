@@ -75,35 +75,7 @@ Secrets panel or tab added to configured object types from `PLUGINS_CONFIG['netb
 `GenericRelation` added to configured object types on DB connection to enable `.secrets` access.
 
 ## Installation
-```shell
-pip install netbox-secrets
-```
-
-Enable the plugin in NetBox configuration:
-```python
-PLUGINS = [
-    'netbox_secrets',
-]
-
-PLUGINS_CONFIG = {
-    'netbox_secrets': {
-        'apps': [
-            'dcim.device',
-            'virtualization.virtualmachine',
-        ],
-        'display_default': 'left_page',
-        'display_setting': {},
-        'public_key_size': 2048,
-        'top_level_menu': False,
-    }
-}
-```
-
-Run migrations and collect static assets:
-```shell
-./manage.py migrate
-./manage.py collectstatic --no-input
-```
+Installation steps are consolidated in `docs/installation.md`. Please follow that guide to avoid drift.
 
 ## Configuration
 ### Settings Explained

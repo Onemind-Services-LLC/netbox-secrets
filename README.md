@@ -30,41 +30,7 @@ with end-to-end encryption. Secrets are encrypted at rest and can be assigned to
 
 ## Quickstart
 
-1) Install the plugin
-
-```shell
-pip install netbox-secrets
-```
-
-2) Enable it in your NetBox configuration:
-
-```python
-# configuration.py
-PLUGINS = [
-    'netbox_secrets',
-]
-
-PLUGINS_CONFIG = {
-    'netbox_secrets': {
-        'apps': [
-            'dcim.device',
-            'virtualization.virtualmachine',
-        ],
-        'display_default': 'tab_view',
-        'public_key_size': 2048,
-        'top_level_menu': False,
-    }
-}
-```
-
-3) Run migrations and collect static assets:
-
-```shell
-./manage.py migrate
-./manage.py collectstatic --no-input
-```
-
-4) Begin by creating your first User Key.
+Installation steps are consolidated in `docs/installation.md`. Follow that guide, then create your first User Key.
 
 ## Documentation
 

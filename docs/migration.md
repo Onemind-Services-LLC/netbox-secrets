@@ -15,7 +15,7 @@ If you are upgrading the plugin on NetBox 4.5.x:
 ## Recommended Steps
 
 1) Back up your database.
-2) Install and enable both plugins in `PLUGINS`.
+2) Ensure both plugins are installed and enabled (see `docs/installation.md`).
 3) Run migrations:
 
 ```shell
