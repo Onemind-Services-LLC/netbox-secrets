@@ -4,7 +4,6 @@ NetBox Secrets is a NetBox plugin for securely storing and managing secrets (pas
 with end-to-end encryption. Secrets are encrypted at rest and can be assigned to any supported NetBox object.
 
 ## Highlights
-
 - Public-key (RSA) based master key distribution
 - AES-256 encryption for secret values
 - Session-key workflow for encryption/decryption
@@ -29,38 +28,26 @@ with end-to-end encryption. Secrets are encrypted at rest and can be assigned to
 | 4.5.x          | 3.0.x          |
 
 ## Quickstart
-
-Installation steps are consolidated in [docs/installation.md](docs/installation.md). Follow that guide, then create your first User Key.
+- Setup (installation + configuration): [docs/installation.md](docs/installation.md)
+- Then create your first User Key in the UI
 
 ## Documentation
+- Setup: [docs/installation.md](docs/installation.md)
+- Usage: [docs/usage.md](docs/usage.md)
+- API: [docs/api.md](docs/api.md)
+- Cryptography: [docs/cryptography.md](docs/cryptography.md)
+- Permissions: [docs/permissions.md](docs/permissions.md)
+- Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
+- Migration notes: [docs/migration.md](docs/migration.md)
 
-Full documentation lives in [docs/index.md](docs/index.md). A consolidated NetBox v4.5 document is available at
-[docs/README.md](docs/README.md).
-
-## Release Notes (NetBox v4.5)
-
-Highlights for the 4.5-compatible release:
-- NetBox v4.5 compatibility across models, views, API, GraphQL
-- Session-key API consolidated to `/session-key/`
-- SecretRole hierarchy (MPTT) with migration `0009_*`
-- Inline JS (no build pipeline)
-
-Breaking changes and full details:
-- NetBox < 4.5 no longer supported
-- `POST /get-session-key/` removed (use `/session-key/`)
-- `/session-keys/` deprecated until NetBox v4.6
-- SecretRole hierarchy migration required
-
-See [docs/README.md](docs/README.md) for the complete change list, upgrade steps, and API details.
+## Release Notes
+- Release notes are maintained in GitHub for each version.
 
 ## Deprecations & Migration
-
-- Legacy API endpoints are supported until NetBox v4.6. See [docs/api.md](docs/api.md) for the deprecated routes and
-  their replacements.
-- For upgrade notes (including SecretRole hierarchy changes), see [docs/migration.md](docs/migration.md).
+- Legacy API endpoints supported until NetBox v4.6: [docs/api.md](docs/api.md)
+- Upgrade and migration guidance: [docs/migration.md](docs/migration.md)
 
 ## Support
-
 - Issues and feature requests: open a ticket in your internal tracker or this repository's issue tracker.
 - Security concerns: see `SECURITY.md`.
 
