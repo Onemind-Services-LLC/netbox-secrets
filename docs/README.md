@@ -25,14 +25,12 @@ This document consolidates all plugin documentation for NetBox v4.5.x and summar
 - NetBox v4.5 compatibility updates across models, views, API, GraphQL
 - Session-key API consolidated to `/session-key/`
 - SecretRole hierarchy (MPTT)
-- RSA key-pair generation endpoint
 - Inline JS for UI workflows (no build step or static bundle)
 - Documentation reorganized under `docs/`
 - Tests reorganized by component type for full coverage
 
 ## Changes Summary (This Release)
 ### Features
-- `/generate-rsa-key-pair/` endpoint for RSA key creation
 - Hierarchical SecretRoles with parent/child relationships (MPTT)
 - Session-key workflow for API and UI with cookie + header support
 

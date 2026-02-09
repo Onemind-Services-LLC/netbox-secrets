@@ -77,7 +77,6 @@ Highlights for the 4.5-compatible release:
 - NetBox v4.5 compatibility across models, views, API, GraphQL
 - Session-key API consolidated to `/session-key/`
 - SecretRole hierarchy (MPTT) with migration `0009_*`
-- RSA key-pair generation endpoint
 - Inline JS (no build pipeline)
 
 Breaking changes and full details:
