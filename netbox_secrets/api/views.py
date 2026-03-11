@@ -725,6 +725,7 @@ class LegacyActivateUserKeyViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ActivateUserKeySerializer
 
+    @extend_schema(request=serializers.ActivateUserKeySerializer)
     def create(self, request):
         """
         Activate one or more user keys using the caller's private key.
