@@ -8,7 +8,6 @@ from netbox_secrets import signals
 
 
 class ConfigureGenericRelationsTestCase(SimpleTestCase):
-
     def setUp(self):
         self.runserver_argv = mock.patch.object(sys, 'argv', ['manage.py', 'runserver'])
 
@@ -50,11 +49,9 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
     def test_skip_invalid_model_path(self):
         with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
-                with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
-                    signals.configure_generic_relations(sender=None)
+                signals.configure_generic_relations(sender=None)
 
         get_model.assert_not_called()
-        self.assertTrue(any('invalid-entry' in line for line in cm.output))
 
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
     def test_skip_model_with_existing_secrets_relation(self):
@@ -74,19 +71,15 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
         with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model', side_effect=LookupError):
                 with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
-                    with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
-                        signals.configure_generic_relations(sender=None)
+                    signals.configure_generic_relations(sender=None)
 
         generic_relation.assert_not_called()
-        self.assertTrue(any('dcim.device' in line for line in cm.output))
 
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
     def test_skip_on_programming_error(self):
         with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model', side_effect=ProgrammingError):
                 with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
-                    with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
-                        signals.configure_generic_relations(sender=None)
+                    signals.configure_generic_relations(sender=None)
 
         generic_relation.assert_not_called()
-        self.assertTrue(any('dcim.device' in line for line in cm.output))

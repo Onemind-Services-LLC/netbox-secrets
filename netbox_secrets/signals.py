@@ -26,13 +26,11 @@ def configure_generic_relations(sender, **kwargs):
         try:
             app_label, model_name = model_path.split(".", 1)
         except ValueError:
-            logger.warning("netbox_secrets: invalid model path %r, expected 'app_label.ModelName'", model_path)
             continue
 
         try:
             model_class = apps.get_model(app_label, model_name)
         except (LookupError, ProgrammingError):
-            logger.warning("netbox_secrets: could not load model %r — skipping", model_path)
             continue
 
         if hasattr(model_class, "secrets"):
@@ -44,4 +42,3 @@ def configure_generic_relations(sender, **kwargs):
             object_id_field="assigned_object_id",
             related_query_name=model_name,
         ).contribute_to_class(model_class, "secrets")
-        logger.debug("netbox_secrets: attached `secrets` relation to %s", model_path)
