@@ -8,8 +8,20 @@ from netbox_secrets import signals
 
 
 class ConfigureGenericRelationsTestCase(SimpleTestCase):
+
+    def setUp(self):
+        self.runserver_argv = mock.patch.object(sys, 'argv', ['manage.py', 'runserver'])
+
     def test_skip_during_tests(self):
         with mock.patch.object(sys, 'argv', ['manage.py', 'test']):
+            with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
+                signals.configure_generic_relations(sender=None)
+
+        get_model.assert_not_called()
+
+    @override_settings(PLUGINS_CONFIG={'netbox_secrets': {}})
+    def test_skip_empty_model_list(self):
+        with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
                 signals.configure_generic_relations(sender=None)
 
@@ -20,7 +32,7 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
         class DummyModel:
             pass
 
-        with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
+        with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model', return_value=DummyModel) as get_model:
                 with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
                     signals.configure_generic_relations(sender=None)
@@ -36,41 +48,20 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
 
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['invalid-entry']}})
     def test_skip_invalid_model_path(self):
-        with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
+        with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
-                signals.configure_generic_relations(sender=None)
-
-        get_model.assert_not_called()
-
-    @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': []}})
-    def test_skip_model_path_split_lookup_error(self):
-        class BadModelPath:
-            def split(self, *args, **kwargs):
-                raise LookupError
-
-        with self.settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': [BadModelPath()]}}):
-            with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
-                with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
+                with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
                     signals.configure_generic_relations(sender=None)
 
         get_model.assert_not_called()
-
-    @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
-    def test_skip_missing_model_class(self):
-        with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
-            with mock.patch('netbox_secrets.signals.apps.get_model', return_value=None) as get_model:
-                with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
-                    signals.configure_generic_relations(sender=None)
-
-        get_model.assert_called_once_with('dcim', 'device')
-        generic_relation.assert_not_called()
+        self.assertTrue(any('invalid-entry' in line for line in cm.output))
 
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
     def test_skip_model_with_existing_secrets_relation(self):
         class DummyModel:
             secrets = object()
 
-        with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
+        with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model', return_value=DummyModel) as get_model:
                 with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
                     signals.configure_generic_relations(sender=None)
@@ -79,7 +70,23 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
         generic_relation.assert_not_called()
 
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
-    def test_programming_error(self):
-        with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
+    def test_skip_on_lookup_error(self):
+        with self.runserver_argv:
+            with mock.patch('netbox_secrets.signals.apps.get_model', side_effect=LookupError):
+                with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
+                    with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
+                        signals.configure_generic_relations(sender=None)
+
+        generic_relation.assert_not_called()
+        self.assertTrue(any('dcim.device' in line for line in cm.output))
+
+    @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
+    def test_skip_on_programming_error(self):
+        with self.runserver_argv:
             with mock.patch('netbox_secrets.signals.apps.get_model', side_effect=ProgrammingError):
-                signals.configure_generic_relations(sender=None)
+                with mock.patch('netbox_secrets.signals.GenericRelation') as generic_relation:
+                    with self.assertLogs('netbox_secrets.signals', level='WARNING') as cm:
+                        signals.configure_generic_relations(sender=None)
+
+        generic_relation.assert_not_called()
+        self.assertTrue(any('dcim.device' in line for line in cm.output))
