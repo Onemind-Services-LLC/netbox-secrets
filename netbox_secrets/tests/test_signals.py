@@ -42,6 +42,19 @@ class ConfigureGenericRelationsTestCase(SimpleTestCase):
 
         get_model.assert_not_called()
 
+    @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': []}})
+    def test_skip_model_path_split_lookup_error(self):
+        class BadModelPath:
+            def split(self, *args, **kwargs):
+                raise LookupError
+
+        with self.settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': [BadModelPath()]}}):
+            with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
+                with mock.patch('netbox_secrets.signals.apps.get_model') as get_model:
+                    signals.configure_generic_relations(sender=None)
+
+        get_model.assert_not_called()
+
     @override_settings(PLUGINS_CONFIG={'netbox_secrets': {'apps': ['dcim.device']}})
     def test_skip_missing_model_class(self):
         with mock.patch.object(sys, 'argv', ['manage.py', 'runserver']):
