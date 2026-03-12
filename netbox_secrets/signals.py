@@ -22,7 +22,7 @@ def configure_generic_relations(sender, **kwargs):
         for model_path in model_list:
             try:
                 app_label, model_name = model_path.split(".", 1)
-            except ValueError:
+            except (LookupError, ValueError):
                 continue
 
             model_class = apps.get_model(app_label, model_name)
