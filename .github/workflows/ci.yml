@@ -22,7 +22,7 @@ jobs:
       runs-on: ubuntu-latest
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
-      netbox-version: v4.5.2
+      netbox-version: v4.5.4
       coverage-minimum: 50
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}
