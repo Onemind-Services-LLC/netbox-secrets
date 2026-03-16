@@ -714,7 +714,7 @@ class LegacySessionKeyViewSet(
         return response
 
 
-class LegacyActivateUserKeyViewSet(ViewSet):
+class LegacyActivateUserKeyViewSet(GenericViewSet):
     """
     Backward-compatible endpoint for /activate-user-key/.
 
