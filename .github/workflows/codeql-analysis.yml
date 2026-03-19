@@ -20,7 +20,7 @@ jobs:
         language: [ 'python' ]
     uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@master
     with:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04-sh
       app-id: ${{ vars.APP_ID }}
       languages: ${{ matrix.language }}
     secrets:
