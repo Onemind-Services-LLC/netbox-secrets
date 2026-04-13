@@ -3,7 +3,7 @@ from typing import Annotated, TYPE_CHECKING
 import strawberry
 import strawberry_django
 from strawberry.scalars import ID
-from strawberry_django import FilterLookup
+from strawberry_django import StrFilterLookup
 
 from netbox.graphql.filters import (
     OrganizationalModelFilter,
@@ -36,8 +36,8 @@ class SecretRoleFilter(OrganizationalModelFilter):
 
 
 @strawberry_django.filter_type(Secret, lookups=True)
-class SecretFilter(ContactFilterMixin, PrimaryModelFilter):
-    name: FilterLookup[str] | None = strawberry_django.filter_field()
+class SecretFilter(PrimaryModelFilter, ContactFilterMixin):
+    name: StrFilterLookup[str] | None = strawberry_django.filter_field()
     role: Annotated[
         'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
     ] | None = strawberry_django.filter_field()
