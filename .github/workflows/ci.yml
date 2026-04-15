@@ -19,10 +19,10 @@ jobs:
     name: Run Tests
     uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
     with:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04-sh
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
-      netbox-version: v4.5.2
+      netbox-version: v4.5.7
       coverage-minimum: 50
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}
