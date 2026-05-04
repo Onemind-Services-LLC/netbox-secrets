@@ -138,8 +138,6 @@ class Secret(PrimaryModel, ContactsMixin):
         verbose_name_plural = _('Secrets')
         indexes = [
             models.Index(fields=['assigned_object_type', 'assigned_object_id']),
-            models.Index(fields=['role']),
-            models.Index(fields=['_object_repr']),
         ]
 
     def __init__(self, *args, **kwargs):
