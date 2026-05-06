@@ -71,9 +71,6 @@ class UserKey(NetBoxModel):
         ordering = ['user__username']
         verbose_name = _('User Key')
         verbose_name_plural = _('User Keys')
-        indexes = [
-            models.Index(fields=['user']),
-        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
