@@ -49,15 +49,8 @@ class SecretRoleListView(generic.ObjectListView):
 class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
     queryset = SecretRole.objects.all()
     layout = layout.SimpleLayout(
-        left_panels=[
-            NestedGroupObjectPanel(),
-            TagsPanel(),
-            CommentsPanel()
-        ],
-        right_panels=[
-            RelatedObjectsPanel(),
-            CustomFieldsPanel()
-        ],
+        left_panels=[NestedGroupObjectPanel(), TagsPanel(), CommentsPanel()],
+        right_panels=[RelatedObjectsPanel(), CustomFieldsPanel()],
         bottom_panels=[
             ObjectsTablePanel(
                 'netbox_secrets.secretrole',
@@ -73,7 +66,6 @@ class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
                 ],
             ),
         ],
-
     )
 
     def get_extra_context(self, request, instance):
