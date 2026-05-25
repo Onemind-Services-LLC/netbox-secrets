@@ -23,6 +23,6 @@ jobs:
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
       netbox-version: v4.6.1
-      coverage-minimum: 90
+      coverage-minimum: 100
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}
