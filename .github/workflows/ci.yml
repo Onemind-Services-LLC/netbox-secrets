@@ -9,11 +9,6 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.ref }}-${{ github.actor }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  packages: read
-  pull-requests: write
-
 jobs:
   test:
     name: Run Tests
@@ -22,7 +17,7 @@ jobs:
       runs-on: ubuntu-22.04-sh
       app-id: ${{ vars.APP_ID }}
       plugin-name: 'netbox_secrets'
-      netbox-version: v4.5.7
-      coverage-minimum: 50
+      netbox-version: v4.6.1
+      coverage-minimum: 100
     secrets:
       private-key: ${{ secrets.APP_PRIVATE_KEY }}

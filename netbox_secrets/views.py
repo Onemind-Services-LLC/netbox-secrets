@@ -12,7 +12,15 @@ from django.utils.translation import gettext as _
 from django.views.generic.base import View
 
 from core.signals import clear_events
+from extras.ui.panels import CustomFieldsPanel, TagsPanel
 from netbox.object_actions import AddObject, BulkDelete, BulkEdit, BulkExport
+from netbox.ui import actions, layout
+from netbox.ui.panels import (
+    CommentsPanel,
+    NestedGroupObjectPanel,
+    ObjectsTablePanel,
+    RelatedObjectsPanel,
+)
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
@@ -40,6 +48,25 @@ class SecretRoleListView(generic.ObjectListView):
 @register_model_view(SecretRole)
 class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
     queryset = SecretRole.objects.all()
+    layout = layout.SimpleLayout(
+        left_panels=[NestedGroupObjectPanel(), TagsPanel(), CommentsPanel()],
+        right_panels=[RelatedObjectsPanel(), CustomFieldsPanel()],
+        bottom_panels=[
+            ObjectsTablePanel(
+                'netbox_secrets.secretrole',
+                filters={'parent_id': lambda ctx: ctx['object'].pk},
+                title=_('Child Roles'),
+                exclude_columns=['parent'],
+                actions=[
+                    actions.AddObject(
+                        'netbox_secrets.secretrole',
+                        url_params={'parent': lambda ctx: ctx['object'].pk},
+                        label=_('Add Secret Role'),
+                    ),
+                ],
+            ),
+        ],
+    )
 
     def get_extra_context(self, request, instance):
         roles = instance.get_descendants(include_self=True)
