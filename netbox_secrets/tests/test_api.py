@@ -4,6 +4,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.parsers import FormParser
@@ -542,6 +543,28 @@ class GenerateKeyPairAPITestCase(BaseAPITestCase):
         response = self.client.get(url, **self.header)
         self.assertHttpStatus(response, status.HTTP_200_OK)
         self.assertIn('public_key', response.data)
+
+    def test_generate_key_pair_uses_configured_public_key_size(self):
+        class GeneratedPublicKey:
+            def export_key(self, _format):
+                return b'-----BEGIN PUBLIC KEY-----\npublic\n-----END PUBLIC KEY-----'
+
+        class GeneratedKey:
+            def export_key(self, _format):
+                return b'-----BEGIN RSA PRIVATE KEY-----\nprivate\n-----END RSA PRIVATE KEY-----'
+
+            def publickey(self):
+                return GeneratedPublicKey()
+
+        url = reverse('plugins-api:netbox_secrets-api:generate-rsa-key-pair-list')
+        with override_settings(PLUGINS_CONFIG={'netbox_secrets': {'public_key_size': 4096}}), mock.patch(
+            'netbox_secrets.api.views.RSA.generate', return_value=GeneratedKey()
+        ) as generate:
+            response = self.client.get(url, **self.header)
+
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        generate.assert_called_once_with(4096)
+        self.assertEqual(response.data['key_size'], 4096)
 
     def test_generate_key_pair_invalid(self):
         url = reverse('plugins-api:netbox_secrets-api:generate-rsa-key-pair-list')

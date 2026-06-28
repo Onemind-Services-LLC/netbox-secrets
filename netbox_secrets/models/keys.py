@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 from netbox.models import NetBoxModel
 from utilities.querysets import RestrictedQuerySet
-from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
+from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED, get_public_key_size
 from ..exceptions import InvalidKey
 from ..querysets import UserKeyQuerySet
 from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
@@ -29,11 +29,6 @@ __all__ = [
     'UserKey',
     'SessionKey',
 ]
-
-
-def get_plugin_settings():
-    """Cache plugin settings access."""
-    return settings.PLUGINS_CONFIG.get('netbox_secrets', {})
 
 
 class UserKey(NetBoxModel):
@@ -59,7 +54,8 @@ class UserKey(NetBoxModel):
         help_text=_("User who owns this encryption key"),
     )
     public_key = models.TextField(
-        verbose_name=_('RSA public key'), help_text=_("RSA public key in PEM format (minimum 2048 bits)")
+        verbose_name=_('RSA public key'),
+        help_text=_("RSA public key in PEM format. Minimum size is controlled by public_key_size."),
     )
     master_key_cipher = models.BinaryField(
         max_length=512, blank=True, null=True, editable=False, help_text=_("Encrypted copy of the master key")
@@ -124,7 +120,7 @@ class UserKey(NetBoxModel):
 
         # Validate key length constraints
         pubkey_length = pubkey.size_in_bits()
-        min_key_size = get_plugin_settings().get('public_key_size', 2048)
+        min_key_size = get_public_key_size()
         max_key_size = 8192  # Database field constraint
 
         if pubkey_length < min_key_size:

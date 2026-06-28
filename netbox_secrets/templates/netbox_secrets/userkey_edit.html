@@ -77,7 +77,8 @@
                 {% endblock buttons %}
             </div>
         </form>
-        <div class="modal fade" id="new_keypair_modal" tabindex="-1" role="dialog">
+        <div class="modal fade" id="new_keypair_modal" tabindex="-1" role="dialog"
+             data-key-size="{{ public_key_size }}">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">

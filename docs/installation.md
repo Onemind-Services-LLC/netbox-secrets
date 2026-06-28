@@ -86,7 +86,7 @@ PLUGINS_CONFIG = {
 
 #### `public_key_size`
 
-Minimum RSA key size allowed for user keys.
+Minimum RSA key size allowed for user keys. This is also the default size used when generating a new key pair from the UI or API without an explicit `key_size`.
 
 - Type: `int`
 - Default: `2048`

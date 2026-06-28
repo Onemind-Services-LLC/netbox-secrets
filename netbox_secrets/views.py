@@ -19,6 +19,7 @@ from utilities.forms import restrict_form_fields
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
 from . import exceptions, filtersets, forms, tables, utils
+from .constants import get_public_key_size
 from .models import Secret, SecretRole, SessionKey, UserKey
 
 
@@ -349,12 +350,14 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
+        form = self.form(instance=self.userkey)
         return render(
             request,
             self.template_name,
             {
                 'object': self.userkey,
-                'form': self.form,
+                'form': form,
+                'public_key_size': get_public_key_size(),
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )
@@ -378,6 +381,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             {
                 'object': self.userkey,
                 'form': form,
+                'public_key_size': get_public_key_size(),
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )
