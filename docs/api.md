@@ -487,28 +487,23 @@ The plugin provides GraphQL types for querying secrets and secret roles.
 
 ---
 
-## Deprecated Endpoints
+## Removed Endpoints
 
-The following endpoints are maintained for backward compatibility but will be **removed when the plugin targets NetBox v4.6**. Please migrate to the new endpoints immediately.
+The following endpoints have been **permanently removed**. Please migrate to the current endpoints immediately.
 
 ### Legacy Endpoint Mappings
 
-| Legacy Endpoint | Replacement | Migration Notes |
+| Removed Endpoint | Replacement | Migration Notes |
 |----------------|-------------|-----------------|
-| `POST /activate-user-key/` | `POST /user-keys/activate/` | Legacy accepts both `user_keys` and `user_key_ids` parameters. New endpoint only accepts `user_key_ids`. Legacy returns plain success string; new endpoint returns standard JSON. |
+| `POST /activate-user-key/` | `POST /user-keys/activate/` | Legacy accepted both `user_keys` and `user_key_ids` parameters. New endpoint only accepts `user_key_ids`. Legacy returned plain success string; new endpoint returns standard JSON. |
 | `GET /session-keys/` | `GET /session-key/` | Use singular endpoint for current user's session key. |
 | `POST /session-keys/` | `POST /session-key/` | Use singular endpoint for current user's session key. |
-| `GET /session-keys/{id}/` | `GET /session-key/` | ID parameter is ignored in legacy endpoint. New endpoint always operates on current user. |
-| `DELETE /session-keys/{id}/` | `DELETE /session-key/` | ID parameter is ignored in legacy endpoint. New endpoint always operates on current user. |
+| `GET /session-keys/{id}/` | `GET /session-key/` | ID parameter was ignored in legacy endpoint. New endpoint always operates on current user. |
+| `DELETE /session-keys/{id}/` | `DELETE /session-key/` | ID parameter was ignored in legacy endpoint. New endpoint always operates on current user. |
+| `POST /get-session-key/` | `POST /session-key/` | Use the standard session key creation endpoint. |
 
 **Important Notes:**
-- All legacy session key endpoints with `{id}` always operate on the current authenticated user, regardless of the ID provided
-- The `/activate-user-key/` endpoint accepts either `user_keys` or `user_key_ids` in the request body for backward compatibility
-
-### Removed Endpoints
-
-The following endpoints have been **permanently removed**:
-
-- **POST /get-session-key/** - Replaced by `POST /session-key/`
+- All legacy session key endpoints with `{id}` always operated on the current authenticated user, regardless of the ID provided
+- The `/activate-user-key/` endpoint accepted either `user_keys` or `user_key_ids` in the request body for backward compatibility
 
 If you are still using removed endpoints, update your integration immediately to use the current API.

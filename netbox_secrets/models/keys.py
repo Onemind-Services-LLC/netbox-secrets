@@ -324,7 +324,7 @@ class SessionKey(models.Model):
             self.key = generate_random_key()
 
         # Hash session key for validation
-        self.hash = make_password(self.key)
+        self.hash = make_password(self.key.hex())
 
         # Encrypt master key with session key using XOR
         self.cipher = strxor.strxor(self.key, master_key)
@@ -344,7 +344,7 @@ class SessionKey(models.Model):
         Raises:
             InvalidKey: If session key is invalid
         """
-        if not check_password(session_key, self.hash):
+        if not check_password(session_key.hex(), self.hash):
             raise InvalidKey(_("Invalid session key"))
 
         return strxor.strxor(session_key, bytes(self.cipher))
@@ -367,7 +367,7 @@ class SessionKey(models.Model):
         """
         session_key = strxor.strxor(master_key, bytes(self.cipher))
 
-        if not check_password(session_key, self.hash):
+        if not check_password(session_key.hex(), self.hash):
             raise InvalidKey(_("Invalid master key"))
 
         return session_key
