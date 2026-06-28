@@ -582,12 +582,7 @@ class GenerateRSAKeyPairView(ViewSet):
 
         if key_size % KEY_SIZE_INCREMENT != 0:
             return Response(
-                {
-                    'error': (
-                        f'Invalid key size. Must be in increments of {KEY_SIZE_INCREMENT} '
-                        f'bits.'
-                    )
-                },
+                {'error': (f'Invalid key size. Must be in increments of {KEY_SIZE_INCREMENT} ' f'bits.')},
                 status=400,
             )
 
