@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import BooleanField, Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -335,8 +336,6 @@ class SecretBulkDeleteView(generic.BulkDeleteView):
 #
 # User Key
 #
-
-from django.db.models import BooleanField, Case, Value, When
 
 
 @register_model_view(UserKey, 'list', path='', detail=False)
