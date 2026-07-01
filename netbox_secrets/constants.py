@@ -33,3 +33,9 @@ DEFAULT_KEY_SIZE = 2048
 MIN_KEY_SIZE = 2048
 MAX_KEY_SIZE = 8192
 KEY_SIZE_INCREMENT = 256
+
+
+def get_public_key_size() -> int:
+    """Return the configured minimum RSA public key size."""
+    plugin_settings = settings.PLUGINS_CONFIG.get("netbox_secrets") or {}
+    return int(plugin_settings.get("public_key_size", DEFAULT_KEY_SIZE))
