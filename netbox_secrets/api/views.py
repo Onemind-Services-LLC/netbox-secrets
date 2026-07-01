@@ -24,10 +24,6 @@ from .. import filtersets
 
 logger = logging.getLogger(__name__)
 
-# Plugin settings
-plugin_settings = settings.PLUGINS_CONFIG.get('netbox_secrets', {})
-public_key_size = plugin_settings.get('public_key_size', 2048)
-
 # Error messages
 ERR_USERKEY_MISSING = "No UserKey found for the current user."
 ERR_USERKEY_INACTIVE = "UserKey has not been activated for decryption."
@@ -510,12 +506,17 @@ class GenerateRSAKeyPairView(ViewSet):
                 type=OpenApiTypes.INT,
                 location='query',
                 description=(
-                    f'RSA key size in bits. Must be between {MIN_KEY_SIZE} and {MAX_KEY_SIZE} '
-                    f'in increments of {KEY_SIZE_INCREMENT}.'
+                    f'RSA key size in bits. Must be between the configured public_key_size '
+                    f'({get_public_key_size()} bits) and {MAX_KEY_SIZE} in increments of {KEY_SIZE_INCREMENT}. '
+                    f'If omitted, the configured public_key_size is used.'
                 ),
-                default=DEFAULT_KEY_SIZE,
+                default=get_public_key_size(),
                 examples=[
-                    OpenApiExample('Default', value=2048, description='Standard key size for most use cases'),
+                    OpenApiExample(
+                        'Configured Default',
+                        value=get_public_key_size(),
+                        description='Configured default key size for this plugin',
+                    ),
                     OpenApiExample('High Security', value=4096, description='Higher security for sensitive data'),
                 ],
             ),
@@ -538,7 +539,7 @@ class GenerateRSAKeyPairView(ViewSet):
                         'key_size': {
                             'type': 'integer',
                             'description': 'The size of the generated key in bits',
-                            'example': 2048,
+                            'example': get_public_key_size(),
                         },
                     },
                     'required': ['public_key', 'private_key', 'key_size'],
@@ -551,7 +552,7 @@ class GenerateRSAKeyPairView(ViewSet):
                     'properties': {
                         'error': {
                             'type': 'string',
-                            'example': 'Invalid key size. Must be between 2048 and 8192 in increments of 256.',
+                            'example': 'Invalid key size. Must be between the configured minimum and 8192 bits.',
                         }
                     },
                 },
@@ -564,7 +565,8 @@ class GenerateRSAKeyPairView(ViewSet):
         """Generate and return a new RSA key pair."""
 
         # Parse and validate key size
-        key_size_param = request.query_params.get('key_size', DEFAULT_KEY_SIZE)
+        min_key_size = get_public_key_size()
+        key_size_param = request.query_params.get('key_size', min_key_size)
 
         try:
             key_size = int(key_size_param)
@@ -572,20 +574,15 @@ class GenerateRSAKeyPairView(ViewSet):
             return Response({'error': f'Invalid key_size parameter. Must be an integer.'}, status=400)
 
         # Validate key size is within allowed range and increment
-        if key_size < MIN_KEY_SIZE or key_size > MAX_KEY_SIZE:
+        if key_size < min_key_size or key_size > MAX_KEY_SIZE:
             return Response(
-                {'error': (f'Invalid key size. Must be between {MIN_KEY_SIZE} ' f'and {MAX_KEY_SIZE} bits.')},
+                {'error': (f'Invalid key size. Must be between {min_key_size} ' f'and {MAX_KEY_SIZE} bits.')},
                 status=400,
             )
 
-        if (key_size - MIN_KEY_SIZE) % KEY_SIZE_INCREMENT != 0:
+        if key_size % KEY_SIZE_INCREMENT != 0:
             return Response(
-                {
-                    'error': (
-                        f'Invalid key size. Must be in increments of {KEY_SIZE_INCREMENT} '
-                        f'starting from {MIN_KEY_SIZE}.'
-                    )
-                },
+                {'error': (f'Invalid key size. Must be in increments of {KEY_SIZE_INCREMENT} ' f'bits.')},
                 status=400,
             )
 

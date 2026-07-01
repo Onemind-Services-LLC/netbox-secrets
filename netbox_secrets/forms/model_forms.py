@@ -18,13 +18,14 @@ __all__ = [
 ]
 
 
-def validate_rsa_key(key, is_secret=True):
+def validate_rsa_key(key, is_secret=True, min_key_size=MIN_KEY_SIZE):
     """
     Validate the format and type of an RSA key.
 
     Args:
         key: RSA key string to validate
         is_secret: True if validating a private key, False for public key
+        min_key_size: Minimum accepted RSA key size in bits
 
     Raises:
         ValidationError: If the key is invalid or of wrong type
@@ -52,11 +53,13 @@ def validate_rsa_key(key, is_secret=True):
     except Exception as e:
         raise ValidationError(_("Invalid key detected: {error}").format(error=str(e)))
 
-    # Validate key size (minimum 2048 bits recommended)
+    # Validate key size
     key_size = rsa_key.size_in_bits()
-    if key_size < 2048:
+    if key_size < min_key_size:
         raise ValidationError(
-            _("RSA key size must be at least 2048 bits for security. " "Your key is {size} bits.").format(size=key_size)
+            _("RSA key size must be at least {min_size} bits for security. Your key is {size} bits.").format(
+                min_size=min_key_size, size=key_size
+            )
         )
 
     # Check if key type matches expectation
@@ -193,13 +196,22 @@ class UserKeyForm(forms.ModelForm):
         help_text=_(
             'Enter your public RSA key in PEM format. Keep your private key secure; '
             'you will need it for decryption. Passphrase-protected keys are not supported. '
-            'Minimum key size: 2048 bits.'
+            'Minimum key size is controlled by public_key_size.'
         ),
     )
 
     class Meta:
         model = UserKey
         fields = ['public_key']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        public_key_size = get_public_key_size()
+        self.fields['public_key'].help_text = _(
+            'Enter your public RSA key in PEM format. Keep your private key secure; '
+            'you will need it for decryption. Passphrase-protected keys are not supported. '
+            'Minimum key size: {size} bits.'
+        ).format(size=public_key_size)
 
     def clean_public_key(self):
         """Validate and clean the public key."""
@@ -210,7 +222,7 @@ class UserKeyForm(forms.ModelForm):
 
         # Validate the RSA key format and return the validated key object
         try:
-            validate_rsa_key(key, is_secret=False)
+            validate_rsa_key(key, is_secret=False, min_key_size=get_public_key_size())
         except ValidationError:
             raise
 

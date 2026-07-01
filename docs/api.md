@@ -406,7 +406,7 @@ Delete a secret.
 Generates a new RSA key pair for use with NetBox Secrets.
 
 **Query Parameters:**
-- `key_size` (optional) - Key size in bits (2048-8192 in steps of 256, default: 2048)
+- `key_size` (optional) - Key size in bits (configured `public_key_size` to 8192 in steps of 256; defaults to configured `public_key_size`)
 
 **Response:**
 ```json
@@ -419,7 +419,7 @@ Generates a new RSA key pair for use with NetBox Secrets.
 
 **Status Codes:**
 - `200 OK` - Key pair generated successfully
-- `400 Bad Request` - Invalid key_size value (must be 2048-8192 in 256-bit increments)
+- `400 Bad Request` - Invalid key_size value (must be at least configured `public_key_size`, no more than 8192, and in 256-bit increments)
 - `500 Internal Server Error` - Key generation failed
 
 **Security Note:** Store the private key securely. It should never be shared or transmitted except during session key creation.
@@ -441,7 +441,7 @@ The plugin provides GraphQL types for querying secrets and secret roles.
 ## Best Practices
 
 ### Key Management
-- Generate keys with appropriate size (minimum 2048 bits recommended, 4096 for high security)
+- Generate keys with an appropriate size (at least configured `public_key_size`, 4096 for high security)
 - Store private keys securely; they should never be transmitted except during session key creation
 - Use the `preserve_key` option judiciously to avoid security risks
 - Ensure users have at least one active key before storing secrets

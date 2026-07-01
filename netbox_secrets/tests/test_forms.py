@@ -3,7 +3,7 @@ from unittest import mock
 from Crypto.PublicKey import RSA
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from netbox_secrets.forms import (
     ActivateUserKeyForm,
@@ -131,6 +131,13 @@ class UserKeyFormTestCase(TestCase):
     def test_userkey_form_valid(self):
         form = UserKeyForm(data={'public_key': PUBLIC_KEY}, instance=self.userkey)
         self.assertTrue(form.is_valid())
+
+    def test_userkey_form_uses_configured_public_key_size(self):
+        with override_settings(PLUGINS_CONFIG={'netbox_secrets': {'public_key_size': 4096}}):
+            form = UserKeyForm(data={'public_key': PUBLIC_KEY}, instance=self.userkey)
+            self.assertIn('Minimum key size: 4096 bits.', str(form.fields['public_key'].help_text))
+            self.assertFalse(form.is_valid())
+            self.assertIn('4096', str(form.errors))
 
     def test_userkey_form_invalid(self):
         form = UserKeyForm(data={'public_key': SSH_PUBLIC_KEY}, instance=self.userkey)

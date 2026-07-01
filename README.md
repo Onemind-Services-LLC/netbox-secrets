@@ -26,6 +26,7 @@ with end-to-end encryption. Secrets are encrypted at rest and can be assigned to
 | 4.3.x          | 2.3.x          |
 | 4.4.x          | 2.4.x          |
 | 4.5.x          | 3.0.x          |
+| 4.6.x          | 3.1.x          |
 
 ## Quickstart
 - Setup (installation + configuration): [docs/installation.md](docs/installation.md)
