@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import BooleanField, Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -348,6 +349,19 @@ class UserKeyListView(generic.ObjectListView):
 
     def get_extra_context(self, request):
         return {'user_key': UserKey.objects.filter(user=request.user).first()}
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                active=Case(
+                    When(master_key_cipher__isnull=False, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            )
+        )
 
 
 @register_model_view(UserKey)
