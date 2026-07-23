@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import BooleanField, Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -27,6 +28,7 @@ from utilities.forms import restrict_form_fields
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
 from . import exceptions, filtersets, forms, tables, utils
+from .constants import get_public_key_size
 from .models import Secret, SecretRole, SessionKey, UserKey
 
 
@@ -348,6 +350,19 @@ class UserKeyListView(generic.ObjectListView):
     def get_extra_context(self, request):
         return {'user_key': UserKey.objects.filter(user=request.user).first()}
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                active=Case(
+                    When(master_key_cipher__isnull=False, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
+            )
+        )
+
 
 @register_model_view(UserKey)
 class UserKeyView(generic.ObjectView):
@@ -376,12 +391,14 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
+        form = self.form(instance=self.userkey)
         return render(
             request,
             self.template_name,
             {
                 'object': self.userkey,
-                'form': self.form,
+                'form': form,
+                'public_key_size': get_public_key_size(),
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )
@@ -405,6 +422,7 @@ class UserKeyEditView(LoginRequiredMixin, GetReturnURLMixin, View):
             {
                 'object': self.userkey,
                 'form': form,
+                'public_key_size': get_public_key_size(),
                 'return_url': self.get_return_url(request, self.userkey),
             },
         )

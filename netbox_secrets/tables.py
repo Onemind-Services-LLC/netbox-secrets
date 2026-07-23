@@ -15,6 +15,8 @@ __all__ = (
 class UserKeyTable(NetBoxTable):
     user = tables.Column(linkify=True)
     is_active = columns.BooleanColumn(
+        accessor="active",
+        order_by="active",
         verbose_name=_('Is Active'),
     )
     tags = columns.TagColumn(url_name='plugins:netbox_secrets:userkey_list')
