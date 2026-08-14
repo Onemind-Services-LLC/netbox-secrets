@@ -6,12 +6,13 @@ This module contains models for managing encryption keys:
 - SessionKey: Manages temporary session keys for secret encryption/decryption
 """
 
+import hashlib
+import hmac
 from typing import Optional
 
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
-from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import ProtectedError
@@ -323,13 +324,26 @@ class SessionKey(models.Model):
         if self.key is None:
             self.key = generate_random_key()
 
-        # Hash session key for validation
-        self.hash = make_password(self.key.hex())
+        # Store a fast validation digest of the session key
+        self.hash = self._hash_session_key(self.key)
 
         # Encrypt master key with session key using XOR
         self.cipher = strxor.strxor(self.key, master_key)
 
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def _hash_session_key(session_key: bytes) -> str:
+        """
+        Return a fast validation digest for a session key.
+
+        The session key is a 256-bit cryptographically random value, so a slow,
+        salted password KDF (PBKDF2) buys nothing here: it cannot be meaningfully
+        brute forced regardless of the hash's speed. Using a plain SHA-256 digest,
+        compared in constant time, validates the session key without paying a
+        PBKDF2 cost on every secret access (issue #227).
+        """
+        return hashlib.sha256(session_key).hexdigest()
 
     def get_master_key(self, session_key: bytes) -> bytes:
         """
@@ -344,7 +358,7 @@ class SessionKey(models.Model):
         Raises:
             InvalidKey: If session key is invalid
         """
-        if not check_password(session_key.hex(), self.hash):
+        if not hmac.compare_digest(self.hash, self._hash_session_key(session_key)):
             raise InvalidKey(_("Invalid session key"))
 
         return strxor.strxor(session_key, bytes(self.cipher))
@@ -367,7 +381,7 @@ class SessionKey(models.Model):
         """
         session_key = strxor.strxor(master_key, bytes(self.cipher))
 
-        if not check_password(session_key.hex(), self.hash):
+        if not hmac.compare_digest(self.hash, self._hash_session_key(session_key)):
             raise InvalidKey(_("Invalid master key"))
 
         return session_key

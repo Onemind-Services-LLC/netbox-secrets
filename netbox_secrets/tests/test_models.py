@@ -1,4 +1,5 @@
 import base64
+import hashlib
 from unittest import mock
 
 from Crypto.PublicKey import RSA
@@ -195,6 +196,13 @@ class SessionKeyModelTestCase(TestCase):
         wrong_master = b'x' * len(self.master_key)
         with self.assertRaises(InvalidKey):
             session_key.get_session_key(wrong_master)
+
+    def test_session_key_hash_is_fast_sha256(self):
+        # The session key is 256-bit random, so its validation digest is a fast
+        # SHA-256 of the key rather than a slow PBKDF2 password hash (issue #227).
+        session_key = SessionKey(userkey=self.userkey)
+        session_key.save(master_key=self.master_key)
+        self.assertEqual(session_key.hash, hashlib.sha256(session_key.key).hexdigest())
 
     def test_str(self):
         session_key = SessionKey(userkey=self.userkey)
