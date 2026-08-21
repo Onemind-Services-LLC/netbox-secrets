@@ -1,7 +1,9 @@
 import base64
+import hashlib
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
@@ -340,6 +342,25 @@ class SessionKeyAPITestCase(BaseAPITestCase):
             **self.header,
         )
         self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+
+    def test_session_key_preserve_upgrades_legacy_hash(self):
+        # Regression: a session key stored with a legacy PBKDF2 hash must still
+        # preserve successfully (not be reported as an invalid private key) and
+        # have its stored digest upgraded to SHA-256.
+        self.create_userkey()
+        session_key, encoded = self.create_session_key()
+        raw_key = base64.b64decode(encoded)
+        SessionKey.objects.filter(pk=session_key.pk).update(hash=make_password(raw_key.hex()))
+        url = reverse('plugins-api:netbox_secrets-api:sessionkey-list')
+        response = self.client.post(
+            url,
+            data={'private_key': PRIVATE_KEY, 'preserve_key': True},
+            **self.header,
+        )
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(response.data['session_key'], encoded)
+        session_key.refresh_from_db()
+        self.assertEqual(session_key.hash, hashlib.sha256(raw_key).hexdigest())
 
     def test_session_key_delete(self):
         self.create_userkey()

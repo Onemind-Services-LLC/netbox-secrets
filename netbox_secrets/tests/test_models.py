@@ -4,6 +4,7 @@ from unittest import mock
 
 from Crypto.PublicKey import RSA
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import ProtectedError
@@ -203,6 +204,30 @@ class SessionKeyModelTestCase(TestCase):
         session_key = SessionKey(userkey=self.userkey)
         session_key.save(master_key=self.master_key)
         self.assertEqual(session_key.hash, hashlib.sha256(session_key.key).hexdigest())
+
+    def test_legacy_pbkdf2_hash_validates_and_upgrades(self):
+        # A row written before the change stores a PBKDF2 hash; it must still
+        # validate, and be upgraded in place to the SHA-256 digest.
+        session_key = SessionKey(userkey=self.userkey)
+        session_key.save(master_key=self.master_key)
+        key = session_key.key
+        SessionKey.objects.filter(pk=session_key.pk).update(hash=make_password(key.hex()))
+        session_key.refresh_from_db()
+        self.assertIn('$', session_key.hash)
+
+        # Validates against the legacy hash and returns the correct master key
+        self.assertEqual(session_key.get_master_key(key), self.master_key)
+        # Stored digest is upgraded to SHA-256
+        session_key.refresh_from_db()
+        self.assertEqual(session_key.hash, hashlib.sha256(key).hexdigest())
+
+    def test_legacy_pbkdf2_hash_wrong_key_rejected(self):
+        session_key = SessionKey(userkey=self.userkey)
+        session_key.save(master_key=self.master_key)
+        SessionKey.objects.filter(pk=session_key.pk).update(hash=make_password(session_key.key.hex()))
+        session_key.refresh_from_db()
+        with self.assertRaises(InvalidKey):
+            session_key.get_master_key(b'wrong-session-key-000000000000000')
 
     def test_str(self):
         session_key = SessionKey(userkey=self.userkey)
