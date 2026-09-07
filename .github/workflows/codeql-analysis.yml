@@ -18,10 +18,11 @@ jobs:
       fail-fast: false
       matrix:
         language: [ 'python' ]
-    uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@7a5df58704eb175a5f377e0cb3d5172465977932
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: Onemind-Services-LLC/actions/.github/workflows/codeql-analysis.yml@8ba8dea9401b08db920340ab52a47a0b3dd6e8d2
     with:
       runs-on: ubuntu-22.04-sh
-      app-id: ${{ vars.APP_ID }}
       languages: ${{ matrix.language }}
-    secrets:
-      private-key: ${{ secrets.APP_PRIVATE_KEY }}
