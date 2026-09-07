@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   publish:
-    uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@master
+    uses: Onemind-Services-LLC/actions/.github/workflows/python-publish.yml@7a5df58704eb175a5f377e0cb3d5172465977932
     with:
       runs-on: ubuntu-22.04-sh
       app-id: ${{ vars.APP_ID }}
