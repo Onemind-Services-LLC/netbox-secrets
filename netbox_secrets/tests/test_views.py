@@ -49,23 +49,6 @@ class SecretRoleViewTestCase(TestCase):
         queryset = view.get_children(request, role)
         self.assertIn(secret, list(queryset))
 
-    def test_secret_view_extra_context(self):
-        role = SecretRole.objects.create(name='Role2', slug='role2')
-        device = create_test_device('device-view-2')
-        secret = Secret.objects.create(
-            assigned_object_type=ContentType.objects.get_for_model(device),
-            assigned_object_id=device.pk,
-            role=role,
-            name='secret2',
-            ciphertext=b'0123456789abcdef' * 5,
-            hash='dummy',
-        )
-        request = RequestFactory().get('/')
-        request.user = self.user
-        view = plugin_views.SecretView()
-        ctx = view.get_extra_context(request, secret)
-        self.assertIn('related_models', ctx)
-
 
 class SecretEditViewAccessTestCase(TestCase):
     user_permissions = (
