@@ -11,11 +11,12 @@ from typing import Optional
 
 from Crypto.Cipher import AES
 from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.postgres.indexes import GistIndex
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
-from netbox.models import NestedGroupModel, PrimaryModel
+from netbox.models import NestedLtreeGroupModel, PrimaryModel
 from netbox.models.features import ContactsMixin
 from utilities.querysets import RestrictedQuerySet
 from ..hashers import SecretValidationHasher
@@ -26,7 +27,7 @@ __all__ = [
 ]
 
 
-class SecretRole(NestedGroupModel):
+class SecretRole(NestedLtreeGroupModel):
     """
     Functional classification for secrets (e.g., "Login Credentials", "API Keys").
 
@@ -49,7 +50,13 @@ class SecretRole(NestedGroupModel):
     slug = models.SlugField(verbose_name=_('slug'), max_length=100, unique=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = [
+            'sort_path',
+        ]
+        indexes = [
+            GistIndex(fields=['path'], name='secrets_secretrole_path_gist'),
+            models.Index(fields=['sort_path'], name='secrets_sr_sort_path_idx'),
+        ]
         verbose_name = _('Secret Role')
         verbose_name_plural = _('Secret Roles')
 
