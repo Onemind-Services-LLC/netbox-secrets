@@ -262,6 +262,9 @@ class SecretEditView(generic.ObjectEditView):
                     obj.save()
                     form.save_m2m()
 
+                    if not self.queryset.filter(pk=obj.pk).exists():
+                        raise PermissionsViolation
+
                     msg = '{} {}'.format(
                         'Created' if object_created else 'Modified',
                         self.queryset.model._meta.verbose_name,
