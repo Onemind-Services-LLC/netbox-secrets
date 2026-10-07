@@ -12,4 +12,4 @@ class SecretPanel(panels.ObjectAttributesPanel):
 
 
 class SecretViewPanel(panels.ObjectPanel):
-    template_name = 'netbox_secrets/secretview_modal.html'
+    template_name = 'netbox_secrets/secret_data.html'

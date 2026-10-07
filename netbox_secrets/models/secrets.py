@@ -11,8 +11,8 @@ from typing import Optional
 
 from Crypto.Cipher import AES
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.postgres.indexes import GistIndex
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.postgres.indexes import GistIndex
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 

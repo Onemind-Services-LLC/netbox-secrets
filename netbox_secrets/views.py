@@ -187,7 +187,13 @@ class SecretView(GetRelatedModelsMixin, generic.ObjectView):
     template_name = 'generic/object.html'
     layout = layout.SimpleLayout(
         breadcrumbs=[
-            Breadcrumb('role', url=lambda role: f"{reverse('plugins:netbox_secrets:secret_list')}?role_id={role.pk}"),
+            Breadcrumb(
+                'role',
+                url=filtered_list_url(
+                    'plugins:netbox_secrets:secret_list',
+                    'role_id',
+                ),
+            ),
             Breadcrumb('assigned_object'),
             Breadcrumb(label=lambda obj: str(obj)),
         ],
