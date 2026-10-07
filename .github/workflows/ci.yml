@@ -12,12 +12,15 @@ concurrency:
 jobs:
   test:
     name: Run Tests
-    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@master
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@d44af503e3f1bd61435617830a7c604c047dc408
     with:
-      runs-on: ubuntu-22.04-sh
-      app-id: ${{ vars.APP_ID }}
+      lint-runs-on: ci-small
+      runs-on: ci-test
       plugin-name: 'netbox_secrets'
       netbox-version: v4.6.1
       coverage-minimum: 100
     secrets:
-      private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
