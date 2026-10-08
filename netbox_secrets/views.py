@@ -42,7 +42,7 @@ from utilities.views import (
 from . import exceptions, filtersets, forms, tables, utils
 from .constants import get_public_key_size
 from .models import Secret, SecretRole, SessionKey, UserKey
-from .ui.panels import SecretPanel, SecretViewPanel
+from .ui.panels import SecretPanel, SecretDataViewPanel
 
 
 #
@@ -202,7 +202,7 @@ class SecretView(GetRelatedModelsMixin, generic.ObjectView):
             CustomFieldsPanel(),
         ],
         right_panels=[
-            SecretViewPanel(),
+            SecretDataViewPanel(),
             TagsPanel(),
             CommentsPanel(),
         ],
