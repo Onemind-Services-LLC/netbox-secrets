@@ -1,5 +1,5 @@
 from django.utils.translation import gettext_lazy as _
-from netbox.ui import panels, attrs
+from netbox.ui import attrs, panels
 
 
 class SecretPanel(panels.ObjectAttributesPanel):
