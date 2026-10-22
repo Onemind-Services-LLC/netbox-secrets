@@ -33,7 +33,7 @@ def read_requirements(path: str) -> list[str]:
 
 setup(
     name='netbox-secrets',
-    version='3.1.1',
+    version='3.1.1+supra.panelrestrict',
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
