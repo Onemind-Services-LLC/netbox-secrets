@@ -323,6 +323,7 @@ class SessionKeyViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.SessionKeySerializer
     queryset = SessionKey.objects.select_related('userkey__user')
+    pagination_class = None
 
     def get_queryset(self):
         """
