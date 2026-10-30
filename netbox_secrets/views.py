@@ -180,7 +180,7 @@ class SecretListView(generic.ObjectListView):
 
 
 @register_model_view(Secret)
-class SecretView(GetRelatedModelsMixin, generic.ObjectView):
+class SecretView(generic.ObjectView):
     queryset = Secret.objects.all()
 
     template_name = 'generic/object.html'
