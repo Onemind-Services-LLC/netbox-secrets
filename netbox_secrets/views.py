@@ -14,8 +14,14 @@ from django.views.generic.base import View
 
 from core.signals import clear_events
 from extras.ui.panels import CustomFieldsPanel, TagsPanel
-from netbox.object_actions import AddObject, BulkDelete, BulkEdit, BulkExport
+from netbox.object_actions import (
+    AddObject,
+    BulkDelete,
+    BulkEdit,
+    BulkExport,
+)
 from netbox.ui import actions, layout
+from netbox.ui.breadcrumbs import Breadcrumb, filtered_list_url
 from netbox.ui.panels import (
     CommentsPanel,
     NestedGroupObjectPanel,
@@ -26,10 +32,16 @@ from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.querydict import prepare_cloned_fields
-from utilities.views import GetRelatedModelsMixin, GetReturnURLMixin, ViewTab, register_model_view
+from utilities.views import (
+    GetRelatedModelsMixin,
+    GetReturnURLMixin,
+    ViewTab,
+    register_model_view,
+)
 from . import exceptions, filtersets, forms, tables, utils
 from .constants import get_public_key_size
 from .models import Secret, SecretRole, SessionKey, UserKey
+from .ui.panels import SecretDataViewPanel, SecretPanel
 
 
 #
@@ -49,10 +61,24 @@ class SecretRoleListView(generic.ObjectListView):
 
 @register_model_view(SecretRole)
 class SecretRoleView(GetRelatedModelsMixin, generic.ObjectView):
+    template_name = 'generic/object.html'
     queryset = SecretRole.objects.all()
     layout = layout.SimpleLayout(
-        left_panels=[NestedGroupObjectPanel(), TagsPanel(), CommentsPanel()],
-        right_panels=[RelatedObjectsPanel(), CustomFieldsPanel()],
+        breadcrumbs=[
+            Breadcrumb(
+                lambda o: o.get_ancestors(),
+                url=filtered_list_url('plugins:netbox_secrets:secretrole_list', 'parent_id'),
+            ),
+        ],
+        left_panels=[
+            NestedGroupObjectPanel(),
+            TagsPanel(),
+            CommentsPanel(),
+        ],
+        right_panels=[
+            RelatedObjectsPanel(),
+            CustomFieldsPanel(),
+        ],
         bottom_panels=[
             ObjectsTablePanel(
                 'netbox_secrets.secretrole',
@@ -154,13 +180,32 @@ class SecretListView(generic.ObjectListView):
 
 
 @register_model_view(Secret)
-class SecretView(GetRelatedModelsMixin, generic.ObjectView):
+class SecretView(generic.ObjectView):
     queryset = Secret.objects.all()
 
-    def get_extra_context(self, request, instance):
-        return {
-            'related_models': self.get_related_models(request, instance),
-        }
+    template_name = 'generic/object.html'
+    layout = layout.SimpleLayout(
+        breadcrumbs=[
+            Breadcrumb(
+                'role',
+                url=filtered_list_url(
+                    'plugins:netbox_secrets:secret_list',
+                    'role_id',
+                ),
+            ),
+            Breadcrumb('assigned_object'),
+            Breadcrumb(label=lambda obj: str(obj)),
+        ],
+        left_panels=[
+            SecretPanel(),
+            CustomFieldsPanel(),
+        ],
+        right_panels=[
+            SecretDataViewPanel(),
+            TagsPanel(),
+            CommentsPanel(),
+        ],
+    )
 
 
 @register_model_view(Secret, 'add', detail=False)
