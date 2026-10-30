@@ -49,6 +49,44 @@ class SecretRoleViewTestCase(TestCase):
         queryset = view.get_children(request, role)
         self.assertIn(secret, list(queryset))
 
+    def test_secret_role_view(self):
+        url = reverse('plugins:netbox_secrets:secretrole', kwargs={'pk': self.parent.pk})
+        response = self.client.get(url)
+
+        self.assertHttpStatus(response, 200)
+        self.assertContains(response, self.parent.name)
+        self.assertContains(response, 'Child Roles')
+
+
+class SecretViewTestCase(TestCase):
+    user_permissions = (
+        'netbox_secrets.view_secret',
+        'netbox_secrets.view_secretrole',
+    )
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.role = SecretRole.objects.create(name='Role', slug='role')
+        cls.device = create_test_device('device-view')
+
+        cls.secret = Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(cls.device),
+            assigned_object_id=cls.device.pk,
+            role=cls.role,
+            name='Test Secret',
+            ciphertext=b'0123456789abcdef' * 5,
+            hash='dummy',
+        )
+
+    def test_secret_view(self):
+        url = reverse('plugins:netbox_secrets:secret', kwargs={'pk': self.secret.pk})
+        response = self.client.get(url)
+
+        self.assertHttpStatus(response, 200)
+        self.assertContains(response, self.secret.name)
+        self.assertContains(response, self.role.name)
+        self.assertContains(response, 'Secret Data')
+
 
 class SecretEditViewAccessTestCase(TestCase):
     user_permissions = (

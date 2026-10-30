@@ -12,4 +12,6 @@ class SecretPanel(panels.ObjectAttributesPanel):
 
 
 class SecretDataViewPanel(panels.ObjectPanel):
+    title = _('Secret Data')
+
     template_name = 'netbox_secrets/secret_data.html'
