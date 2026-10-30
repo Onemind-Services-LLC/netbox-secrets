@@ -26,7 +26,9 @@ def secrets_panel(self):
         return self.render(
             'netbox_secrets/inc/secrets_panel.html',
             extra_context={
-                'secrets': Secret.objects.filter(assigned_object_type=assigned_object_type, assigned_object_id=obj.id),
+                'secrets': Secret.objects.restrict(self.context['request'].user, 'view').filter(
+                    assigned_object_type=assigned_object_type, assigned_object_id=obj.id
+                ),
             },
         )
     return None
