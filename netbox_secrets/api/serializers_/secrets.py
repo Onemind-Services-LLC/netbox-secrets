@@ -104,6 +104,18 @@ class SecretSerializer(PrimaryModelSerializer):
         Raises:
             ValidationError: If plaintext provided but no master key in context
         """
+        instance = self.instance
+        object_type = data.get('assigned_object_type') or instance.assigned_object_type
+        object_id = data.get('assigned_object_id') or instance.assigned_object_id
+        name = data.get('name', instance.name if instance else '')
+
+        duplicates = Secret.objects.filter(
+            assigned_object_type_id=object_type.pk,
+            assigned_object_id=object_id,
+            name=name,
+        ).exclude(pk=getattr(instance, 'pk', None))
+        if duplicates.exists():
+            raise serializers.ValidationError({'name': 'A secret with this name already exists for this object.'})
         plaintext = data.get('plaintext')
 
         if plaintext:

@@ -121,6 +121,22 @@ class SecretFormTestCase(TestCase):
         )
         self.assertTrue(form.is_valid())
 
+    def test_secret_form_duplicate_name(self):
+        Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name='dup',
+            ciphertext=b'0123456789abcdef' * 5,
+            hash='dummy',
+        )
+        form = SecretForm(
+            data={'name': 'dup', 'role': self.role.pk, 'plaintext': 'x', 'plaintext2': 'x'},
+            instance=self._instance(),
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('name', form.errors)
+
 
 class UserKeyFormTestCase(TestCase):
     def setUp(self):

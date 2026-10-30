@@ -536,6 +536,17 @@ class SecretAPITestCase(BaseAPITestCase):
         response = self.client.get(url, HTTP_X_SESSION_KEY=self.session_key_b64, **self.header)
         self.assertHttpStatus(response, status.HTTP_200_OK)
 
+    def test_create_duplicate_name_rejected(self):
+        url = reverse('plugins-api:netbox_secrets-api:secret-list')
+        self.client.cookies[SESSION_COOKIE_NAME] = self.session_key_b64
+        response = self.client.post(url, data=self._secret_payload(), format='json', **self.header)
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+
+        response = self.client.post(url, data=self._secret_payload(), format='json', **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('name', response.data)
+        self.client.cookies.pop(SESSION_COOKIE_NAME, None)
+
 
 class GenerateKeyPairAPITestCase(BaseAPITestCase):
     def test_generate_key_pair(self):
