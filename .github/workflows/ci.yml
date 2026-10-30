@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@e9d4e36d4f1d6005b4129abf0e9331be86ed3f73
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@554e9d3e621233e8153051ea3200ad7cd95ea5b8
     with:
       lint-runs-on: ci-small
       runs-on: ci-test
