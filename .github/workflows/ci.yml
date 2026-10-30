@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@d44af503e3f1bd61435617830a7c604c047dc408
+    uses: Onemind-Services-LLC/actions/.github/workflows/netbox-plugin-tests.yml@e9d4e36d4f1d6005b4129abf0e9331be86ed3f73
     with:
       lint-runs-on: ci-small
       runs-on: ci-test
@@ -24,3 +24,5 @@ jobs:
       coverage-minimum: 100
     secrets:
       GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
