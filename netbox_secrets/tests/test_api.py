@@ -547,6 +547,69 @@ class SecretAPITestCase(BaseAPITestCase):
         self.assertIn('name', response.data)
         self.client.cookies.pop(SESSION_COOKIE_NAME, None)
 
+    def test_update_secret_to_existing_name_rejected(self):
+        url = reverse('plugins-api:netbox_secrets-api:secret-list')
+        self.client.cookies[SESSION_COOKIE_NAME] = self.session_key_b64
+
+        response = self.client.post(
+            url,
+            data=self._secret_payload(),
+            format='json',
+            **self.header,
+        )
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+
+        payload = self._secret_payload()
+        payload['name'] = 'another-secret'
+        response = self.client.post(url, data=payload, format='json', **self.header)
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+
+        secret_id = response.data['id']
+        detail_url = reverse(
+            'plugins-api:netbox_secrets-api:secret-detail',
+            kwargs={'pk': secret_id},
+        )
+        response = self.client.patch(
+            detail_url,
+            data={'name': 'secret'},
+            format='json',
+            **self.header,
+        )
+
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('name', response.data)
+        self.client.cookies.pop(SESSION_COOKIE_NAME, None)
+
+    def test_create_same_name_with_different_role_allowed(self):
+        url = reverse('plugins-api:netbox_secrets-api:secret-list')
+        self.client.cookies[SESSION_COOKIE_NAME] = self.session_key_b64
+
+        response = self.client.post(
+            url,
+            data=self._secret_payload(),
+            format='json',
+            **self.header,
+        )
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+
+        another_role = SecretRole.objects.create(
+            name='Another Role',
+            slug='another-role',
+        )
+
+        payload = self._secret_payload()
+        payload['role'] = {'id': another_role.pk}
+
+        response = self.client.post(
+            url,
+            data=payload,
+            format='json',
+            **self.header,
+        )
+
+        self.assertHttpStatus(response, status.HTTP_201_CREATED)
+        self.client.cookies.pop(SESSION_COOKIE_NAME, None)
+
 
 class GenerateKeyPairAPITestCase(BaseAPITestCase):
     def test_generate_key_pair(self):
