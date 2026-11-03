@@ -7,10 +7,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.urls import reverse
 
+from core.models import ObjectType
 from netbox_secrets import views as plugin_views
 from netbox_secrets.forms import SecretForm
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
+from users.models import ObjectPermission
 from utilities.testing import TestCase, create_test_device
 
 
@@ -238,6 +240,80 @@ class SecretEditViewPostTestCase(TestCase):
                 data=self._post_data(include_session_key=True),
             )
         self.assertHttpStatus(response, 302)
+
+
+class SecretEditViewConstrainedPermissionTestCase(TestCase):
+    """
+    Saving a secret that falls outside the user's constrained add/change permission
+    must be rejected and rolled back.
+    """
+
+    user_permissions = ('netbox_secrets.view_secretrole',)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.allowed_role = SecretRole.objects.create(name='Allowed', slug='allowed')
+        cls.denied_role = SecretRole.objects.create(name='Denied', slug='denied')
+        cls.device = create_test_device('device-constrained')
+        cls.obj_perm = ObjectPermission(
+            name='Manage allowed secrets',
+            actions=['view', 'add', 'change'],
+            constraints={'role__slug': cls.allowed_role.slug},
+        )
+        cls.obj_perm.save()
+        cls.obj_perm.object_types.add(ObjectType.objects.get_for_model(Secret))
+
+    def setUp(self):
+        super().setUp()
+        self.obj_perm.users.add(self.user)
+        self.userkey = UserKey.objects.create(user=self.user, public_key=PUBLIC_KEY)
+        master_key = self.userkey.get_master_key(PRIVATE_KEY)
+        self.session_key = SessionKey(userkey=self.userkey)
+        self.session_key.save(master_key=master_key)
+        self.session_key_b64 = base64.b64encode(self.session_key.key).decode('utf-8')
+
+    def _add_url(self):
+        return (
+            f"{reverse('plugins:netbox_secrets:secret_add')}"
+            f"?assigned_object_type={ContentType.objects.get_for_model(self.device).pk}"
+            f"&assigned_object_id={self.device.pk}"
+        )
+
+    def _post_data(self, role):
+        return {
+            'name': 'constrained',
+            'role': role.pk,
+            'plaintext': 'secret',
+            'plaintext2': 'secret',
+            'session_key': self.session_key_b64,
+        }
+
+    def test_create_with_permitted_role(self):
+        response = self.client.post(self._add_url(), data=self._post_data(self.allowed_role))
+        self.assertHttpStatus(response, 302)
+        self.assertTrue(Secret.objects.filter(name='constrained', role=self.allowed_role).exists())
+
+    def test_create_with_denied_role_is_rejected(self):
+        response = self.client.post(self._add_url(), data=self._post_data(self.denied_role))
+        self.assertHttpStatus(response, 200)
+        self.assertTrue(response.context['form'].non_field_errors())
+        self.assertFalse(Secret.objects.filter(name='constrained').exists())
+
+    def test_edit_to_denied_role_is_rejected(self):
+        secret = Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.allowed_role,
+            name='constrained-edit',
+            ciphertext=b'0123456789abcdef' * 5,
+            hash='dummy',
+        )
+        url = reverse('plugins:netbox_secrets:secret_edit', kwargs={'pk': secret.pk})
+        response = self.client.post(url, data={'name': 'constrained-edit', 'role': self.denied_role.pk})
+        self.assertHttpStatus(response, 200)
+        self.assertTrue(response.context['form'].non_field_errors())
+        secret.refresh_from_db()
+        self.assertEqual(secret.role, self.allowed_role)
 
 
 class UserKeyViewTestCase(TestCase):
