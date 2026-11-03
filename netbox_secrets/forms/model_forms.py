@@ -168,7 +168,7 @@ class SecretForm(PrimaryModelForm):
         return plaintext
 
     def clean(self):
-        """Validate that plaintext values match."""
+        """Validate that plaintext values match and the name is unique per assigned object."""
         super().clean()
 
         plaintext = self.cleaned_data.get('plaintext', '')
@@ -177,6 +177,16 @@ class SecretForm(PrimaryModelForm):
         # Verify that the provided plaintext values match
         if plaintext != plaintext2:
             raise ValidationError({'plaintext2': _("The two secret values do not match. Please check your input.")})
+
+        if self.cleaned_data.get("role") is not None:
+            duplicates = Secret.objects.filter(
+                assigned_object_type_id=self.instance.assigned_object_type_id,
+                assigned_object_id=self.instance.assigned_object_id,
+                role=self.cleaned_data.get("role"),
+                name=self.cleaned_data.get("name") or "",
+            ).exclude(pk=self.instance.pk)
+            if duplicates.exists():
+                raise ValidationError({'name': _("A secret with this name already exists for this object.")})
 
         return self.cleaned_data
 
