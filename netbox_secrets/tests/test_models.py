@@ -331,6 +331,7 @@ class SecretModelTestCase(TestCase):
         self.assertEqual(secret.plaintext, "supersecret")
         self.assertEqual(secret.hash, legacy_hash)
 
+
 class CryptoUtilsTestCase(TestCase):
     def test_encrypt_decrypt_master_key(self):
         master_key = generate_random_key()
