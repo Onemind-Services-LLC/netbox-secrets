@@ -105,10 +105,16 @@ class SecretSerializer(PrimaryModelSerializer):
             ValidationError: If plaintext provided but no master key in context
         """
         instance = self.instance
-        object_type = data.get('assigned_object_type') or instance.assigned_object_type
-        object_id = data.get('assigned_object_id') or instance.assigned_object_id
-        name = data.get('name', instance.name if instance else '')
-        role = data.get("role", instance.role if instance else None)
+        object_type = data.get(
+            "assigned_object_type",
+            getattr(instance, "assigned_object_type", None),
+        )
+        object_id = data.get(
+            "assigned_object_id",
+            getattr(instance, "assigned_object_id", None),
+        )
+        name = data.get("name", getattr(instance, "name", "")) or ""
+        role = data.get("role", getattr(instance, "role", None))
 
         duplicates = Secret.objects.filter(
             assigned_object_type_id=object_type.pk,

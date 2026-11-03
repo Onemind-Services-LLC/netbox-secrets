@@ -213,6 +213,29 @@ class SecretFormTestCase(TestCase):
 
         self.assertTrue(form.is_valid(), form.errors)
 
+    def test_secret_form_empty_name_same_role_rejected(self):
+        Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name="",
+            ciphertext=b"0123456789abcdef" * 5,
+            hash="dummy",
+        )
+
+        form = SecretForm(
+            data={
+                "name": "",
+                "role": self.role.pk,
+                "plaintext": "secret",
+                "plaintext2": "secret",
+            },
+            instance=self._instance(),
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+
 
 class UserKeyFormTestCase(TestCase):
     def setUp(self):
