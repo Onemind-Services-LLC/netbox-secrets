@@ -108,12 +108,14 @@ class SecretSerializer(PrimaryModelSerializer):
         object_type = data.get('assigned_object_type') or instance.assigned_object_type
         object_id = data.get('assigned_object_id') or instance.assigned_object_id
         name = data.get('name', instance.name if instance else '')
+        role = data.get("role", instance.role if instance else None)
 
         duplicates = Secret.objects.filter(
             assigned_object_type_id=object_type.pk,
             assigned_object_id=object_id,
+            role=role,
             name=name,
-        ).exclude(pk=getattr(instance, 'pk', None))
+        ).exclude(pk=getattr(instance, "pk", None))
         if duplicates.exists():
             raise serializers.ValidationError({'name': 'A secret with this name already exists for this object.'})
         plaintext = data.get('plaintext')

@@ -137,6 +137,82 @@ class SecretFormTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('name', form.errors)
 
+    def test_secret_form_same_name_different_role_allowed(self):
+        another_role = SecretRole.objects.create(
+            name="Another Role",
+            slug="another-role",
+        )
+
+        Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name="duplicate",
+            ciphertext=b"0123456789abcdef" * 5,
+            hash="dummy",
+        )
+
+        form = SecretForm(
+            data={
+                "name": "duplicate",
+                "role": another_role.pk,
+                "plaintext": "secret",
+                "plaintext2": "secret",
+            },
+            instance=self._instance(),
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_secret_form_empty_name_different_role_allowed(self):
+        another_role = SecretRole.objects.create(
+            name="Another Role",
+            slug="another-role",
+        )
+
+        Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name="",
+            ciphertext=b"0123456789abcdef" * 5,
+            hash="dummy",
+        )
+
+        form = SecretForm(
+            data={
+                "name": "",
+                "role": another_role.pk,
+                "plaintext": "secret",
+                "plaintext2": "secret",
+            },
+            instance=self._instance(),
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_secret_form_update_keeps_own_name(self):
+        secret = Secret.objects.create(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name="existing-secret",
+            ciphertext=b"0123456789abcdef" * 5,
+            hash="dummy",
+        )
+
+        form = SecretForm(
+            data={
+                "name": "existing-secret",
+                "role": self.role.pk,
+                "plaintext": "",
+                "plaintext2": "",
+            },
+            instance=secret,
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
 
 class UserKeyFormTestCase(TestCase):
     def setUp(self):
