@@ -8,6 +8,7 @@ from strawberry_django import StrFilterLookup
 from netbox.graphql.filters import (
     OrganizationalModelFilter,
     PrimaryModelFilter,
+    register_filter,
 )
 from tenancy.graphql.filter_mixins import ContactFilterMixin
 from ..models import *
@@ -21,7 +22,7 @@ __all__ = [
 ]
 
 
-@strawberry_django.filter_type(SecretRole, lookups=True)
+@register_filter(SecretRole, lookups=True)
 class SecretRoleFilter(OrganizationalModelFilter):
     parent: Annotated[
         'SecretRoleFilter', strawberry.lazy('netbox_secrets.graphql.filters')
@@ -35,7 +36,7 @@ class SecretRoleFilter(OrganizationalModelFilter):
     ] | None = strawberry_django.filter_field()
 
 
-@strawberry_django.filter_type(Secret, lookups=True)
+@register_filter(Secret, lookups=True)
 class SecretFilter(PrimaryModelFilter, ContactFilterMixin):
     name: StrFilterLookup[str] | None = strawberry_django.filter_field()
     role: Annotated[

@@ -5,7 +5,7 @@ import strawberry_django
 from strawberry.scalars import ID
 
 from extras.graphql.mixins import ContactsMixin
-from netbox.graphql.types import NestedGroupObjectType, PrimaryObjectType
+from netbox.graphql.types import NestedGroupObjectType, PrimaryObjectType, register_type
 from netbox_secrets.models import Secret, SecretRole
 from .filters import *
 
@@ -18,7 +18,7 @@ __all__ = [
 ]
 
 
-@strawberry_django.type(Secret, exclude=['ciphertext', 'hash', 'plaintext'], filters=SecretFilter, pagination=True)
+@register_type(Secret, exclude=['ciphertext', 'hash', 'plaintext'], filters=SecretFilter, pagination=True)
 class SecretType(ContactsMixin, PrimaryObjectType):
     role: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')]
     assigned_object_type: Annotated[
@@ -28,7 +28,7 @@ class SecretType(ContactsMixin, PrimaryObjectType):
     assigned_object_id: ID | None = strawberry_django.filter_field()
 
 
-@strawberry_django.type(SecretRole, fields="__all__", filters=SecretRoleFilter, pagination=True)
+@register_type(SecretRole, exclude=['path', 'sort_path'], filters=SecretRoleFilter, pagination=True)
 class SecretRoleType(NestedGroupObjectType):
     parent: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')] | None
 
