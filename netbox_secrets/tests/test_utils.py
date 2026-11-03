@@ -129,10 +129,14 @@ class TemplateContentTestCase(TestCase):
 
     def test_secrets_panel(self):
         template_content = importlib.import_module('netbox_secrets.template_content')
+        from django.contrib.auth import get_user_model
+
+        request = RequestFactory().get('/')
+        request.user = get_user_model().objects.create_user(username='panel-user')
 
         class Dummy:
             def __init__(self, obj):
-                self.context = {'object': obj}
+                self.context = {'object': obj, 'request': request}
                 self.models = ['dcim.device']
                 self.rendered = None
 
