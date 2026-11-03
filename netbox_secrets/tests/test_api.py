@@ -2,6 +2,7 @@ import base64
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
@@ -13,6 +14,7 @@ from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from netbox_secrets.api import serializers, views as api_views
 from netbox_secrets.constants import SESSION_COOKIE_NAME
+from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
 from utilities.testing import APITestCase, TestCase, create_test_device
@@ -609,6 +611,50 @@ class SecretAPITestCase(BaseAPITestCase):
 
         self.assertHttpStatus(response, status.HTTP_201_CREATED)
         self.client.cookies.pop(SESSION_COOKIE_NAME, None)
+
+    def _create_encrypted_secret(self, name, plaintext, legacy_hash=False):
+        master_key = self.userkey.get_master_key(PRIVATE_KEY)
+        secret = Secret(
+            assigned_object_type=ContentType.objects.get_for_model(self.device),
+            assigned_object_id=self.device.pk,
+            role=self.role,
+            name=name,
+            plaintext=plaintext,
+        )
+        secret.encrypt(master_key)
+        if legacy_hash:
+            secret.hash = make_password(plaintext, hasher=SecretValidationHasher())
+        secret.save()
+        return secret
+
+    def _results_by_name(self, response):
+        return {item['name']: item for item in response.data['results']}
+
+    def test_list_decrypts_by_default(self):
+        self._create_encrypted_secret('one', 'plain-one')
+        url = reverse('plugins-api:netbox_secrets-api:secret-list')
+        response = self.client.get(url, HTTP_X_SESSION_KEY=self.session_key_b64, **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(self._results_by_name(response)['one']['plaintext'], 'plain-one')
+
+    def test_legacy_secret_hash_is_still_readable(self):
+        legacy = self._create_encrypted_secret('legacy', 'plain-legacy', legacy_hash=True)
+        url = reverse('plugins-api:netbox_secrets-api:secret-detail', kwargs={'pk': legacy.pk})
+
+        with self.assertWarns(DeprecationWarning):
+            response = self.client.get(url, HTTP_X_SESSION_KEY=self.session_key_b64, **self.header)
+
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual(response.data['plaintext'], 'plain-legacy')
+        legacy.refresh_from_db()
+        self.assertTrue(legacy.hash.startswith('pbkdf2_'))
+
+    def test_legacy_session_key_hash_is_rejected(self):
+        SessionKey.objects.filter(pk=self.session_key.pk).update(hash=make_password(self.session_key.key.hex()))
+        url = reverse('plugins-api:netbox_secrets-api:secret-list')
+
+        response = self.client.get(url, HTTP_X_SESSION_KEY=self.session_key_b64, **self.header)
+        self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
 
 
 class GenerateKeyPairAPITestCase(BaseAPITestCase):
