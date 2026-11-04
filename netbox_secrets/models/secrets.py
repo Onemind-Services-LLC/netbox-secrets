@@ -10,7 +10,6 @@ import secrets as secrets_module
 from typing import Optional
 
 from Crypto.Cipher import AES
-from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -18,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from netbox.models import NestedGroupModel, PrimaryModel
 from netbox.models.features import ContactsMixin
 from utilities.querysets import RestrictedQuerySet
-from ..hashers import SecretValidationHasher
+from ..hashers import check_secret_hash, make_secret_hash
 
 __all__ = [
     'SecretRole',
@@ -239,7 +238,7 @@ class Secret(PrimaryModel, ContactsMixin):
         2. Pad plaintext with length header and random bytes
         3. Encrypt padded plaintext using AES-256-CFB
         4. Prepend IV to ciphertext for use in decryption
-        5. Generate SHA-256 hash of plaintext for validation
+        5. Generate a keyed HMAC-SHA256 of the plaintext for validation
         6. Clear plaintext from memory
 
         The ciphertext format is:
@@ -262,8 +261,8 @@ class Secret(PrimaryModel, ContactsMixin):
         padded_plaintext = self._pad(self.plaintext)
         self.ciphertext = iv + cipher.encrypt(padded_plaintext)
 
-        # Generate validation hash using custom hasher
-        self.hash = make_password(self.plaintext, hasher=SecretValidationHasher())
+        # Generate the (keyed) validation hash
+        self.hash = make_secret_hash(self.plaintext, secret_key)
 
         # Clear plaintext from memory for security
         self.plaintext = None
@@ -300,20 +299,21 @@ class Secret(PrimaryModel, ContactsMixin):
         plaintext = self._unpad(cipher.decrypt(encrypted_data))
 
         # Validate decrypted plaintext against hash
-        if not self.validate(plaintext):
+        if not self.validate(plaintext, secret_key):
             raise ValueError(_("Decryption failed: invalid key or corrupted ciphertext"))
 
         self.plaintext = plaintext
 
-    def validate(self, plaintext: str) -> bool:
+    def validate(self, plaintext: str, secret_key: bytes) -> bool:
         """
-        Verify plaintext matches the stored SHA-256 hash.
+        Verify plaintext matches the stored validation hash.
 
         This ensures the decrypted plaintext is correct and hasn't been
         corrupted or tampered with.
 
         Args:
             plaintext: Plaintext to validate
+            secret_key: Key the plaintext was decrypted with (the hash is keyed with it)
 
         Returns:
             True if plaintext matches stored hash, False otherwise
@@ -324,4 +324,4 @@ class Secret(PrimaryModel, ContactsMixin):
         if not self.hash:
             raise ValueError(_("Cannot validate: hash not generated for this secret."))
 
-        return check_password(plaintext, self.hash, preferred=SecretValidationHasher())
+        return check_secret_hash(plaintext, secret_key, self.hash)
