@@ -45,9 +45,22 @@ class SecretHashTestCase(SimpleTestCase):
         key = generate_random_key()
         encoded = make_secret_hash('hunter2', key)
         self.assertTrue(encoded.startswith('hmac_sha256$'))
+        self.assertEqual(len(encoded.split('$')), 3)
         self.assertLessEqual(len(encoded), 128)
         self.assertTrue(check_secret_hash('hunter2', key, encoded))
         self.assertFalse(check_secret_hash('hunter3', key, encoded))
+
+    def test_same_value_gives_different_hashes_that_both_validate(self):
+        key = generate_random_key()
+        first = make_secret_hash('hunter2', key)
+        second = make_secret_hash('hunter2', key)
+        self.assertNotEqual(first, second)
+        self.assertTrue(check_secret_hash('hunter2', key, first))
+        self.assertTrue(check_secret_hash('hunter2', key, second))
+
+    def test_malformed_hash_is_invalid(self):
+        key = generate_random_key()
+        self.assertFalse(check_secret_hash('hunter2', key, 'hmac_sha256$' + 'a' * 64))
 
     def test_hash_is_keyed(self):
         self.assertNotEqual(

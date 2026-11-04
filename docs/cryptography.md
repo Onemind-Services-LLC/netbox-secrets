@@ -27,8 +27,10 @@ This section explains the key hierarchy and how secrets are protected.
 
 - Secret plaintext is encrypted using AES-256-CFB with a random IV.
 - The plaintext is padded with a length header and random padding before encryption.
-- A validation hash of the plaintext is stored to verify decryption integrity. It is an HMAC-SHA256 keyed with the master
-  key, so it is fast to check and cannot be used to guess plaintexts without the master key. Hashes created by older
+- A validation hash of the plaintext is stored to verify decryption integrity. It is an HMAC-SHA256 of a random per-secret
+  salt plus the plaintext, keyed with the master key (`hmac_sha256$<salt>$<digest>`). It is fast to check, cannot be used to
+  guess plaintexts without the master key, and equal values get different hashes. The hash is internal and is not returned
+  by the API. Hashes created by older
   releases (PBKDF2) are still accepted for now (see below).
 
 > **Upgrade note, session keys:** session keys created by older releases (slow PBKDF2 hash) are no longer accepted.

@@ -287,6 +287,17 @@ class SecretModelTestCase(TestCase):
         # Decrypt is a no-op if plaintext already populated
         secret.decrypt(self.secret_key)
 
+    def test_encrypting_same_value_twice_gives_different_hashes(self):
+        first = self._create_secret(plaintext="supersecret")
+        first.encrypt(self.secret_key)
+        second = self._create_secret(plaintext="supersecret")
+        second.encrypt(self.secret_key)
+
+        self.assertNotEqual(first.hash, second.hash)
+        self.assertNotEqual(first.ciphertext, second.ciphertext)
+        self.assertTrue(first.validate("supersecret", self.secret_key))
+        self.assertTrue(second.validate("supersecret", self.secret_key))
+
     def test_encrypt_without_plaintext(self):
         secret = self._create_secret()
         secret.plaintext = None

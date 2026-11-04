@@ -48,7 +48,6 @@ class SecretSerializer(PrimaryModelSerializer):
     assigned_object_type = ContentTypeField(queryset=ObjectType.objects.filter(SECRET_ASSIGNABLE_MODELS))
     assigned_object = GFKSerializerField(read_only=True)
     plaintext = serializers.CharField(required=False, help_text="Plaintext secret value (encrypted at rest)")
-    hash = serializers.CharField(read_only=True, help_text="SHA-256 hash for validation (read-only)")
 
     class Meta:
         model = Secret
@@ -62,7 +61,6 @@ class SecretSerializer(PrimaryModelSerializer):
             'role',
             'name',
             'plaintext',
-            'hash',
             'description',
             'comments',
             'tags',

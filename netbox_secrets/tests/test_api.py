@@ -637,6 +637,19 @@ class SecretAPITestCase(BaseAPITestCase):
         self.assertHttpStatus(response, status.HTTP_200_OK)
         self.assertEqual(self._results_by_name(response)['one']['plaintext'], 'plain-one')
 
+    def test_hash_is_not_exposed(self):
+        secret = self._create_encrypted_secret('one', 'plain-one')
+        list_url = reverse('plugins-api:netbox_secrets-api:secret-list')
+        detail_url = reverse('plugins-api:netbox_secrets-api:secret-detail', kwargs={'pk': secret.pk})
+
+        for url in (list_url, detail_url):
+            for headers in ({}, {'HTTP_X_SESSION_KEY': self.session_key_b64}):
+                response = self.client.get(url, **headers, **self.header)
+                self.assertHttpStatus(response, status.HTTP_200_OK)
+                item = response.data['results'][0] if 'results' in response.data else response.data
+                self.assertNotIn('hash', item)
+                self.assertNotIn(secret.hash, str(response.content))
+
     def test_legacy_secret_hash_is_still_readable(self):
         legacy = self._create_encrypted_secret('legacy', 'plain-legacy', legacy_hash=True)
         url = reverse('plugins-api:netbox_secrets-api:secret-detail', kwargs={'pk': legacy.pk})
