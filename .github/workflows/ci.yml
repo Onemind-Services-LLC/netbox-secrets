@@ -20,7 +20,7 @@ jobs:
       lint-runs-on: ci-small
       runs-on: ci-test
       plugin-name: 'netbox_secrets'
-      netbox-version: v4.7.3
+      netbox-version: v4.7.4
       coverage-minimum: 100
     secrets:
       GIT_TOKEN: ${{ secrets.GIT_TOKEN }}

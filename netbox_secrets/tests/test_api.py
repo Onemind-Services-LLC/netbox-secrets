@@ -15,7 +15,8 @@ from netbox_secrets.api import serializers, views as api_views
 from netbox_secrets.constants import SESSION_COOKIE_NAME
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
-from utilities.testing import APITestCase, TestCase, create_test_device
+from netbox_secrets.graphql.types import SecretRoleType
+from utilities.testing import APITestCase, APIViewTestCases, create_test_device, GraphQLQueryTest, TestCase
 
 
 class SerializerTestCase(TestCase):
@@ -173,6 +174,61 @@ class BaseAPITestCase(APITestCase):
         session_key = SessionKey(userkey=userkey)
         session_key.save(master_key=master_key)
         return session_key, base64.b64encode(session_key.key).decode('utf-8')
+
+
+class SecretRoleGraphQLTestCase(APIViewTestCases.GraphQLTestCase):
+    model = SecretRole
+    type_class = SecretRoleType
+
+    # This test focuses on the hierarchy-related GraphQL field.
+    graphql_auto_filter_tests = False
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.parent = SecretRole.objects.create(
+            name='Parent Role',
+            slug='parent-role',
+        )
+        cls.child = SecretRole.objects.create(
+            name='Child Role',
+            slug='child-role',
+            parent=cls.parent,
+        )
+
+        cls.graphql_query_tests = (
+            GraphQLQueryTest(
+                name='secret_role_levels',
+                query=f"""
+                    {{
+                        secret_role(id: {cls.parent.pk}) {{
+                            name
+                            level
+                            children {{
+                                name
+                                level
+                            }}
+                        }}
+                    }}
+                """,
+                assert_result=cls.assert_secret_role_levels,
+            ),
+        )
+
+    def assert_secret_role_levels(self, data):
+        parent = data['secret_role']
+
+        self.assertEqual(parent['name'], self.parent.name)
+        self.assertEqual(parent['level'], 0)
+
+        self.assertEqual(
+            parent['children'],
+            [
+                {
+                    'name': self.child.name,
+                    'level': 1,
+                }
+            ],
+        )
 
 
 class SecretsRootAPITestCase(BaseAPITestCase):

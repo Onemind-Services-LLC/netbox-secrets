@@ -1,3 +1,11 @@
+"""Migrate SecretRole's hierarchy from django-mptt to PostgreSQL ltree.
+
+The supported migration direction is forward. Reversing this migration restores
+the legacy MPTT columns but does not repopulate their values from the parent
+relationships, so it does not reconstruct a valid MPTT tree. Take a database
+backup before applying this migration; do not treat reversing it as a
+data-preserving rollback.
+"""
 from django.contrib.postgres.indexes import GistIndex
 from django.contrib.postgres.operations import CreateExtension
 from django.db import migrations, models
@@ -14,7 +22,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Enable the ltree extension first so the migration fails fast if it is missing.
+        # Create the PostgreSQL ltree extension before adding ltree columns and triggers.
         CreateExtension('ltree'),
 
         # Switch parent from mptt.fields.TreeForeignKey to django.db.models.ForeignKey.
@@ -90,7 +98,7 @@ class Migration(migrations.Migration):
         # Use hierarchical ordering.
         migrations.AlterModelOptions(
             name='secretrole',
-            options={'ordering': ('sort_path',)},
+            options={'ordering': ['sort_path']},
         ),
 
         # Drop legacy MPTT columns.

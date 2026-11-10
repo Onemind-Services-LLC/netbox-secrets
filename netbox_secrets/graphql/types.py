@@ -5,7 +5,11 @@ import strawberry_django
 from strawberry.scalars import ID
 
 from extras.graphql.mixins import ContactsMixin
-from netbox.graphql.types import NestedGroupObjectType, PrimaryObjectType, register_type
+from netbox.graphql.types import (
+    NestedLtreeGroupObjectType,
+    PrimaryObjectType,
+    register_type,
+)
 from netbox_secrets.models import Secret, SecretRole
 from .filters import *
 
@@ -29,7 +33,7 @@ class SecretType(ContactsMixin, PrimaryObjectType):
 
 
 @register_type(SecretRole, exclude=['path', 'sort_path'], filters=SecretRoleFilter, pagination=True)
-class SecretRoleType(NestedGroupObjectType):
+class SecretRoleType(NestedLtreeGroupObjectType):
     parent: Annotated['SecretRoleType', strawberry.lazy('netbox_secrets.graphql.types')] | None
 
     secrets: List[SecretType]
