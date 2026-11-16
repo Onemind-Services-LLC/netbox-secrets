@@ -11,7 +11,6 @@ from typing import Optional
 from Crypto.PublicKey import RSA
 from Crypto.Util import strxor
 from django.conf import settings
-from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import ProtectedError
@@ -22,6 +21,7 @@ from netbox.models import NetBoxModel
 from utilities.querysets import RestrictedQuerySet
 from ..constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED, get_public_key_size
 from ..exceptions import InvalidKey
+from ..hashers import check_session_key_hash, make_session_key_hash
 from ..querysets import UserKeyQuerySet
 from ..utils import decrypt_master_key, encrypt_master_key, generate_random_key
 
@@ -324,7 +324,7 @@ class SessionKey(models.Model):
             self.key = generate_random_key()
 
         # Hash session key for validation
-        self.hash = make_password(self.key.hex())
+        self.hash = make_session_key_hash(self.key)
 
         # Encrypt master key with session key using XOR
         self.cipher = strxor.strxor(self.key, master_key)
@@ -344,7 +344,7 @@ class SessionKey(models.Model):
         Raises:
             InvalidKey: If session key is invalid
         """
-        if not check_password(session_key.hex(), self.hash):
+        if not check_session_key_hash(session_key, self.hash):
             raise InvalidKey(_("Invalid session key"))
 
         return strxor.strxor(session_key, bytes(self.cipher))
@@ -367,7 +367,7 @@ class SessionKey(models.Model):
         """
         session_key = strxor.strxor(master_key, bytes(self.cipher))
 
-        if not check_password(session_key.hex(), self.hash):
+        if not check_session_key_hash(session_key, self.hash):
             raise InvalidKey(_("Invalid master key"))
 
         return session_key
