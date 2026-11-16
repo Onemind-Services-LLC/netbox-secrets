@@ -3,12 +3,14 @@ from unittest import mock
 
 from Crypto.PublicKey import RSA
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import ProtectedError
 
 from netbox_secrets.constants import CENSOR_MASTER_KEY, CENSOR_MASTER_KEY_CHANGED
 from netbox_secrets.exceptions import InvalidKey
+from netbox_secrets.hashers import SecretValidationHasher
 from netbox_secrets.models import Secret, SecretRole, SessionKey, UserKey
 from netbox_secrets.tests.constants import PRIVATE_KEY, PUBLIC_KEY
 from netbox_secrets.utils import decrypt_master_key, encrypt_master_key, generate_random_key
@@ -200,6 +202,23 @@ class SessionKeyModelTestCase(TestCase):
         session_key = SessionKey(userkey=self.userkey)
         self.assertIn(self.userkey.user.username, str(session_key))
 
+    def test_legacy_session_key_hash_is_rejected(self):
+        session_key = SessionKey(userkey=self.userkey)
+        session_key.save(master_key=self.master_key)
+        key = session_key.key
+        SessionKey.objects.filter(pk=session_key.pk).update(hash=make_password(key.hex()))
+        session_key.refresh_from_db()
+
+        with self.assertRaises(InvalidKey):
+            session_key.get_master_key(key)
+        with self.assertRaises(InvalidKey):
+            session_key.get_session_key(self.master_key)
+
+    def test_session_key_uses_fast_hash(self):
+        session_key = SessionKey(userkey=self.userkey)
+        session_key.save(master_key=self.master_key)
+        self.assertTrue(session_key.hash.startswith("sha256$"))
+
 
 class SecretRoleModelTestCase(TestCase):
     def test_str(self):
@@ -257,14 +276,27 @@ class SecretModelTestCase(TestCase):
         self.assertIsNone(secret.plaintext)
         self.assertTrue(secret.ciphertext)
         self.assertTrue(secret.hash)
-        self.assertTrue(secret.validate("supersecret"))
-        self.assertFalse(secret.validate("wrong"))
+        self.assertTrue(secret.hash.startswith("hmac_sha256$"))
+        self.assertTrue(secret.validate("supersecret", self.secret_key))
+        self.assertFalse(secret.validate("wrong", self.secret_key))
+        self.assertFalse(secret.validate("supersecret", generate_random_key()))
 
         secret.decrypt(self.secret_key)
         self.assertEqual(secret.plaintext, "supersecret")
 
         # Decrypt is a no-op if plaintext already populated
         secret.decrypt(self.secret_key)
+
+    def test_encrypting_same_value_twice_gives_different_hashes(self):
+        first = self._create_secret(plaintext="supersecret")
+        first.encrypt(self.secret_key)
+        second = self._create_secret(plaintext="supersecret")
+        second.encrypt(self.secret_key)
+
+        self.assertNotEqual(first.hash, second.hash)
+        self.assertNotEqual(first.ciphertext, second.ciphertext)
+        self.assertTrue(first.validate("supersecret", self.secret_key))
+        self.assertTrue(second.validate("supersecret", self.secret_key))
 
     def test_encrypt_without_plaintext(self):
         secret = self._create_secret()
@@ -290,7 +322,25 @@ class SecretModelTestCase(TestCase):
         secret = self._create_secret(plaintext="supersecret")
         secret.hash = ""
         with self.assertRaises(ValueError):
-            secret.validate("supersecret")
+            secret.validate("supersecret", self.secret_key)
+
+    def test_decrypt_with_wrong_key_fails(self):
+        secret = self._create_secret(plaintext="supersecret")
+        secret.encrypt(self.secret_key)
+        with self.assertRaises(Exception):
+            secret.decrypt(generate_random_key())
+
+    def test_decrypt_accepts_legacy_hash(self):
+        secret = self._create_secret(plaintext="supersecret")
+        secret.encrypt(self.secret_key)
+        legacy_hash = make_password("supersecret", hasher=SecretValidationHasher())
+        secret.hash = legacy_hash
+
+        with self.assertWarns(DeprecationWarning):
+            secret.decrypt(self.secret_key)
+
+        self.assertEqual(secret.plaintext, "supersecret")
+        self.assertEqual(secret.hash, legacy_hash)
 
 
 class CryptoUtilsTestCase(TestCase):
