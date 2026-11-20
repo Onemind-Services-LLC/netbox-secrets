@@ -133,6 +133,7 @@ class SecretEditViewPostTestCase(TestCase):
         'netbox_secrets.view_secret',
         'netbox_secrets.change_secret',
         'netbox_secrets.view_secretrole',
+        'dcim.view_device',
     )
 
     @classmethod
@@ -269,7 +270,10 @@ class SecretEditViewConstrainedPermissionTestCase(TestCase):
     must be rejected and rolled back.
     """
 
-    user_permissions = ('netbox_secrets.view_secretrole',)
+    user_permissions = (
+        'netbox_secrets.view_secretrole',
+        'dcim.view_device',
+    )
 
     @classmethod
     def setUpTestData(cls):
@@ -433,3 +437,70 @@ class ActivateUserKeyViewTestCase(TestCase):
         )
         self.assertHttpStatus(response, 200)
         self.assertIn("Invalid Private Key", response.content.decode())
+
+
+class ActivateUserKeyViewTestCase(TestCase):
+    user_permissions = ('netbox_secrets.change_userkey',)
+
+    def test_activate_multiple_user_keys(self):
+        # Create the current user's active key.
+        userkey = UserKey.objects.create(
+            user=self.user,
+            public_key=PUBLIC_KEY,
+        )
+
+        # Create two target users whose keys need activation.
+        target_users = [
+            get_user_model().objects.create_user(username='target-user-1'),
+            get_user_model().objects.create_user(username='target-user-2'),
+        ]
+
+        target_keys = [
+            UserKey.objects.create(
+                user=user,
+                public_key=PUBLIC_KEY,
+            )
+            for user in target_users
+        ]
+
+        # Create another key which should not be activated.
+        unselected_user = get_user_model().objects.create_user(username='unselected-user')
+        unselected_key = UserKey.objects.create(
+            user=unselected_user,
+            public_key=PUBLIC_KEY,
+        )
+
+        # Verify that the current user's key is active and target keys are inactive.
+        self.assertTrue(userkey.is_active())
+
+        for target_key in target_keys:
+            self.assertFalse(target_key.is_active())
+
+        self.assertFalse(unselected_key.is_active())
+
+        # Submit multiple UserKeys for activation.
+        response = self.client.post(
+            reverse('plugins:netbox_secrets:userkey_activate'),
+            data={
+                'secret_key': PRIVATE_KEY,
+                'user_keys': [key.pk for key in target_keys],
+            },
+        )
+
+        self.assertHttpStatus(response, 302)
+        self.assertEqual(
+            response.url,
+            reverse('plugins:netbox_secrets:userkey_list'),
+        )
+
+        # Verify that all selected UserKeys have been activated.
+        for target_key in target_keys:
+            target_key.refresh_from_db()
+            self.assertTrue(
+                target_key.is_active(),
+                f"UserKey belonging to {target_key.user} was not activated.",
+            )
+
+        # Verify that the unselected UserKey remains inactive.
+        unselected_key.refresh_from_db()
+        self.assertFalse(unselected_key.is_active())

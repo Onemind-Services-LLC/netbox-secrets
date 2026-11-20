@@ -6,7 +6,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import BooleanField, Case, Value, When
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -32,6 +34,7 @@ from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
 from utilities.querydict import prepare_cloned_fields
+from utilities.request import safe_for_redirect
 from utilities.views import (
     GetRelatedModelsMixin,
     GetReturnURLMixin,
@@ -39,7 +42,7 @@ from utilities.views import (
     register_model_view,
 )
 from . import exceptions, filtersets, forms, tables, utils
-from .constants import get_public_key_size
+from .constants import get_public_key_size, SECRET_ASSIGNABLE_MODELS
 from .models import Secret, SecretRole, SessionKey, UserKey
 from .ui.panels import SecretDataViewPanel, SecretPanel
 
@@ -217,11 +220,38 @@ class SecretEditView(generic.ObjectEditView):
 
     def alter_object(self, instance, request, url_args, url_kwargs):
         if not instance.pk:
-            # Assign the assigned_object based on the URL parameters
-            content_type = get_object_or_404(ContentType, pk=request.GET.get('assigned_object_type'))
+            content_type_id = request.GET.get('assigned_object_type')
+            object_id = request.GET.get('assigned_object_id')
+
+            if not content_type_id or not object_id:
+                raise Http404("Either Assigned Object Type or Object ID not found.")
+
+            # Retrieve content type
+            content_type = get_object_or_404(
+                ContentType,
+                pk=content_type_id,
+            )
+            # Validate content type against explicitly allowed models
+            if (
+                not SECRET_ASSIGNABLE_MODELS
+                or not ContentType.objects.filter(
+                    SECRET_ASSIGNABLE_MODELS,
+                    pk=content_type.pk,
+                ).exists()
+            ):
+                raise Http404("Requested object selection is invalid.")
+
+            # Ensure the content type resolves to an existing model
+            model = content_type.model_class()
+            if model is None:
+                raise Http404("Requested object does not exist.")
+
+            # Retrieve object through the user's restricted queryset
+            queryset = model.objects.restrict(request.user)
+
             instance.assigned_object = get_object_or_404(
-                content_type.model_class(),
-                pk=request.GET.get('assigned_object_id'),
+                queryset,
+                pk=object_id,
             )
 
         return instance
@@ -261,6 +291,10 @@ class SecretEditView(generic.ObjectEditView):
 
         if form.is_valid():
             logger.debug("Form validation was successful")
+
+            # Record changelog message (if any)
+            obj._changelog_message = form.cleaned_data.pop('changelog_message', '')
+
             try:
                 with transaction.atomic():
                     object_created = form.instance.pk is None
@@ -331,6 +365,8 @@ class SecretEditView(generic.ObjectEditView):
                             if 'return_url' in request.GET:
                                 params['return_url'] = request.GET.get('return_url')
                             redirect_url += f"?{params.urlencode()}"
+                            if not safe_for_redirect(redirect_url):
+                                redirect_url = reverse('home')
 
                         return redirect(redirect_url)
 
@@ -514,8 +550,8 @@ class ActivateUserkeyView(LoginRequiredMixin, GetReturnURLMixin, View):
             if master_key:
                 for user_key in user_keys:
                     user_key.activate(master_key)
-                    messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
-                    return redirect("plugins:netbox_secrets:userkey_list")
+                messages.success(request, f"Successfully activated {len(user_keys)} user keys.")
+                return redirect("plugins:netbox_secrets:userkey_list")
             else:
                 messages.error(request, "Invalid Private Key.")
 
