@@ -32,6 +32,7 @@ from netbox.ui.panels import (
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
+from utilities.request import safe_for_redirect
 from utilities.querydict import prepare_cloned_fields
 from utilities.views import (
     GetRelatedModelsMixin,
@@ -246,7 +247,6 @@ class SecretEditView(generic.ObjectEditView):
 
             # Retrieve object through the user's restricted queryset
             queryset = model.objects.restrict(request.user)
-            print(f"queryset: {queryset}")
 
             instance.assigned_object = get_object_or_404(
                 queryset,
