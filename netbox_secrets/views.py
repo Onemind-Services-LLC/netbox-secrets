@@ -32,8 +32,8 @@ from netbox.ui.panels import (
 from netbox.views import generic
 from utilities.exceptions import AbortRequest, PermissionsViolation
 from utilities.forms import restrict_form_fields
-from utilities.request import safe_for_redirect
 from utilities.querydict import prepare_cloned_fields
+from utilities.request import safe_for_redirect
 from utilities.views import (
     GetRelatedModelsMixin,
     GetReturnURLMixin,
