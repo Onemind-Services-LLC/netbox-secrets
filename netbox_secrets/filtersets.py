@@ -75,13 +75,16 @@ class SecretRoleFilterSet(NestedGroupModelFilterSet):
 class SecretFilterSet(PrimaryModelFilterSet, ContactModelFilterSet):
     assigned_object_type = ContentTypeFilter()
     assigned_object_type_id = django_filters.ModelMultipleChoiceFilter(queryset=ContentType.objects.all())
-    role_id = django_filters.ModelMultipleChoiceFilter(
+    role_id = TreeNodeMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
-        label=_('Role (ID)'),
+        field_name='role',
+        lookup_expr='in',
+        label=_('Secret role (ID)'),
     )
-    role = django_filters.ModelMultipleChoiceFilter(
-        field_name='role__slug',
+    role = TreeNodeMultipleChoiceFilter(
         queryset=SecretRole.objects.all(),
+        field_name='role',
+        lookup_expr='in',
         to_field_name='slug',
         label=_('Role (slug)'),
     )
