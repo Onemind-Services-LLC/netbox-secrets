@@ -44,5 +44,5 @@ class Migration(migrations.Migration):
             name='comments',
             field=models.TextField(blank=True),
         ),
-        migrations.RunPython(copy_assigned_object)
+        migrations.RunPython(copy_assigned_object, reverse_code=migrations.RunPython.noop)
     ]
