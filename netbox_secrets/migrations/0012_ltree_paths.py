@@ -7,7 +7,6 @@ backup before applying this migration; do not treat reversing it as a
 data-preserving rollback.
 """
 from django.contrib.postgres.indexes import GistIndex
-from django.contrib.postgres.operations import CreateExtension
 from django.db import migrations, models
 
 import netbox.models.ltree
@@ -22,8 +21,35 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Create the PostgreSQL ltree extension before adding ltree columns and triggers.
-        CreateExtension('ltree'),
+        # Create the PostgreSQL ltree extension before adding ltree columns and triggers. The extension is shared
+        # with NetBox core, so it must never be dropped when this migration is reversed.
+        migrations.RunSQL(
+            sql='CREATE EXTENSION IF NOT EXISTS ltree',
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+
+        # Give the legacy MPTT columns a default so that reversing the RemoveField operations below can re-add them
+        # to a table that already contains rows.
+        migrations.AlterField(
+            model_name='secretrole',
+            name='lft',
+            field=models.PositiveIntegerField(default=0, editable=False),
+        ),
+        migrations.AlterField(
+            model_name='secretrole',
+            name='rght',
+            field=models.PositiveIntegerField(default=0, editable=False),
+        ),
+        migrations.AlterField(
+            model_name='secretrole',
+            name='tree_id',
+            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+        ),
+        migrations.AlterField(
+            model_name='secretrole',
+            name='level',
+            field=models.PositiveIntegerField(default=0, editable=False),
+        ),
 
         # Switch parent from mptt.fields.TreeForeignKey to django.db.models.ForeignKey.
         migrations.AlterField(

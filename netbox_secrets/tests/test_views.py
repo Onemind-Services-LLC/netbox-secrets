@@ -245,7 +245,8 @@ class SecretEditViewPostTestCase(TestCase):
             hash='dummy',
         )
         url = reverse('plugins:netbox_secrets:secret_edit', kwargs={'pk': secret.pk})
-        with mock.patch.object(Secret, 'snapshot', autospec=True) as snapshot:
+        # Wrap the real method: change logging reads the pre-change snapshot that it stores on the object
+        with mock.patch.object(Secret, 'snapshot', autospec=True, side_effect=Secret.snapshot) as snapshot:
             response = self.client.post(url, data={'name': 'secret-edit', 'role': self.role.pk})
         self.assertHttpStatus(response, 302)
         snapshot.assert_called_once()

@@ -131,5 +131,41 @@ pip install --upgrade netbox-secrets
 
 ## Uninstall
 
-1) Remove the plugin from `PLUGINS` in `configuration.py`
-2) Uninstall the package: `pip uninstall netbox-secrets`
+> **Warning:** Uninstalling permanently deletes every secret, secret role and user key. Secrets are encrypted, so they
+> cannot be recovered afterwards. Export anything you need and take a database backup first.
+
+The plugin cleans up after itself, but only while it is still installed. Run the cleanup command **before** removing
+the plugin from `PLUGINS` and uninstalling the package.
+
+1) Preview what will be removed:
+
+```shell
+./manage.py netbox_secrets_uninstall --dry-run
+```
+
+2) Run the cleanup. You will be asked to type `uninstall` to confirm (use `--no-input` to skip the prompt):
+
+```shell
+./manage.py netbox_secrets_uninstall
+```
+
+This deletes, in a single transaction:
+
+- the plugin's change log entries (NetBox does not allow content types to be deleted while these exist)
+- the plugin's content types, together with their permissions, journal entries and search entries
+- the plugin's database tables, triggers and functions, and its rows in `django_migrations`
+
+The PostgreSQL `ltree` extension is shared with NetBox and is left in place.
+
+Custom fields, custom links, event rules, export templates, saved filters, tags and object permissions that you attached
+to the plugin's models are unlinked from them. Those that applied *only* to the plugin's models are kept and listed in
+the output; pass `--delete-orphans` to delete them as well. Objects that are also linked to other models are never
+deleted.
+
+3) Remove the plugin from `PLUGINS` (and its entry from `PLUGINS_CONFIG`) in `configuration.py`
+4) Uninstall the package, and remove it from `local_requirements.txt` if it is listed there: `pip uninstall netbox-secrets`
+5) Restart NetBox
+
+If the plugin is already uninstalled, follow NetBox's [Removing a Plugin](https://netboxlabs.com/docs/netbox/en/stable/plugins/removal/)
+guide instead. Before deleting the content types, delete the change log entries that reference them, and drop the
+`netbox_secrets_secretrole_ltree_*` SQL functions along with the tables.
